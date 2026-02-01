@@ -40,18 +40,25 @@ jobs:
 
       - name: Verificar plantilla PPT
         run: |
-          echo "📂 Verificando plantilla..."
+          echo "📂 Listando contenido de data/..."
+          ls -la data/
+          echo ""
+          echo "🔍 Buscando archivos .pptx en data/..."
+          find data/ -name "*.pptx" -type f
+          echo ""
+          
           if [ ! -f "data/Cambios_morfologicos.pptx" ]; then
-            echo "❌ ERROR: Plantilla no encontrada en data/Cambios_morfologicos.pptx"
+            echo "❌ ERROR: Plantilla NO encontrada"
             echo ""
-            echo "La plantilla debe estar en:"
-            echo "  - Ruta esperada: data/Cambios_morfologicos.pptx"
-            echo "  - Archivo necesario: Cambios_morfologicos.pptx"
+            echo "Ruta esperada: data/Cambios_morfologicos.pptx"
             echo ""
-            echo "Por favor, sube el archivo a la ruta correcta y vuelve a ejecutar."
+            echo "Archivos encontrados en data/:"
+            ls -la data/ || echo "Carpeta data/ no existe"
+            echo ""
             exit 1
           fi
-          echo "✅ Plantilla encontrada"
+          
+          echo "✅ Plantilla encontrada:"
           ls -lh data/Cambios_morfologicos.pptx
 
       - name: Generar PPT
