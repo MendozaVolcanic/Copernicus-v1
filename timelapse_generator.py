@@ -12,7 +12,7 @@ import glob
 # CONFIGURACIÓN
 # =========================
 
-VOLCANES_ACTIVOS = ["Villarrica"]  # Expandir cuando se activen más
+VOLCANES_ACTIVOS = ["Villarrica", "Llaima"]  # Expandir cuando se activen más
 
 FPS = 1  # Frame por segundo
 DURACION_FRAME = 1000  # Milisegundos por frame (1000ms = 1s)
