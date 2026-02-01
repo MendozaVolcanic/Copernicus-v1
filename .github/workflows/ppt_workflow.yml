@@ -34,6 +34,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install python-pptx
 
+      - name: Verificar plantilla PPT
+        run: |
+          echo "📂 Verificando plantilla..."
+          if [ ! -f "data/Cambios_morfologicos.pptx" ]; then
+            echo "❌ ERROR: Plantilla no encontrada en data/Cambios_morfologicos.pptx"
+            echo ""
+            echo "La plantilla debe estar en:"
+            echo "  - Ruta esperada: data/Cambios_morfologicos.pptx"
+            echo "  - Archivo necesario: Cambios_morfologicos.pptx"
+            echo ""
+            echo "Por favor, sube el archivo a la ruta correcta y vuelve a ejecutar."
+            exit 1
+          fi
+          echo "✅ Plantilla encontrada"
+          ls -lh data/Cambios_morfologicos.pptx
+
       - name: Generar PPT
         run: |
           python ppt_generator.py
