@@ -29,8 +29,11 @@ CATALOG_API_URL = "https://catalogue.dataspace.copernicus.eu/resto/api/collectio
 
 # Parámetros de búsqueda
 MAX_CLOUD_COVER = 30  # Máximo 30% de nubes
-BUFFER_KM = 5         # Buffer de 5 km alrededor del volcán (enfoque en cráter)
+BUFFER_KM = 4         # Buffer de 4 km alrededor del volcán (REDUCIDO para pruebas)
 RESOLUTION_M = 60     # Resolución 60m por píxel
+
+# MODO SOBRESCRITURA (para pruebas)
+MODO_SOBRESCRITURA = True  # True = Sobrescribe imágenes existentes
 
 # Tamaño de imagen
 IMAGE_WIDTH = 1024
@@ -55,7 +58,7 @@ VOLCANES = {
         "id_mirova": "357110",
         "limite_km": 5.0,
         "region": "Araucanía",
-        "activo": False  # Pendiente activar
+        "activo": True  # ACTIVADO para pruebas
     },
     "Nevados de Chillan": {
         "lat": -36.86,
