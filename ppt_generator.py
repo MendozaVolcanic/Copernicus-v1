@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 import glob
 from io import BytesIO
+from PIL import Image
 
 # =========================
 # CONFIGURACIÓN
@@ -17,6 +18,59 @@ from io import BytesIO
 
 VOLCANES_ACTIVOS = ["Villarrica", "Llaima"]
 TEMPLATE_PPT = "data/Cambios_morfologicos.pptx"  # Plantilla en el repositorio
+CALIDAD_COMPRESION = 85  # Calidad JPEG (1-100, 85 = buen balance)
+
+# =========================
+# FUNCIÓN DE COMPRESIÓN
+# =========================
+
+def comprimir_gif_para_ppt(gif_path, calidad=CALIDAD_COMPRESION):
+    """
+    Comprime GIF para reducir tamaño en PPT
+    
+    Args:
+        gif_path: Path al GIF original
+        calidad: Calidad JPEG (1-100)
+    
+    Returns:
+        str: Path al GIF comprimido temporal
+    """
+    try:
+        # Abrir GIF
+        img = Image.open(gif_path)
+        
+        # Crear path temporal
+        temp_path = gif_path.replace('.gif', '_compressed.jpg')
+        
+        # Para GIF animado, tomar primer frame
+        if hasattr(img, 'n_frames') and img.n_frames > 1:
+            img.seek(0)  # Primer frame
+        
+        # Convertir a RGB si necesario
+        if img.mode in ('RGBA', 'LA', 'P'):
+            background = Image.new('RGB', img.size, (255, 255, 255))
+            if img.mode == 'P':
+                img = img.convert('RGBA')
+            background.paste(img, mask=img.split()[-1] if img.mode == 'RGBA' else None)
+            img = background
+        elif img.mode != 'RGB':
+            img = img.convert('RGB')
+        
+        # Guardar como JPEG comprimido
+        img.save(temp_path, 'JPEG', quality=calidad, optimize=True)
+        
+        # Reportar reducción
+        size_original = os.path.getsize(gif_path) / 1024
+        size_comprimida = os.path.getsize(temp_path) / 1024
+        reduccion = ((size_original - size_comprimida) / size_original) * 100
+        
+        print(f"      📦 Comprimido: {size_original:.0f} KB → {size_comprimida:.0f} KB ({reduccion:.0f}% menos)")
+        
+        return temp_path
+    
+    except Exception as e:
+        print(f"      ⚠️ Error comprimiendo: {e}")
+        return gif_path  # Retornar original si falla
 
 # =========================
 # GENERADOR PPT
@@ -103,8 +157,8 @@ def generar_ppt_mensual(volcan_nombre, mes=None, año=None):
     # SHAPE 2: Imagen RGB (izquierda) - posición x=0.49"
     # SHAPE 3: Imagen Thermal (derecha) - posición x=6.69"
     # SHAPE 4: Texto evaluación (abajo)
-    # SHAPE 5: Texto RGB (título izquierda) - posición x=5.15"
-    # SHAPE 6: Texto Thermal (título izquierda) - posición x=-1.42"
+    # SHAPE 5: Texto IZQUIERDA (RGB) - posición x < 5
+    # SHAPE 6: Texto DERECHA (Thermal) - posición x > 5
     
     shapes_to_remove = []
     
@@ -112,28 +166,44 @@ def generar_ppt_mensual(volcan_nombre, mes=None, año=None):
         if hasattr(shape, "text"):
             # Título principal
             if "Cambios Morfológicos" in shape.text:
-                shape.text = f"Cambios Morfológicos - {volcan_nombre}"
+                # Preservar formato modificando runs en vez de reemplazar texto
+                for paragraph in shape.text_frame.paragraphs:
+                    for run in paragraph.runs:
+                        if "Cambios Morfológicos" in run.text:
+                            run.text = f"Cambios Morfológicos - {volcan_nombre}"
                 print(f"   ✅ Actualizado título")
             
             # Identificar textos por posición
             elif hasattr(shape, 'left'):
                 x_pos = shape.left.inches
                 
-                # Texto derecho (x > 5) = RGB
-                if x_pos > 5:
-                    shape.text = rango_fechas_rgb
-                    print(f"   ✅ Actualizado texto RGB (x={x_pos:.2f}\")")
+                # FIX CRÍTICO: Invertir lógica (estaba al revés)
+                # Texto DERECHO (x > 5) = THERMAL (derecha)
+                if x_pos > 5 and ("Time Lapse" in shape.text or "Imágenes Sentinel" in shape.text):
+                    # Preservar formato
+                    for paragraph in shape.text_frame.paragraphs:
+                        paragraph.clear()  # Limpiar párrafo
+                    # Agregar texto nuevo con formato original
+                    p = shape.text_frame.paragraphs[0]
+                    p.text = rango_fechas_thermal
+                    print(f"   ✅ Actualizado texto THERMAL derecho (x={x_pos:.2f}\")")
                 
-                # Texto izquierdo (x < 5) = Thermal
-                elif "Time Lapse" in shape.text or "Imágenes Sentinel" in shape.text:
-                    shape.text = rango_fechas_thermal
-                    print(f"   ✅ Actualizado texto Thermal (x={x_pos:.2f}\")")
+                # Texto IZQUIERDO (x < 5) = RGB (izquierda)
+                elif x_pos < 5 and ("Time Lapse" in shape.text or "Imágenes Sentinel" in shape.text):
+                    # Preservar formato
+                    for paragraph in shape.text_frame.paragraphs:
+                        paragraph.clear()
+                    p = shape.text_frame.paragraphs[0]
+                    p.text = rango_fechas_rgb
+                    print(f"   ✅ Actualizado texto RGB izquierdo (x={x_pos:.2f}\")")
         
         # Marcar imágenes para reemplazo
         if shape.shape_type == 13:  # Picture
             shapes_to_remove.append((idx, shape))
     
     # Reemplazar imágenes (de atrás hacia adelante para no afectar índices)
+    imagenes_temporales = []  # Para limpiar después
+    
     for idx, shape in reversed(shapes_to_remove):
         left = shape.left
         top = shape.top
@@ -150,12 +220,16 @@ def generar_ppt_mensual(volcan_nombre, mes=None, año=None):
             gif_path = gif_thermal_path
             print(f"   🖼️ Reemplazando imagen derecha (x={x_pos:.2f}\") con Thermal")
         
+        # Comprimir GIF antes de insertar
+        gif_comprimido = comprimir_gif_para_ppt(gif_path)
+        imagenes_temporales.append(gif_comprimido)
+        
         # Eliminar imagen antigua
         sp = shape.element
         sp.getparent().remove(sp)
         
-        # Agregar GIF nuevo en la misma posición
-        slide.shapes.add_picture(gif_path, left, top, width, height)
+        # Agregar imagen comprimida en la misma posición
+        slide.shapes.add_picture(gif_comprimido, left, top, width, height)
     
     # Guardar PPT
     carpeta_output = f"data/sentinel2/{volcan_nombre}/reportes"
@@ -163,6 +237,14 @@ def generar_ppt_mensual(volcan_nombre, mes=None, año=None):
     
     output_path = f"{carpeta_output}/{volcan_nombre}_Evaluacion_Mensual_{año}-{mes:02d}.pptx"
     prs.save(output_path)
+    
+    # Limpiar imágenes temporales
+    for temp_img in imagenes_temporales:
+        if temp_img.endswith('_compressed.jpg') and os.path.exists(temp_img):
+            try:
+                os.remove(temp_img)
+            except:
+                pass
     
     size_mb = os.path.getsize(output_path) / (1024 * 1024)
     print(f"   ✅ PPT generado: {output_path}")
@@ -192,7 +274,7 @@ def main():
     print("="*80)
     
     for ppt in ppts_generados:
-        print(f"   📁 {ppt}")
+        print(f"   📄 {ppt}")
 
 
 if __name__ == "__main__":
