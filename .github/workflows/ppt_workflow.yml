@@ -1,9 +1,11 @@
 name: Generar PPT Evaluación Mensual
 
 on:
-  # Ejecutar mensualmente el día 1 a las 01:00 UTC (después del timelapse)
-  schedule:
-    - cron: '0 1 1 * *'
+  # Ejecutar DESPUÉS de que timelapse termine
+  workflow_run:
+    workflows: ["Generar Timelapse GIF"]
+    types:
+      - completed
   
   # Permitir ejecución manual
   workflow_dispatch:
@@ -14,6 +16,8 @@ concurrency:
 
 jobs:
   generate-ppt:
+    # Solo ejecutar si el workflow de timelapse fue exitoso
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
