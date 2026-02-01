@@ -99,23 +99,23 @@ class SentinelHubSearcher:
         
         bbox_data = self.create_bbox(lat, lon)
         
-        search_payload = {
-            "bbox": bbox_data["bbox"],
-            "datetime": f"{start_date}T00:00:00Z/{end_date}T23:59:59Z",
-            "collections": ["sentinel-2-l2a"],
-            "limit": 10,
-            "query": {
-                "eo:cloud_cover": {
-                    "lt": max_cloud
-                }
-            }
+        # Parámetros para Copernicus Catalog API
+        params = {
+            'box': ','.join(map(str, bbox_data["bbox"])),
+            'startDate': f"{start_date}T00:00:00Z",
+            'completionDate': f"{end_date}T23:59:59Z",
+            'maxRecords': 10,
+            'cloudCover': f'[0,{max_cloud}]',
+            'sortParam': 'startDate',
+            'sortOrder': 'descending',
+            'productType': 'S2MSI2A'  # Sentinel-2 L2A
         }
         
         try:
-            response = requests.post(
+            response = requests.get(
                 self.catalog_url,
+                params=params,
                 headers=self.auth.get_headers(),
-                json=search_payload,
                 timeout=30
             )
             response.raise_for_status()
@@ -128,15 +128,18 @@ class SentinelHubSearcher:
             
             # Tomar la imagen más reciente
             latest = features[0]
+            props = latest['properties']
             
             return {
-                'date': latest['properties']['datetime'][:10],
-                'cloud_cover': latest['properties'].get('eo:cloud_cover', 0),
-                'sensor': 'Sentinel-2A' if 'S2A' in latest['id'] else 'Sentinel-2B'
+                'date': props.get('startDate', props.get('published', ''))[:10],
+                'cloud_cover': props.get('cloudCover', 0),
+                'sensor': 'Sentinel-2A' if props.get('platform', '').endswith('2A') else 'Sentinel-2B'
             }
             
         except requests.exceptions.RequestException as e:
             print(f"❌ Error en búsqueda: {e}")
+            if hasattr(e.response, 'text'):
+                print(f"   Detalle: {e.response.text[:200]}")
             return None
 
 # =========================
