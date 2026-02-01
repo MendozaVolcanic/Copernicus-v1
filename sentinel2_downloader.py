@@ -13,7 +13,10 @@ from pathlib import Path
 from config_sentinel2 import (
     CLIENT_ID, CLIENT_SECRET, TOKEN_URL,
     PROCESS_API_URL, CATALOG_API_URL,
-    MAX_CLOUD_COVER, BUFFER_KM, IMAGE_WIDTH, IMAGE_HEIGHT,
+    MAX_CLOUD_COVER, BUFFER_KM, 
+    IMAGE_WIDTH, IMAGE_HEIGHT,
+    IMAGE_WIDTH_RGB, IMAGE_HEIGHT_RGB,
+    IMAGE_WIDTH_THERMAL, IMAGE_HEIGHT_THERMAL,
     EVALSCRIPT_RGB, EVALSCRIPT_THERMAL,
     get_active_volcanoes, get_image_path, get_metadata_path,
     validate_credentials
@@ -183,6 +186,14 @@ class SentinelHubDownloader:
         bbox = self.create_bbox(lat, lon)
         evalscript = EVALSCRIPT_RGB if tipo == 'RGB' else EVALSCRIPT_THERMAL
         
+        # Seleccionar tamaño según tipo para que ambos muestren la misma área física
+        if tipo == 'RGB':
+            width = IMAGE_WIDTH_RGB    # 1024px × 10m/px = 10.24 km
+            height = IMAGE_HEIGHT_RGB
+        else:
+            width = IMAGE_WIDTH_THERMAL   # 512px × 20m/px = 10.24 km (misma área)
+            height = IMAGE_HEIGHT_THERMAL
+        
         # Payload para Process API
         request_payload = {
             "input": {
@@ -206,8 +217,8 @@ class SentinelHubDownloader:
                 ]
             },
             "output": {
-                "width": IMAGE_WIDTH,
-                "height": IMAGE_HEIGHT,
+                "width": width,
+                "height": height,
                 "responses": [
                     {
                         "identifier": "default",
