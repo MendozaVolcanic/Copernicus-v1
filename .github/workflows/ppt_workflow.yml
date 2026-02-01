@@ -1,0 +1,55 @@
+name: Generar PPT Evaluación Mensual
+
+on:
+  # Ejecutar mensualmente el día 1 a las 01:00 UTC (después del timelapse)
+  schedule:
+    - cron: '0 1 1 * *'
+  
+  # Permitir ejecución manual
+  workflow_dispatch:
+
+concurrency:
+  group: ppt-generator
+  cancel-in-progress: true
+
+jobs:
+  generate-ppt:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install python-pptx
+
+      - name: Generar PPT
+        run: |
+          python ppt_generator.py
+
+      - name: Guardar cambios en GitHub
+        run: |
+          git config --global user.name "PPTBot"
+          git config --global user.email "ppt@sentinel2.com"
+          
+          # Agregar PPTs generados
+          git add data/sentinel2/**/reportes/*.pptx
+          
+          if ! git diff --quiet --staged; then
+            git commit -m "📊 PPT Evaluación Mensual generado - $(date +'%Y-%m')"
+            git pull origin main --rebase -X ours
+            git push origin main
+          else
+            echo "ℹ️ No hay nuevos PPTs para guardar"
+          fi
