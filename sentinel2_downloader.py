@@ -95,7 +95,7 @@ class SentinelHubSearcher:
         }
     
     def search_images(self, lat, lon, start_date, end_date, max_cloud=MAX_CLOUD_COVER):
-        """Busca imágenes Sentinel-2 disponibles"""
+        """Busca TODAS las imágenes Sentinel-2 disponibles en el rango de fechas"""
         
         bbox_data = self.create_bbox(lat, lon)
         
@@ -104,7 +104,7 @@ class SentinelHubSearcher:
             'box': ','.join(map(str, bbox_data["bbox"])),
             'startDate': f"{start_date}T00:00:00Z",
             'completionDate': f"{end_date}T23:59:59Z",
-            'maxRecords': 10,
+            'maxRecords': 50,  # Aumentado para obtener todas las del mes
             'cloudCover': f'[0,{max_cloud}]',
             'sortParam': 'startDate',
             'sortOrder': 'descending',
@@ -124,23 +124,25 @@ class SentinelHubSearcher:
             features = data.get('features', [])
             
             if not features:
-                return None
+                return []
             
-            # Tomar la imagen más reciente
-            latest = features[0]
-            props = latest['properties']
+            # Retornar TODAS las imágenes, no solo la más reciente
+            results = []
+            for feature in features:
+                props = feature['properties']
+                results.append({
+                    'date': props.get('startDate', props.get('published', ''))[:10],
+                    'cloud_cover': props.get('cloudCover', 0),
+                    'sensor': 'Sentinel-2A' if props.get('platform', '').endswith('2A') else 'Sentinel-2B'
+                })
             
-            return {
-                'date': props.get('startDate', props.get('published', ''))[:10],
-                'cloud_cover': props.get('cloudCover', 0),
-                'sensor': 'Sentinel-2A' if props.get('platform', '').endswith('2A') else 'Sentinel-2B'
-            }
+            return results
             
         except requests.exceptions.RequestException as e:
             print(f"❌ Error en búsqueda: {e}")
             if hasattr(e.response, 'text'):
                 print(f"   Detalle: {e.response.text[:200]}")
-            return None
+            return []
 
 # =========================
 # DESCARGA DE IMÁGENES
@@ -258,64 +260,68 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
     lat = config['lat']
     lon = config['lon']
     
-    # Buscar imágenes disponibles (últimos 7 días)
+    # Buscar imágenes disponibles (últimos 30 días)
     hoy = datetime.now(pytz.utc)
-    hace_7_dias = hoy - timedelta(days=7)
+    hace_30_dias = hoy - timedelta(days=30)
     
-    resultado = searcher.search_images(
+    resultados = searcher.search_images(
         lat, lon,
-        start_date=hace_7_dias.strftime('%Y-%m-%d'),
+        start_date=hace_30_dias.strftime('%Y-%m-%d'),
         end_date=hoy.strftime('%Y-%m-%d')
     )
     
-    if not resultado:
+    if not resultados:
         print("   ⚠️ No hay imágenes disponibles (nubes > 30%)")
         return None
     
-    fecha = resultado['date']
-    cloud_cover = resultado['cloud_cover']
-    sensor = resultado['sensor']
+    print(f"   📅 Encontradas {len(resultados)} imágenes disponibles")
     
-    print(f"   📅 Fecha: {fecha}")
-    print(f"   ☁️ Nubes: {cloud_cover:.1f}%")
-    print(f"   🛰️ Sensor: {sensor}")
+    # Procesar cada fecha
+    todos_resultados = []
     
-    # Descargar imágenes
-    resultados = []
-    
-    for tipo in ['RGB', 'ThermalFalseColor']:
-        output_path = get_image_path(nombre_volcan, tipo, fecha)
+    for resultado in resultados:
+        fecha = resultado['date']
+        cloud_cover = resultado['cloud_cover']
+        sensor = resultado['sensor']
         
-        # No descargar si ya existe
-        if os.path.exists(output_path):
-            print(f"   ⏭️ {tipo}: Ya existe")
+        print(f"\n   📅 Procesando: {fecha}")
+        print(f"   ☁️ Nubes: {cloud_cover:.1f}%")
+        print(f"   🛰️ Sensor: {sensor}")
+        
+        # Descargar imágenes
+        for tipo in ['RGB', 'ThermalFalseColor']:
+            output_path = get_image_path(nombre_volcan, tipo, fecha)
             
-            size_mb = os.path.getsize(output_path) / (1024 * 1024)
-            resultados.append({
-                'fecha': fecha,
-                'tipo': tipo,
-                'cobertura_nubosa': cloud_cover,
-                'sensor': sensor,
-                'ruta_archivo': f"{tipo}/{fecha}_{tipo}.png",
-                'tamano_mb': round(size_mb, 2)
-            })
-            continue
-        
-        # Descargar
-        exito = downloader.download_image(lat, lon, fecha, tipo, output_path)
-        
-        if exito:
-            size_mb = os.path.getsize(output_path) / (1024 * 1024)
-            resultados.append({
-                'fecha': fecha,
-                'tipo': tipo,
-                'cobertura_nubosa': cloud_cover,
-                'sensor': sensor,
-                'ruta_archivo': f"{tipo}/{fecha}_{tipo}.png",
-                'tamano_mb': round(size_mb, 2)
-            })
+            # No descargar si ya existe
+            if os.path.exists(output_path):
+                print(f"   ⏭️ {tipo}: Ya existe")
+                
+                size_mb = os.path.getsize(output_path) / (1024 * 1024)
+                todos_resultados.append({
+                    'fecha': fecha,
+                    'tipo': tipo,
+                    'cobertura_nubosa': cloud_cover,
+                    'sensor': sensor,
+                    'ruta_archivo': f"{tipo}/{fecha}_{tipo}.png",
+                    'tamano_mb': round(size_mb, 2)
+                })
+                continue
+            
+            # Descargar
+            exito = downloader.download_image(lat, lon, fecha, tipo, output_path)
+            
+            if exito:
+                size_mb = os.path.getsize(output_path) / (1024 * 1024)
+                todos_resultados.append({
+                    'fecha': fecha,
+                    'tipo': tipo,
+                    'cobertura_nubosa': cloud_cover,
+                    'sensor': sensor,
+                    'ruta_archivo': f"{tipo}/{fecha}_{tipo}.png",
+                    'tamano_mb': round(size_mb, 2)
+                })
     
-    return resultados
+    return todos_resultados
 
 def actualizar_metadata(nombre_volcan, nuevos_datos):
     """Actualiza CSV de metadata"""
