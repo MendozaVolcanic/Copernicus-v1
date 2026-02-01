@@ -29,7 +29,7 @@ CATALOG_API_URL = "https://catalogue.dataspace.copernicus.eu/resto/api/collectio
 
 # Parámetros de búsqueda
 MAX_CLOUD_COVER = 30  # Máximo 30% de nubes
-BUFFER_KM = 4         # Buffer de 4 km alrededor del volcán (REDUCIDO para pruebas)
+BUFFER_KM = 3         # Buffer de 3 km alrededor del volcán
 RESOLUTION_M = 60     # Resolución 60m por píxel
 
 # MODO SOBRESCRITURA (para pruebas)
