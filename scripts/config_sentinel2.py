@@ -23,7 +23,9 @@ TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/
 # Endpoints API
 SENTINEL_HUB_BASE = "https://sh.dataspace.copernicus.eu"
 PROCESS_API_URL = f"{SENTINEL_HUB_BASE}/api/v1/process"
-CATALOG_API_URL = f"{SENTINEL_HUB_BASE}/api/v1/catalog/1.0.0/search"
+
+# Catalog API (endpoint diferente)
+CATALOG_API_URL = "https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel2/search.json"
 
 # Parámetros de búsqueda
 MAX_CLOUD_COVER = 30  # Máximo 30% de nubes
