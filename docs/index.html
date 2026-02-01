@@ -1158,6 +1158,174 @@
         }
 
         window.onload = init;
-    </script>
+    
+// ================================================================
+// SNIPPET: Agregar al dashboard para leer fechas de Copernicus
+// ================================================================
+
+// Variable global para almacenar fechas disponibles de Copernicus
+let fechasDisponiblesCopernicus = {};
+
+// Función para cargar fechas disponibles desde JSON generado por workflow
+async function cargarFechasDisponibles(volcano) {
+    try {
+        const url = `data/sentinel2/fechas_disponibles_${volcano}.json?t=${new Date().getTime()}`;
+        const response = await fetch(url);
+        
+        if (response.ok) {
+            const data = await response.json();
+            fechasDisponiblesCopernicus[volcano] = data;
+            console.log(`✅ Fechas Copernicus cargadas para ${volcano}`);
+            return data;
+        } else {
+            console.warn(`⚠️ No se encontraron fechas para ${volcano}`);
+            return {};
+        }
+    } catch (error) {
+        console.error(`❌ Error cargando fechas ${volcano}:`, error);
+        return {};
+    }
+}
+
+// Modificar initCalendar() para cargar fechas de Copernicus
+async function initCalendar() {
+    const yearSelect = document.getElementById('calendar-year');
+    yearSelect.innerHTML = '';
+    
+    let targetYear = new Date().getFullYear();
+    let targetMonth = new Date().getMonth();
+    
+    if (availableDates.length > 0) {
+        const latestDate = availableDates.sort().reverse()[0];
+        const parts = latestDate.split('-');
+        targetYear = parseInt(parts[0]);
+        targetMonth = parseInt(parts[1]) - 1;
+    }
+    
+    const currentYear = new Date().getFullYear();
+    for (let year = currentYear - 2; year <= currentYear + 1; year++) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        if (year === targetYear) option.selected = true;
+        yearSelect.appendChild(option);
+    }
+    
+    calendarMonth = targetMonth;
+    calendarYear = targetYear;
+    document.getElementById('calendar-month').value = calendarMonth;
+    
+    // NUEVO: Cargar fechas de Copernicus
+    await cargarFechasDisponibles(currentVolcano);
+    
+    updateCalendar();
+}
+
+// Modificar updateCalendar() para mostrar fechas de Copernicus
+function updateCalendar() {
+    calendarMonth = parseInt(document.getElementById('calendar-month').value);
+    calendarYear = parseInt(document.getElementById('calendar-year').value);
+    
+    const grid = document.getElementById('calendar-grid');
+    grid.innerHTML = '';
+    
+    const firstDay = new Date(calendarYear, calendarMonth, 1);
+    const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
+    const startDay = firstDay.getDay();
+    
+    // Obtener fechas disponibles de Copernicus para este mes
+    const mesKey = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}`;
+    const fechasCopernicusMes = fechasDisponiblesCopernicus[currentVolcano]?.[mesKey] || [];
+    
+    console.log(`📅 Mes ${mesKey}: ${fechasCopernicusMes.length} fechas en Copernicus`);
+    
+    // Días vacíos al inicio
+    for (let i = 0; i < startDay; i++) {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'calendar-day empty';
+        grid.appendChild(emptyDiv);
+    }
+    
+    // Días del mes
+    for (let day = 1; day <= lastDay.getDate(); day++) {
+        const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        
+        const yaDescargada = availableDates.includes(dateStr);
+        const disponibleCopernicus = fechasCopernicusMes.includes(dateStr);
+        
+        const dayDiv = document.createElement('div');
+        dayDiv.textContent = day;
+        
+        if (yaDescargada) {
+            // Verde oscuro: Ya descargada
+            dayDiv.className = 'calendar-day downloaded';
+            dayDiv.style.background = '#2ea043';
+            dayDiv.style.cursor = 'pointer';
+            dayDiv.onclick = () => {
+                selectDate(dateStr);
+                toggleCalendar();
+            };
+        } else if (disponibleCopernicus) {
+            // Azul: Disponible en Copernicus
+            dayDiv.className = 'calendar-day available';
+            dayDiv.style.background = '#58a6ff';
+            dayDiv.style.cursor = 'pointer';
+            dayDiv.onclick = () => {
+                abrirCopernicusBrowser(dateStr);
+            };
+        } else {
+            // Gris: No disponible
+            dayDiv.className = 'calendar-day unavailable';
+            dayDiv.style.background = '#30363d';
+        }
+        
+        grid.appendChild(dayDiv);
+    }
+}
+
+// Nueva función: Abrir Copernicus Browser para fecha específica
+function abrirCopernicusBrowser(fecha) {
+    const config = VOLCANES_CONFIG[currentVolcano];
+    
+    if (confirm(`🔵 FECHA DISPONIBLE EN COPERNICUS\n\n` +
+               `Volcán: ${currentVolcano}\n` +
+               `Fecha: ${fecha}\n\n` +
+               `¿Abrir Copernicus Browser para ver esta imagen?`)) {
+        
+        // Construir URL de Copernicus Browser
+        const url = `https://browser.dataspace.copernicus.eu/?` +
+            `zoom=12&` +
+            `lat=${config.lat}&` +
+            `lng=${config.lon}&` +
+            `themeId=DEFAULT-THEME&` +
+            `visualizationUrl=https://services.sentinel-hub.com/ogc/wms/YOUR_INSTANCE_ID&` +
+            `datasetId=S2L2A&` +
+            `fromTime=${fecha}T00:00:00.000Z&` +
+            `toTime=${fecha}T23:59:59.999Z&` +
+            `layerId=1_TRUE_COLOR`;
+        
+        window.open(url, '_blank');
+    }
+}
+
+// Actualizar leyenda del calendario (agregar en el HTML)
+/*
+<div class="calendar-legend" style="display: flex; justify-content: center; gap: 15px; margin-top: 10px; font-size: 0.85em;">
+    <div style="display: flex; align-items: center; gap: 5px;">
+        <div style="width: 15px; height: 15px; background: #2ea043; border-radius: 3px;"></div>
+        <span>Ya descargada</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 5px;">
+        <div style="width: 15px; height: 15px; background: #58a6ff; border-radius: 3px;"></div>
+        <span>Disponible en Copernicus</span>
+    </div>
+    <div style="display: flex; align-items: center; gap: 5px;">
+        <div style="width: 15px; height: 15px; background: #30363d; border-radius: 3px;"></div>
+        <span>No disponible</span>
+    </div>
+</div>
+*/
+
+</script>
 </body>
 </html>
