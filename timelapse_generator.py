@@ -85,7 +85,10 @@ def generar_gif(volcan_nombre, tipo='RGB'):
     # Generar GIF
     fecha_inicio = fechas[0]
     fecha_fin = fechas[-1]
-    output_path = f"{carpeta_gif}/{volcan_nombre}_{tipo}_{fecha_inicio}_to_{fecha_fin}.gif"
+    
+    # Usar mes del período más reciente para nombre consistente
+    mes_actual = fecha_fin[:7]  # YYYY-MM
+    output_path = f"{carpeta_gif}/{volcan_nombre}_{tipo}_{mes_actual}.gif"
     
     try:
         imagenes[0].save(
