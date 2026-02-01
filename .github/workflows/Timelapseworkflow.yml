@@ -38,7 +38,6 @@ jobs:
             echo "⏭️ No es día 1 del mes - saltar timelapse"
           fi
 
-    steps:
       - name: Checkout del repositorio
         if: steps.check-date.outputs.should_run == 'true'
         uses: actions/checkout@v4
