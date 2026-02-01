@@ -1,0 +1,188 @@
+name: Buscar Fechas Disponibles Copernicus
+
+on:
+  # Ejecutar cada 6 horas
+  schedule:
+    - cron: '0 */6 * * *'
+  
+  # Permitir ejecución manual
+  workflow_dispatch:
+
+concurrency:
+  group: buscar-fechas
+  cancel-in-progress: true
+
+jobs:
+  buscar-fechas:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Crear script buscador
+        run: |
+          cat > buscar_fechas.py << 'EOFPYTHON'
+          import requests
+          import json
+          from datetime import datetime, timedelta
+          import os
+
+          # Configuración volcanes
+          VOLCANES = {
+              "Villarrica": {"lat": -39.42, "lon": -71.93},
+              "Llaima": {"lat": -38.69, "lon": -71.73}
+          }
+
+          BUFFER_KM = 3
+          MAX_CLOUD_COVER = 30
+
+          def crear_bbox(lat, lon, buffer_km):
+              """Crear bounding box"""
+              km_per_degree = 111.32
+              delta_lat = buffer_km / km_per_degree
+              delta_lon = buffer_km / (km_per_degree * abs(lat / 90))
+              
+              return [
+                  lon - delta_lon,  # min_lon
+                  lat - delta_lat,  # min_lat
+                  lon + delta_lon,  # max_lon
+                  lat + delta_lat   # max_lat
+              ]
+
+          def buscar_fechas_copernicus(volcan, lat, lon, meses_atras=6):
+              """
+              Busca fechas disponibles en Copernicus para los últimos N meses
+              
+              Args:
+                  volcan: Nombre del volcán
+                  lat, lon: Coordenadas
+                  meses_atras: Cuántos meses buscar hacia atrás
+              
+              Returns:
+                  dict: {mes: [fechas]}
+              """
+              print(f"\n🔍 Buscando fechas para {volcan}...")
+              
+              bbox = crear_bbox(lat, lon, BUFFER_KM)
+              
+              # Buscar últimos N meses
+              fechas_por_mes = {}
+              
+              for mes_offset in range(meses_atras):
+                  # Calcular rango del mes
+                  hoy = datetime.now()
+                  fecha_inicio = datetime(hoy.year, hoy.month, 1) - timedelta(days=mes_offset * 30)
+                  fecha_inicio = datetime(fecha_inicio.year, fecha_inicio.month, 1)
+                  
+                  # Calcular último día del mes
+                  if fecha_inicio.month == 12:
+                      fecha_fin = datetime(fecha_inicio.year + 1, 1, 1) - timedelta(days=1)
+                  else:
+                      fecha_fin = datetime(fecha_inicio.year, fecha_inicio.month + 1, 1) - timedelta(days=1)
+                  
+                  start_date = fecha_inicio.strftime("%Y-%m-%d")
+                  end_date = fecha_fin.strftime("%Y-%m-%d")
+                  mes_key = fecha_inicio.strftime("%Y-%m")
+                  
+                  print(f"  📅 Buscando: {mes_key}")
+                  
+                  # Consultar Copernicus Catalog
+                  url = (
+                      f"https://catalogue.dataspace.copernicus.eu/resto/api/collections/Sentinel2/search.json?"
+                      f"box={bbox[0]},{bbox[1]},{bbox[2]},{bbox[3]}&"
+                      f"startDate={start_date}&"
+                      f"completionDate={end_date}&"
+                      f"maxRecords=100&"
+                      f"cloudCover=[0,{MAX_CLOUD_COVER}]&"
+                      f"productType=S2MSI2A"
+                  )
+                  
+                  try:
+                      response = requests.get(url, timeout=30)
+                      
+                      if response.status_code == 200:
+                          data = response.json()
+                          
+                          # Extraer fechas únicas
+                          fechas = set()
+                          for feature in data.get('features', []):
+                              fecha_str = feature['properties']['startDate'].split('T')[0]
+                              fechas.add(fecha_str)
+                          
+                          fechas_por_mes[mes_key] = sorted(list(fechas))
+                          print(f"     ✅ {len(fechas)} fechas encontradas")
+                      else:
+                          print(f"     ⚠️ Error HTTP {response.status_code}")
+                          fechas_por_mes[mes_key] = []
+                  
+                  except Exception as e:
+                      print(f"     ❌ Error: {e}")
+                      fechas_por_mes[mes_key] = []
+              
+              return fechas_por_mes
+
+          def main():
+              print("=" * 80)
+              print("🔍 BUSCADOR DE FECHAS DISPONIBLES - COPERNICUS")
+              print("=" * 80)
+              
+              os.makedirs("data/sentinel2", exist_ok=True)
+              
+              for volcan, coords in VOLCANES.items():
+                  fechas_por_mes = buscar_fechas_copernicus(
+                      volcan, 
+                      coords['lat'], 
+                      coords['lon'],
+                      meses_atras=6
+                  )
+                  
+                  # Guardar JSON
+                  output_file = f"data/sentinel2/fechas_disponibles_{volcan}.json"
+                  with open(output_file, 'w', encoding='utf-8') as f:
+                      json.dump(fechas_por_mes, f, indent=2, ensure_ascii=False)
+                  
+                  # Estadísticas
+                  total_fechas = sum(len(fechas) for fechas in fechas_por_mes.values())
+                  print(f"\n✅ {volcan}: {total_fechas} fechas guardadas en {output_file}")
+              
+              print("\n" + "=" * 80)
+              print("✅ BÚSQUEDA COMPLETADA")
+              print("=" * 80)
+
+          if __name__ == "__main__":
+              main()
+          EOFPYTHON
+
+      - name: Ejecutar búsqueda
+        run: |
+          python buscar_fechas.py
+
+      - name: Guardar JSON en GitHub
+        run: |
+          git config --global user.name "FechasFinder"
+          git config --global user.email "fechas@copernicus.com"
+          
+          git add data/sentinel2/fechas_disponibles_*.json
+          
+          if ! git diff --quiet --staged; then
+            git commit -m "🔍 Actualización fechas disponibles Copernicus"
+            git pull origin main --rebase -X ours
+            git push origin main
+          else
+            echo "ℹ️ No hay cambios en fechas disponibles"
+          fi
