@@ -292,8 +292,10 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
         for tipo in ['RGB', 'ThermalFalseColor']:
             output_path = get_image_path(nombre_volcan, tipo, fecha)
             
-            # No descargar si ya existe
-            if os.path.exists(output_path):
+            # Verificar si ya existe (o sobrescribir si está en modo prueba)
+            from config_sentinel2 import MODO_SOBRESCRITURA
+            
+            if os.path.exists(output_path) and not MODO_SOBRESCRITURA:
                 print(f"   ⏭️ {tipo}: Ya existe")
                 
                 size_mb = os.path.getsize(output_path) / (1024 * 1024)
@@ -306,6 +308,8 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
                     'tamano_mb': round(size_mb, 2)
                 })
                 continue
+            elif os.path.exists(output_path) and MODO_SOBRESCRITURA:
+                print(f"   🔄 {tipo}: Sobrescribiendo (modo prueba)")
             
             # Descargar
             exito = downloader.download_image(lat, lon, fecha, tipo, output_path)
