@@ -15,8 +15,8 @@ from io import BytesIO
 # CONFIGURACIÓN
 # =========================
 
-VOLCANES_ACTIVOS = ["Villarrica"]
-TEMPLATE_PPT = "/mnt/user-data/uploads/Cambios_morfologicos.pptx"  # Plantilla base
+VOLCANES_ACTIVOS = ["Villarrica", "Llaima"]
+TEMPLATE_PPT = "data/Cambios_morfologicos.pptx"  # Plantilla en el repositorio
 
 # =========================
 # GENERADOR PPT
