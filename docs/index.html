@@ -316,7 +316,7 @@
         </div>
         <div class="status-item">
             <strong>RESOLUCIÓN:</strong>
-            <span>10-20m/píxel</span>
+            <span>RGB: 10m | Thermal: 20m</span>
         </div>
     </div>
 
@@ -334,6 +334,10 @@
             <option value="Isluga" disabled>Isluga (Pendiente)</option>
             <option value="Chaiten" disabled>Chaitén (Pendiente)</option>
         </select>
+        
+        <label for="date-picker" style="margin-left: 20px;">📅 IR A FECHA:</label>
+        <input type="date" id="date-picker" onchange="goToDate()" 
+               style="background: #0d1117; color: #e0e0e0; border: 1px solid #30363d; padding: 8px 15px; border-radius: 6px; cursor: pointer;">
     </div>
 
     <div id="timeline">
@@ -392,8 +396,12 @@
                     <div class="metadata-value" id="meta-size-thermal">--</div>
                 </div>
                 <div class="metadata-item">
-                    <div class="metadata-label">Resolución</div>
-                    <div class="metadata-value">10-20m/píxel</div>
+                    <div class="metadata-label">Resolución RGB</div>
+                    <div class="metadata-value">10m/píxel</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Resolución Thermal</div>
+                    <div class="metadata-value">20m/píxel</div>
                 </div>
             </div>
         </div>
@@ -488,6 +496,31 @@
             });
             
             loadImages(currentVolcano, fecha);
+        }
+
+        // IR A FECHA DESDE CALENDARIO
+        function goToDate() {
+            const datePicker = document.getElementById('date-picker');
+            const selectedDate = datePicker.value; // YYYY-MM-DD
+            
+            if (!selectedDate) return;
+            
+            // Verificar si la fecha está en el metadata
+            const metadata = metadataCache[currentVolcano] || [];
+            const fechasDisponibles = [...new Set(metadata.map(m => m.fecha))];
+            
+            if (fechasDisponibles.includes(selectedDate)) {
+                // Fecha existe, cargar normalmente
+                selectDate(selectedDate);
+            } else {
+                // Fecha NO existe, mostrar advertencia
+                if (confirm(`⚠️ No hay imágenes descargadas para ${selectedDate}.\n\n` +
+                           `Las imágenes se descargan automáticamente cada día.\n\n` +
+                           `¿Quieres ejecutar una descarga manual?\n` +
+                           `(Esto requiere ejecutar el workflow en GitHub Actions)`)) {
+                    window.open('https://github.com/MendozaVolcanic/Copernicus-v1/actions', '_blank');
+                }
+            }
         }
 
         // CARGAR IMÁGENES
