@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛰️ Sentinel-2 Volcanic Monitor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: linear-gradient(135deg, #0b0e14 0%, #1a1f2e 100%);
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(90deg, #161b22 0%, #1f2937 100%);
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #58a6ff;
+            box-shadow: 0 4px 20px rgba(88, 166, 255, 0.3);
+        }
+
+        header h1 {
+            color: #58a6ff;
+            font-size: 2em;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+        }
+
+        header p {
+            color: #8b949e;
+            font-size: 0.9em;
+        }
+
+        /* BARRA DE ESTADO */
+        #status-bar {
+            background: #161b22;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85em;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-weight: bold;
+            border: 1px solid #30363d;
+            background: #0d1117;
+        }
+
+        .badge-active { background: #238636; border-color: #2ea043; }
+        .badge-pending { background: #9e6a03; border-color: #d29922; }
+
+        /* SELECTOR DE VOLCÁN */
+        #volcano-selector {
+            background: #1f2937;
+            padding: 15px 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
+            flex-wrap: wrap;
+        }
+
+        #volcano-selector label {
+            font-weight: bold;
+            color: #58a6ff;
+        }
+
+        #volcano-select {
+            background: #0d1117;
+            color: #e0e0e0;
+            border: 1px solid #30363d;
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-size: 1em;
+            cursor: pointer;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        #volcano-select:hover {
+            border-color: #58a6ff;
+            box-shadow: 0 0 10px rgba(88, 166, 255, 0.3);
+        }
+
+        #volcano-select option:disabled {
+            color: #6e7681;
+        }
+
+        /* TIMELINE */
+        #timeline {
+            background: #161b22;
+            padding: 15px 20px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        #timeline-dates {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .date-btn {
+            background: #0d1117;
+            color: #8b949e;
+            border: 1px solid #30363d;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+            font-size: 0.9em;
+        }
+
+        .date-btn:hover {
+            background: #1f2937;
+            border-color: #58a6ff;
+        }
+
+        .date-btn.active {
+            background: #58a6ff;
+            color: #0d1117;
+            border-color: #58a6ff;
+            font-weight: bold;
+        }
+
+        /* CONTENEDOR PRINCIPAL */
+        #main-container {
+            padding: 20px;
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        /* GRID DE COMPARACIÓN */
+        #comparison-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .image-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s;
+        }
+
+        .image-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(88, 166, 255, 0.2);
+        }
+
+        .image-header {
+            background: #1f2937;
+            padding: 12px 15px;
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .image-header h3 {
+            color: #58a6ff;
+            font-size: 1.1em;
+        }
+
+        .composition-tag {
+            background: #0d1117;
+            padding: 4px 10px;
+            border-radius: 10px;
+            font-size: 0.75em;
+            border: 1px solid #30363d;
+        }
+
+        .image-container {
+            position: relative;
+            background: #0d1117;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        .loading-spinner {
+            border: 4px solid #30363d;
+            border-top: 4px solid #58a6ff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-image {
+            color: #6e7681;
+            font-style: italic;
+            padding: 40px;
+            text-align: center;
+        }
+
+        /* METADATA */
+        #metadata {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        #metadata h3 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .metadata-item {
+            background: #0d1117;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+        }
+
+        .metadata-label {
+            color: #8b949e;
+            font-size: 0.85em;
+            margin-bottom: 5px;
+        }
+
+        .metadata-value {
+            color: #e0e0e0;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        /* FOOTER */
+        footer {
+            background: #0d1117;
+            padding: 20px;
+            text-align: center;
+            color: #8b949e;
+            border-top: 1px solid #30363d;
+            margin-top: 40px;
+            font-size: 0.85em;
+        }
+
+        footer a {
+            color: #58a6ff;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 1024px) {
+            #comparison-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 { font-size: 1.5em; }
+            #status-bar { justify-content: center; }
+            .metadata-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🛰️ Sentinel-2 Volcanic Monitor</h1>
+        <p>Monitoreo Multi-Espectral de Volcanes Chilenos | ESA Copernicus Program</p>
+    </header>
+
+    <div id="status-bar">
+        <div class="status-item">
+            <strong>SISTEMA:</strong>
+            <span id="system-status" class="status-badge">Cargando...</span>
+        </div>
+        <div class="status-item">
+            <strong>ÚLTIMA ACTUALIZACIÓN:</strong>
+            <span id="last-update">--:--</span>
+        </div>
+        <div class="status-item">
+            <strong>RESOLUCIÓN:</strong>
+            <span>10-20m/píxel</span>
+        </div>
+    </div>
+
+    <div id="volcano-selector">
+        <label for="volcano-select">🌋 VOLCÁN:</label>
+        <select id="volcano-select" onchange="loadVolcano()">
+            <option value="Villarrica" selected>Villarrica (Activo)</option>
+            <option value="Llaima" disabled>Llaima (Pendiente)</option>
+            <option value="Nevados de Chillan" disabled>Nevados de Chillán (Pendiente)</option>
+            <option value="Copahue" disabled>Copahue (Pendiente)</option>
+            <option value="Puyehue-Cordon Caulle" disabled>Puyehue-Cordón Caulle (Pendiente)</option>
+            <option value="PlanchonPeteroa" disabled>Planchón-Peteroa (Pendiente)</option>
+            <option value="Lascar" disabled>Láscar (Pendiente)</option>
+            <option value="Lastarria" disabled>Lastarria (Pendiente)</option>
+            <option value="Isluga" disabled>Isluga (Pendiente)</option>
+            <option value="Chaiten" disabled>Chaitén (Pendiente)</option>
+        </select>
+    </div>
+
+    <div id="timeline">
+        <strong style="color: #58a6ff;">📅 FECHAS DISPONIBLES:</strong>
+        <div id="timeline-dates">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+
+    <div id="main-container">
+        <div id="comparison-grid">
+            <!-- RGB Card -->
+            <div class="image-card">
+                <div class="image-header">
+                    <h3>🌍 Color Real (RGB)</h3>
+                    <span class="composition-tag">B04-B03-B02</span>
+                </div>
+                <div class="image-container" id="rgb-container">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+
+            <!-- Thermal Card -->
+            <div class="image-card">
+                <div class="image-header">
+                    <h3>🔥 Falso Color Térmico</h3>
+                    <span class="composition-tag">B12-B11-B04</span>
+                </div>
+                <div class="image-container" id="thermal-container">
+                    <div class="loading-spinner"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="metadata">
+            <h3>📊 Metadatos de la Imagen</h3>
+            <div class="metadata-grid" id="metadata-grid">
+                <div class="metadata-item">
+                    <div class="metadata-label">Fecha de Adquisición</div>
+                    <div class="metadata-value" id="meta-date">--</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Satélite</div>
+                    <div class="metadata-value" id="meta-sensor">--</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Cobertura de Nubes</div>
+                    <div class="metadata-value" id="meta-clouds">--</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Tamaño RGB</div>
+                    <div class="metadata-value" id="meta-size-rgb">--</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Tamaño Thermal</div>
+                    <div class="metadata-value" id="meta-size-thermal">--</div>
+                </div>
+                <div class="metadata-item">
+                    <div class="metadata-label">Resolución</div>
+                    <div class="metadata-value">10-20m/píxel</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p><strong>Fuente de Datos:</strong> <a href="https://dataspace.copernicus.eu/" target="_blank">ESA Copernicus Sentinel-2</a></p>
+        <p><strong>Procesamiento:</strong> Sentinel Hub API | <strong>Infraestructura:</strong> GitHub Actions</p>
+        <p>&copy; 2026 - Volcanic Monitoring System | <a href="https://github.com/MendozaVolcanic/Copernicus-v1" target="_blank">Ver en GitHub</a></p>
+    </footer>
+
+    <script>
+        // CONFIGURACIÓN
+        const REPO_BASE = 'https://raw.githubusercontent.com/MendozaVolcanic/Copernicus-v1/main';
+        let currentVolcano = 'Villarrica';
+        let currentDate = null;
+        let metadataCache = {};
+
+        // CARGAR METADATA
+        async function loadMetadata(volcano) {
+            const url = `${REPO_BASE}/data/sentinel2/${volcano}/metadata.csv?t=${Date.now()}`;
+            
+            try {
+                const response = await fetch(url);
+                if (!response.ok) throw new Error('Metadata no encontrado');
+                
+                const text = await response.text();
+                const lines = text.trim().split('\n');
+                
+                if (lines.length < 2) return [];
+                
+                const headers = lines[0].split(',');
+                const data = [];
+                
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',');
+                    const obj = {};
+                    headers.forEach((header, idx) => {
+                        obj[header.trim()] = values[idx]?.trim() || '';
+                    });
+                    data.push(obj);
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('Error cargando metadata:', error);
+                return [];
+            }
+        }
+
+        // CARGAR TIMELINE
+        async function loadTimeline() {
+            const metadata = await loadMetadata(currentVolcano);
+            metadataCache[currentVolcano] = metadata;
+            
+            const timelineDiv = document.getElementById('timeline-dates');
+            
+            if (metadata.length === 0) {
+                timelineDiv.innerHTML = '<div class="no-image">No hay fechas disponibles</div>';
+                return;
+            }
+            
+            // Obtener fechas únicas
+            const fechas = [...new Set(metadata.map(m => m.fecha))].sort().reverse();
+            
+            timelineDiv.innerHTML = '';
+            
+            fechas.forEach((fecha, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'date-btn';
+                if (idx === 0) {
+                    btn.classList.add('active');
+                    currentDate = fecha;
+                }
+                btn.textContent = fecha;
+                btn.onclick = () => selectDate(fecha);
+                timelineDiv.appendChild(btn);
+            });
+            
+            // Cargar primera fecha
+            if (fechas.length > 0) {
+                loadImages(currentVolcano, fechas[0]);
+            }
+        }
+
+        // SELECCIONAR FECHA
+        function selectDate(fecha) {
+            currentDate = fecha;
+            
+            document.querySelectorAll('.date-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.textContent === fecha);
+            });
+            
+            loadImages(currentVolcano, fecha);
+        }
+
+        // CARGAR IMÁGENES
+        async function loadImages(volcano, fecha) {
+            const rgbContainer = document.getElementById('rgb-container');
+            const thermalContainer = document.getElementById('thermal-container');
+            
+            rgbContainer.innerHTML = '<div class="loading-spinner"></div>';
+            thermalContainer.innerHTML = '<div class="loading-spinner"></div>';
+            
+            // URLs de imágenes
+            const rgbUrl = `${REPO_BASE}/data/sentinel2/${volcano}/RGB/${fecha}_RGB.png?t=${Date.now()}`;
+            const thermalUrl = `${REPO_BASE}/data/sentinel2/${volcano}/ThermalFalseColor/${fecha}_ThermalFalseColor.png?t=${Date.now()}`;
+            
+            // Cargar RGB
+            const rgbImg = new Image();
+            rgbImg.onload = () => {
+                rgbContainer.innerHTML = '';
+                rgbContainer.appendChild(rgbImg);
+            };
+            rgbImg.onerror = () => {
+                rgbContainer.innerHTML = '<div class="no-image">❌ Imagen no disponible</div>';
+            };
+            rgbImg.src = rgbUrl;
+            
+            // Cargar Thermal
+            const thermalImg = new Image();
+            thermalImg.onload = () => {
+                thermalContainer.innerHTML = '';
+                thermalContainer.appendChild(thermalImg);
+            };
+            thermalImg.onerror = () => {
+                thermalContainer.innerHTML = '<div class="no-image">❌ Imagen no disponible</div>';
+            };
+            thermalImg.src = thermalUrl;
+            
+            // Actualizar metadata
+            updateMetadata(volcano, fecha);
+        }
+
+        // ACTUALIZAR METADATA
+        function updateMetadata(volcano, fecha) {
+            const metadata = metadataCache[volcano] || [];
+            const rgbMeta = metadata.find(m => m.fecha === fecha && m.tipo === 'RGB');
+            const thermalMeta = metadata.find(m => m.fecha === fecha && m.tipo === 'ThermalFalseColor');
+            
+            if (rgbMeta) {
+                document.getElementById('meta-date').textContent = rgbMeta.fecha;
+                document.getElementById('meta-sensor').textContent = rgbMeta.sensor;
+                document.getElementById('meta-clouds').textContent = `${parseFloat(rgbMeta.cobertura_nubosa).toFixed(1)}%`;
+                document.getElementById('meta-size-rgb').textContent = `${rgbMeta.tamano_mb} MB`;
+            }
+            
+            if (thermalMeta) {
+                document.getElementById('meta-size-thermal').textContent = `${thermalMeta.tamano_mb} MB`;
+            }
+        }
+
+        // CARGAR VOLCÁN
+        async function loadVolcano() {
+            const select = document.getElementById('volcano-select');
+            currentVolcano = select.value;
+            
+            document.getElementById('system-status').textContent = 'Cargando...';
+            
+            await loadTimeline();
+            
+            document.getElementById('system-status').textContent = 'Operativo';
+            document.getElementById('system-status').className = 'status-badge badge-active';
+            document.getElementById('last-update').textContent = new Date().toLocaleString('es-CL', {
+                timeZone: 'America/Santiago',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        }
+
+        // INICIALIZACIÓN
+        window.onload = () => {
+            loadVolcano();
+        };
+    </script>
+</body>
+</html>
