@@ -59,31 +59,56 @@ def get_retention_cutoff_date():
 # =========================
 
 VOLCANES = {
-    "Villarrica": {
-        "lat": -39.42,
-        "lon": -71.93,
-        "id": "357120",
-        "activo": True
-    },
-    "Llaima": {
-        "lat": -38.69,
-        "lon": -71.73,
-        "id": "357110",
-        "activo": True
-    },
-    "Nevados de Chillán": {
-        "lat": -36.86,
-        "lon": -71.38,
-        "id": "357070",
-        "activo": False
-    },
-    "Copahue": {
-        "lat": -37.85,
-        "lon": -71.17,
-        "id": "357090",
-        "activo": False
-    },
-    # ... resto de volcanes
+    # ZONA NORTE (8 volcanes)
+    "Taapaca": {"lat": -18.10, "lon": -69.50, "zona": "Norte", "activo": True},
+    "Parinacota": {"lat": -18.17, "lon": -69.15, "zona": "Norte", "activo": True},
+    "Guallatiri": {"lat": -18.42, "lon": -69.09, "zona": "Norte", "activo": True},
+    "Isluga": {"lat": -19.15, "lon": -68.83, "zona": "Norte", "activo": True},
+    "Irruputuncu": {"lat": -20.73, "lon": -68.55, "zona": "Norte", "activo": True},
+    "Ollagüe": {"lat": -21.30, "lon": -68.18, "zona": "Norte", "activo": True},
+    "San Pedro": {"lat": -21.88, "lon": -68.40, "zona": "Norte", "activo": True},
+    "Láscar": {"lat": -23.37, "lon": -67.73, "zona": "Norte", "activo": True},
+    
+    # ZONA CENTRO (9 volcanes)
+    "Tupungatito": {"lat": -33.40, "lon": -69.80, "zona": "Centro", "activo": True},
+    "San José": {"lat": -33.78, "lon": -69.90, "zona": "Centro", "activo": True},
+    "Tinguiririca": {"lat": -34.81, "lon": -70.35, "zona": "Centro", "activo": True},
+    "Planchón-Peteroa": {"lat": -35.24, "lon": -70.57, "zona": "Centro", "activo": True},
+    "Descabezado Grande": {"lat": -35.58, "lon": -70.75, "zona": "Centro", "activo": True},
+    "Tatara-San Pedro": {"lat": -36.00, "lon": -70.80, "zona": "Centro", "activo": True},
+    "Laguna del Maule": {"lat": -36.02, "lon": -70.60, "zona": "Centro", "activo": True},
+    "Nevado de Longaví": {"lat": -36.19, "lon": -71.16, "zona": "Centro", "activo": True},
+    "Nevados de Chillán": {"lat": -36.86, "lon": -71.38, "zona": "Centro", "activo": True},
+    
+    # ZONA SUR (14 volcanes)
+    "Antuco": {"lat": -37.41, "lon": -71.35, "zona": "Sur", "activo": True},
+    "Copahue": {"lat": -37.85, "lon": -71.17, "zona": "Sur", "activo": True},
+    "Callaqui": {"lat": -37.92, "lon": -71.45, "zona": "Sur", "activo": True},
+    "Lonquimay": {"lat": -38.38, "lon": -71.58, "zona": "Sur", "activo": True},
+    "Llaima": {"lat": -38.69, "lon": -71.73, "zona": "Sur", "activo": True},
+    "Sollipulli": {"lat": -38.97, "lon": -71.52, "zona": "Sur", "activo": True},
+    "Villarrica": {"lat": -39.42, "lon": -71.93, "zona": "Sur", "activo": True},
+    "Quetrupillán": {"lat": -39.50, "lon": -71.70, "zona": "Sur", "activo": True},
+    "Lanín": {"lat": -39.64, "lon": -71.50, "zona": "Sur", "activo": True},
+    "Mocho-Choshuenco": {"lat": -39.93, "lon": -72.03, "zona": "Sur", "activo": True},
+    "Carrán - Los Venados": {"lat": -40.35, "lon": -72.07, "zona": "Sur", "activo": True},
+    "Puyehue - Cordón Caulle": {"lat": -40.59, "lon": -72.12, "zona": "Sur", "activo": True},
+    "Antillanca – Casablanca": {"lat": -40.77, "lon": -72.15, "zona": "Sur", "activo": True},
+    
+    # ZONA AUSTRAL (12 volcanes)
+    "Osorno": {"lat": -41.10, "lon": -72.49, "zona": "Austral", "activo": True},
+    "Calbuco": {"lat": -41.33, "lon": -72.61, "zona": "Austral", "activo": True},
+    "Yate": {"lat": -41.76, "lon": -72.40, "zona": "Austral", "activo": True},
+    "Hornopirén": {"lat": -41.87, "lon": -72.43, "zona": "Austral", "activo": True},
+    "Huequi": {"lat": -42.38, "lon": -72.58, "zona": "Austral", "activo": True},
+    "Michinmahuida": {"lat": -42.79, "lon": -72.44, "zona": "Austral", "activo": True},
+    "Chaitén": {"lat": -42.83, "lon": -72.65, "zona": "Austral", "activo": True},
+    "Corcovado": {"lat": -43.18, "lon": -72.80, "zona": "Austral", "activo": True},
+    "Melimoyu": {"lat": -44.08, "lon": -72.88, "zona": "Austral", "activo": True},
+    "Mentolat": {"lat": -44.70, "lon": -73.08, "zona": "Austral", "activo": True},
+    "Cay": {"lat": -45.07, "lon": -73.00, "zona": "Austral", "activo": True},
+    "Macá": {"lat": -45.10, "lon": -73.17, "zona": "Austral", "activo": True},
+    "Hudson": {"lat": -45.90, "lon": -72.97, "zona": "Austral", "activo": True}
 }
 
 def get_active_volcanoes():
