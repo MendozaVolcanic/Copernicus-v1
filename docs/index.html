@@ -410,9 +410,22 @@
         }
 
         .image-container img {
-            width: 100%;
-            height: auto;
+            max-width: 90%;
+            max-height: 80vh;
             border-radius: 6px;
+        }
+
+        .image-date-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #58a6ff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            border: 1px solid #58a6ff;
         }
 
         .loading-spinner {
@@ -709,8 +722,12 @@
             
             <div class="calendar-legend">
                 <div class="legend-item">
-                    <div class="legend-box" style="background: #0969da;"></div>
-                    <span>Click para abrir en Copernicus</span>
+                    <div class="legend-box" style="background: #58a6ff;"></div>
+                    <span>Disponible en Copernicus</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #30363d;"></div>
+                    <span>No disponible</span>
                 </div>
             </div>
         </div>
@@ -1040,7 +1057,7 @@
             
             const rgbImg = new Image();
             rgbImg.onload = () => {
-                rgbContainer.innerHTML = '';
+                rgbContainer.innerHTML = `<div class="image-date-overlay">📅 ${date}</div>`;
                 rgbContainer.appendChild(rgbImg);
             };
             rgbImg.onerror = () => {
@@ -1050,7 +1067,7 @@
             
             const thermalImg = new Image();
             thermalImg.onload = () => {
-                thermalContainer.innerHTML = '';
+                thermalContainer.innerHTML = `<div class="image-date-overlay">📅 ${date}</div>`;
                 thermalContainer.appendChild(thermalImg);
             };
             thermalImg.onerror = () => {
@@ -1086,8 +1103,25 @@
                 const panel = document.createElement('div');
                 panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px;';
                 
+                // Obtener última fecha
+                let ultimaFecha = '';
+                try {
+                    const metadataUrl = `${REPO_BASE}/data/sentinel2/${volcan}/metadata.csv?t=${Date.now()}`;
+                    const response = await fetch(metadataUrl);
+                    const csvText = await response.text();
+                    const lines = csvText.trim().split('\n');
+                    
+                    if (lines.length > 1) {
+                        const values = lines[1].split(',');
+                        ultimaFecha = values[0];
+                    }
+                } catch (e) {
+                    console.error(`Error obteniendo fecha de ${volcan}:`, e);
+                }
+                
                 panel.innerHTML = `
-                    <h2 style="color: #58a6ff; margin-bottom: 15px;">${volcan}</h2>
+                    <h2 style="color: #58a6ff; margin-bottom: 5px;">${volcan}</h2>
+                    ${ultimaFecha ? `<p style="color: #8b949e; font-size: 0.85em; margin-bottom: 15px;">📅 ${ultimaFecha}</p>` : ''}
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div style="background: #0d1117; border-radius: 6px; padding: 10px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">RGB</h4>
@@ -1107,17 +1141,9 @@
                 volcanesGrid.appendChild(panel);
                 
                 try {
-                    const metadataUrl = `${REPO_BASE}/data/sentinel2/${volcan}/metadata.csv?t=${Date.now()}`;
-                    const response = await fetch(metadataUrl);
-                    const csvText = await response.text();
-                    const lines = csvText.trim().split('\n');
-                    
-                    if (lines.length > 1) {
-                        const values = lines[1].split(',');
-                        const latestDate = values[0];
-                        
-                        const rgbUrl = `${REPO_BASE}/data/sentinel2/${volcan}/RGB/${latestDate}_RGB.png?t=${Date.now()}`;
-                        const thermalUrl = `${REPO_BASE}/data/sentinel2/${volcan}/ThermalFalseColor/${latestDate}_ThermalFalseColor.png?t=${Date.now()}`;
+                    if (ultimaFecha) {
+                        const rgbUrl = `${REPO_BASE}/data/sentinel2/${volcan}/RGB/${ultimaFecha}_RGB.png?t=${Date.now()}`;
+                        const thermalUrl = `${REPO_BASE}/data/sentinel2/${volcan}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
                         
                         document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
                         document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
@@ -1327,6 +1353,9 @@
             const lastDay = new Date(calendarCopernicusYear, calendarCopernicusMonth + 1, 0);
             const startDay = firstDay.getDay();
             
+            // Cargar fechas Copernicus para este volcán
+            const fechasCopernicus = fechasDisponiblesCopernicus[currentVolcano] || [];
+            
             for (let i = 0; i < startDay; i++) {
                 const emptyDiv = document.createElement('div');
                 emptyDiv.className = 'calendar-day';
@@ -1339,21 +1368,18 @@
                 const dayDiv = document.createElement('div');
                 dayDiv.textContent = day;
                 dayDiv.className = 'calendar-day';
-                dayDiv.style.cssText = 'background: #0969da; color: #fff; font-weight: bold; cursor: pointer;';
                 
-                dayDiv.onclick = () => {
-                    abrirCopernicusBrowserFecha(dateStr);
-                };
+                // Verificar si está en fechas disponibles de Copernicus
+                const disponible = fechasCopernicus.includes(dateStr);
                 
-                dayDiv.onmouseover = () => {
-                    dayDiv.style.background = '#1f6feb';
-                    dayDiv.style.transform = 'scale(1.1)';
-                };
-                
-                dayDiv.onmouseout = () => {
-                    dayDiv.style.background = '#0969da';
-                    dayDiv.style.transform = 'scale(1)';
-                };
+                if (disponible) {
+                    dayDiv.classList.add('available');
+                    dayDiv.onclick = () => {
+                        abrirCopernicusBrowserFecha(dateStr);
+                    };
+                } else {
+                    dayDiv.classList.add('unavailable');
+                }
                 
                 grid.appendChild(dayDiv);
             }
