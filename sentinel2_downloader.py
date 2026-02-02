@@ -1,7 +1,8 @@
 """
-SENTINEL-2 DOWNLOADER V2.0 - CON COMPRESIÓN
-Descarga automática de imágenes RGB y térmicas de volcanes chilenos
-+ Compresión automática para ahorrar espacio
+SENTINEL-2 DOWNLOADER V3.0 COMPLETO
++ Compresión automática
++ Limpieza de imágenes >60 días
++ Generación de JSON para calendario
 """
 
 import requests
@@ -13,11 +14,11 @@ import json
 from pathlib import Path
 from PIL import Image
 from io import BytesIO
+
 from config_sentinel2 import (
     CLIENT_ID, CLIENT_SECRET, TOKEN_URL,
     PROCESS_API_URL, CATALOG_API_URL,
     MAX_CLOUD_COVER, BUFFER_KM, 
-    IMAGE_WIDTH, IMAGE_HEIGHT,
     IMAGE_WIDTH_RGB, IMAGE_HEIGHT_RGB,
     IMAGE_WIDTH_THERMAL, IMAGE_HEIGHT_THERMAL,
     EVALSCRIPT_RGB, EVALSCRIPT_THERMAL,
@@ -25,9 +26,7 @@ from config_sentinel2 import (
     validate_credentials
 )
 
-# ========================================
-# NUEVO: Importar módulo de compresión
-# ========================================
+# Importar compresión
 from image_compression import save_compressed
 
 # =========================
@@ -92,34 +91,30 @@ class SentinelHubSearcher:
     
     def create_bbox(self, lat, lon, buffer_km=BUFFER_KM):
         """Crea bounding box alrededor del volcán"""
-        # Aproximación: 1 grado ≈ 111 km
         delta = buffer_km / 111.0
         
         return {
             "bbox": [
-                lon - delta,  # min_lon
-                lat - delta,  # min_lat
-                lon + delta,  # max_lon
-                lat + delta   # max_lat
+                lon - delta, lat - delta,
+                lon + delta, lat + delta
             ],
             "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
         }
     
     def search_images(self, lat, lon, start_date, end_date, max_cloud=MAX_CLOUD_COVER):
-        """Busca TODAS las imágenes Sentinel-2 disponibles en el rango de fechas"""
+        """Busca imágenes Sentinel-2 en rango de fechas"""
         
         bbox_data = self.create_bbox(lat, lon)
         
-        # Parámetros para Copernicus Catalog API
         params = {
             'box': ','.join(map(str, bbox_data["bbox"])),
             'startDate': f"{start_date}T00:00:00Z",
             'completionDate': f"{end_date}T23:59:59Z",
-            'maxRecords': 50,  # Aumentado para obtener todas las del mes
+            'maxRecords': 50,
             'cloudCover': f'[0,{max_cloud}]',
             'sortParam': 'startDate',
             'sortOrder': 'descending',
-            'productType': 'S2MSI2A'  # Sentinel-2 L2A
+            'productType': 'S2MSI2A'
         }
         
         try:
@@ -137,7 +132,6 @@ class SentinelHubSearcher:
             if not features:
                 return []
             
-            # Retornar TODAS las imágenes, no solo la más reciente
             results = []
             for feature in features:
                 props = feature['properties']
@@ -160,7 +154,7 @@ class SentinelHubSearcher:
 # =========================
 
 class SentinelHubDownloader:
-    """Descarga de imágenes procesadas con compresión automática"""
+    """Descarga de imágenes procesadas con compresión"""
     
     def __init__(self, auth):
         self.auth = auth
@@ -169,72 +163,42 @@ class SentinelHubDownloader:
     def create_bbox(self, lat, lon, buffer_km=BUFFER_KM):
         """Crea bounding box en formato Process API"""
         delta = buffer_km / 111.0
-        
-        return [
-            lon - delta,  # min_lon
-            lat - delta,  # min_lat
-            lon + delta,  # max_lon
-            lat + delta   # max_lat
-        ]
+        return [lon - delta, lat - delta, lon + delta, lat + delta]
     
     def download_image(self, lat, lon, fecha, tipo='RGB', output_path=None):
-        """
-        Descarga imagen procesada CON COMPRESIÓN AUTOMÁTICA
-        
-        Args:
-            lat, lon: Coordenadas del volcán
-            fecha: Fecha en formato YYYY-MM-DD
-            tipo: 'RGB' o 'ThermalFalseColor'
-            output_path: Path de salida (opcional)
-        
-        Returns:
-            bool: True si descarga exitosa
-        """
+        """Descarga imagen procesada con compresión automática"""
         
         bbox = self.create_bbox(lat, lon)
         evalscript = EVALSCRIPT_RGB if tipo == 'RGB' else EVALSCRIPT_THERMAL
         
-        # Seleccionar tamaño según tipo para que ambos muestren la misma área física
         if tipo == 'RGB':
-            width = IMAGE_WIDTH_RGB    # 1024px × 10m/px = 10.24 km
+            width = IMAGE_WIDTH_RGB
             height = IMAGE_HEIGHT_RGB
         else:
-            width = IMAGE_WIDTH_THERMAL   # 512px × 20m/px = 10.24 km (misma área)
+            width = IMAGE_WIDTH_THERMAL
             height = IMAGE_HEIGHT_THERMAL
         
-        # Payload para Process API
         request_payload = {
             "input": {
                 "bounds": {
                     "bbox": bbox,
-                    "properties": {
-                        "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
-                    }
+                    "properties": {"crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"}
                 },
-                "data": [
-                    {
-                        "type": "sentinel-2-l2a",
-                        "dataFilter": {
-                            "timeRange": {
-                                "from": f"{fecha}T00:00:00Z",
-                                "to": f"{fecha}T23:59:59Z"
-                            },
-                            "maxCloudCoverage": MAX_CLOUD_COVER
-                        }
+                "data": [{
+                    "type": "sentinel-2-l2a",
+                    "dataFilter": {
+                        "timeRange": {
+                            "from": f"{fecha}T00:00:00Z",
+                            "to": f"{fecha}T23:59:59Z"
+                        },
+                        "maxCloudCoverage": MAX_CLOUD_COVER
                     }
-                ]
+                }]
             },
             "output": {
                 "width": width,
                 "height": height,
-                "responses": [
-                    {
-                        "identifier": "default",
-                        "format": {
-                            "type": "image/png"
-                        }
-                    }
-                ]
+                "responses": [{"identifier": "default", "format": {"type": "image/png"}}]
             },
             "evalscript": evalscript
         }
@@ -248,36 +212,17 @@ class SentinelHubDownloader:
             )
             response.raise_for_status()
             
-            # ========================================
-            # CRÍTICO: COMPRESIÓN AUTOMÁTICA
-            # ========================================
             if output_path:
                 Path(output_path).parent.mkdir(parents=True, exist_ok=True)
                 
-                # ANTES (sin compresión):
-                # with open(output_path, 'wb') as f:
-                #     f.write(response.content)
-                
-                # AHORA (con compresión):
-                # 1. Abrir imagen en memoria
+                # Comprimir imagen
                 image = Image.open(BytesIO(response.content))
+                _, size_mb = save_compressed(image, output_path, compression_level='lossless')
                 
-                # 2. Guardar con compresión lossless
-                #    - Fase 1: lossless (20% reducción, sin pérdida)
-                #    - Si repo crece >30 GB: cambiar a 'balanced'
-                #    - Si repo crece >40 GB: cambiar a 'aggressive'
-                _, size_mb = save_compressed(
-                    image, 
-                    output_path, 
-                    compression_level='lossless'  # ← AJUSTABLE SEGÚN NECESIDAD
-                )
-                
-                # Tamaño ANTES de compresión (aproximado)
                 size_original_mb = len(response.content) / (1024 * 1024)
-                reduccion_percent = ((size_original_mb - size_mb) / size_original_mb) * 100
+                reduccion = ((size_original_mb - size_mb) / size_original_mb) * 100
                 
-                print(f"   ✅ {tipo}: {size_mb:.2f} MB (↓{reduccion_percent:.0f}% vs original)")
-                
+                print(f"   ✅ {tipo}: {size_mb:.2f} MB (↓{reduccion:.0f}%)")
                 return True
             
             return False
@@ -285,6 +230,84 @@ class SentinelHubDownloader:
         except requests.exceptions.RequestException as e:
             print(f"   ❌ Error descarga {tipo}: {e}")
             return False
+
+# =========================
+# LIMPIEZA DE IMÁGENES ANTIGUAS
+# =========================
+
+def limpiar_imagenes_antiguas(volcan_nombre):
+    """Borra imágenes >60 días"""
+    import glob
+    
+    ahora = datetime.now(pytz.utc)
+    cutoff = ahora - timedelta(days=60)
+    cutoff_str = cutoff.strftime('%Y-%m-%d')
+    
+    print(f"\n🗑️ Limpiando imágenes anteriores a: {cutoff_str}")
+    
+    borrados = 0
+    
+    for tipo in ['RGB', 'ThermalFalseColor']:
+        carpeta = f"data/sentinel2/{volcan_nombre}/{tipo}"
+        
+        if not os.path.exists(carpeta):
+            continue
+        
+        for img_path in glob.glob(f"{carpeta}/*.png"):
+            nombre = os.path.basename(img_path)
+            fecha = nombre.split('_')[0]
+            
+            if fecha < cutoff_str:
+                try:
+                    os.remove(img_path)
+                    borrados += 1
+                except Exception as e:
+                    print(f"   ⚠️ Error: {e}")
+    
+    if borrados > 0:
+        print(f"   ✅ Borrados: {borrados} archivos")
+    else:
+        print(f"   ✅ No hay archivos antiguos")
+    
+    return borrados
+
+# =========================
+# GENERACIÓN DE JSON FECHAS
+# =========================
+
+def generar_json_fechas_disponibles():
+    """Genera JSON para calendario del dashboard"""
+    import glob
+    
+    volcanes_activos = get_active_volcanoes()
+    fechas_por_volcan = {}
+    
+    for volcan_nombre in volcanes_activos.keys():
+        carpeta_rgb = f"data/sentinel2/{volcan_nombre}/RGB"
+        
+        if not os.path.exists(carpeta_rgb):
+            continue
+        
+        fechas = []
+        for img_path in glob.glob(f"{carpeta_rgb}/*.png"):
+            nombre = os.path.basename(img_path)
+            fecha = nombre.split('_')[0]
+            fechas.append(fecha)
+        
+        fechas_por_volcan[volcan_nombre] = sorted(set(fechas))
+    
+    # Guardar JSON
+    os.makedirs("docs", exist_ok=True)
+    output_path = "docs/fechas_disponibles_copernicus.json"
+    
+    with open(output_path, 'w') as f:
+        json.dump(fechas_por_volcan, f, indent=2)
+    
+    total = sum(len(f) for f in fechas_por_volcan.values())
+    print(f"\n📅 JSON fechas generado: {output_path}")
+    print(f"   Total fechas: {total}")
+    
+    return output_path
 
 # =========================
 # PROCESO PRINCIPAL
@@ -298,23 +321,22 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
     lat = config['lat']
     lon = config['lon']
     
-    # Buscar imágenes disponibles (últimos 30 días)
+    # Buscar imágenes (últimos 60 días)
     hoy = datetime.now(pytz.utc)
-    hace_30_dias = hoy - timedelta(days=30)
+    hace_60_dias = hoy - timedelta(days=60)
     
     resultados = searcher.search_images(
         lat, lon,
-        start_date=hace_30_dias.strftime('%Y-%m-%d'),
+        start_date=hace_60_dias.strftime('%Y-%m-%d'),
         end_date=hoy.strftime('%Y-%m-%d')
     )
     
     if not resultados:
-        print("   ⚠️ No hay imágenes disponibles (nubes > 30%)")
+        print("   ⚠️ No hay imágenes disponibles")
         return None
     
-    print(f"   📅 Encontradas {len(resultados)} imágenes disponibles")
+    print(f"   📅 Encontradas {len(resultados)} imágenes")
     
-    # Procesar cada fecha
     todos_resultados = []
     
     for resultado in resultados:
@@ -322,46 +344,30 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
         cloud_cover = resultado['cloud_cover']
         sensor = resultado['sensor']
         
-        print(f"\n   📅 Procesando: {fecha}")
-        print(f"   ☁️ Nubes: {cloud_cover:.1f}%")
-        print(f"   🛰️ Sensor: {sensor}")
+        print(f"\n   📅 {fecha} | ☁️ {cloud_cover:.1f}% | 🛰️ {sensor}")
         
-        # Descargar imágenes
         for tipo in ['RGB', 'ThermalFalseColor']:
             output_path = get_image_path(nombre_volcan, tipo, fecha)
             
-            # Verificar si ya existe (o sobrescribir si está en modo prueba)
             from config_sentinel2 import MODO_SOBRESCRITURA
             
             if os.path.exists(output_path) and not MODO_SOBRESCRITURA:
                 print(f"   ⏭️ {tipo}: Ya existe")
-                
                 size_mb = os.path.getsize(output_path) / (1024 * 1024)
-                todos_resultados.append({
-                    'fecha': fecha,
-                    'tipo': tipo,
-                    'cobertura_nubosa': cloud_cover,
-                    'sensor': sensor,
-                    'ruta_archivo': f"{tipo}/{fecha}_{tipo}.png",
-                    'tamano_mb': round(size_mb, 2)
-                })
-                continue
-            elif os.path.exists(output_path) and MODO_SOBRESCRITURA:
-                print(f"   🔄 {tipo}: Sobrescribiendo (modo prueba)")
-            
-            # Descargar CON COMPRESIÓN
-            exito = downloader.download_image(lat, lon, fecha, tipo, output_path)
-            
-            if exito:
+            else:
+                exito = downloader.download_image(lat, lon, fecha, tipo, output_path)
+                if not exito:
+                    continue
                 size_mb = os.path.getsize(output_path) / (1024 * 1024)
-                todos_resultados.append({
-                    'fecha': fecha,
-                    'tipo': tipo,
-                    'cobertura_nubosa': cloud_cover,
-                    'sensor': sensor,
-                    'ruta_archivo': f"{tipo}/{fecha}_{tipo}.png",
-                    'tamano_mb': round(size_mb, 2)
-                })
+            
+            todos_resultados.append({
+                'fecha': fecha,
+                'tipo': tipo,
+                'cobertura_nubosa': cloud_cover,
+                'sensor': sensor,
+                'ruta_archivo': f"{tipo}/{fecha}_{tipo}.png",
+                'tamano_mb': round(size_mb, 2)
+            })
     
     return todos_resultados
 
@@ -370,61 +376,58 @@ def actualizar_metadata(nombre_volcan, nuevos_datos):
     
     metadata_path = get_metadata_path(nombre_volcan)
     
-    # Cargar CSV existente
     if os.path.exists(metadata_path):
         df_existente = pd.read_csv(metadata_path)
     else:
         df_existente = pd.DataFrame()
     
-    # Agregar nuevos datos
     df_nuevos = pd.DataFrame(nuevos_datos)
     df_final = pd.concat([df_existente, df_nuevos], ignore_index=True)
-    
-    # Eliminar duplicados (misma fecha + tipo)
     df_final = df_final.drop_duplicates(subset=['fecha', 'tipo'], keep='last')
-    
-    # Ordenar por fecha DESC
     df_final = df_final.sort_values('fecha', ascending=False)
     
-    # Guardar
     Path(metadata_path).parent.mkdir(parents=True, exist_ok=True)
     df_final.to_csv(metadata_path, index=False)
     
-    print(f"   💾 Metadata actualizado: {len(df_final)} registros")
+    print(f"   💾 Metadata: {len(df_final)} registros")
 
 def main():
     """Proceso principal"""
     
     print("="*80)
-    print("🛰️ SENTINEL-2 DOWNLOADER V2.0 - CON COMPRESIÓN")
+    print("🛰️ SENTINEL-2 DOWNLOADER V3.0 AUTOMÁTICO")
     print("="*80)
     
-    # Autenticación
     auth = SentinelHubAuth()
     searcher = SentinelHubSearcher(auth)
     downloader = SentinelHubDownloader(auth)
     
-    # Procesar solo volcanes activos
     volcanes_activos = get_active_volcanoes()
     
     if not volcanes_activos:
-        print("⚠️ No hay volcanes activos configurados")
+        print("⚠️ No hay volcanes activos")
         return
     
     print(f"\n📋 Volcanes activos: {len(volcanes_activos)}")
-    print(f"📦 Compresión: lossless (↓20% sin pérdida de calidad)")
+    print(f"📦 Compresión: lossless")
+    print(f"🗑️ Retención: 60 días")
     
-    # Procesar cada volcán
     for nombre, config in volcanes_activos.items():
         try:
             resultados = procesar_volcan(nombre, config, auth, searcher, downloader)
             
             if resultados:
                 actualizar_metadata(nombre, resultados)
+                
+                # LIMPIEZA AUTOMÁTICA
+                limpiar_imagenes_antiguas(nombre)
         
         except Exception as e:
-            print(f"❌ Error procesando {nombre}: {e}")
+            print(f"❌ Error: {e}")
             continue
+    
+    # GENERAR JSON PARA CALENDARIO
+    generar_json_fechas_disponibles()
     
     print("\n" + "="*80)
     print("✅ PROCESO COMPLETADO")
