@@ -1,30 +1,81 @@
 """
-Configuración Sentinel-2 - 44 VOLCANES ACTIVOS
-Actualizado para descargar diariamente TODOS los volcanes de Chile
+Configuración Sentinel-2 - 43 VOLCANES ACTIVOS
+COMPATIBLE con sentinel2_downloader.py existente
 """
 
 import os
 from datetime import datetime, timedelta
 
-# Configuración Copernicus
-SH_CLIENT_ID = os.getenv('SH_CLIENT_ID')
-SH_CLIENT_SECRET = os.getenv('SH_CLIENT_SECRET')
-SH_TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
-SH_PROCESS_URL = "https://sh.dataspace.copernicus.eu/api/v1/process"
-
-# Configuración imágenes
-BBOX_SIZE_KM = 15  # Buffer 15km alrededor del volcán
-TARGET_WIDTH = 800
-TARGET_HEIGHT = 800
-MAX_CLOUD_COVER = 50  # Máximo 50% nubes
-
-# Configuración temporal
-DIAS_HISTORICO = 60  # Mantener últimos 60 días
-FECHA_INICIO_DESCARGA = (datetime.now() - timedelta(days=DIAS_HISTORICO)).strftime('%Y-%m-%d')
-FECHA_FIN_DESCARGA = datetime.now().strftime('%Y-%m-%d')
+# ============================================
+# CREDENCIALES COPERNICUS (desde env vars)
+# ============================================
+CLIENT_ID = os.getenv('SH_CLIENT_ID')
+CLIENT_SECRET = os.getenv('SH_CLIENT_SECRET')
 
 # ============================================
-# VOLCANES - 44 VOLCANES ACTIVOS
+# URLs API
+# ============================================
+TOKEN_URL = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
+PROCESS_API_URL = "https://sh.dataspace.copernicus.eu/api/v1/process"
+CATALOG_API_URL = "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search"
+
+# ============================================
+# CONFIGURACIÓN IMÁGENES
+# ============================================
+MAX_CLOUD_COVER = 50
+BUFFER_KM = 15
+
+# RGB
+IMAGE_WIDTH_RGB = 800
+IMAGE_HEIGHT_RGB = 800
+
+# Thermal
+IMAGE_WIDTH_THERMAL = 800
+IMAGE_HEIGHT_THERMAL = 800
+
+# ============================================
+# EVALSCRIPTS
+# ============================================
+EVALSCRIPT_RGB = """
+//VERSION=3
+function setup() {
+  return {
+    input: [{
+      bands: ["B04", "B03", "B02"]
+    }],
+    output: {
+      bands: 3,
+      sampleType: "AUTO"
+    }
+  };
+}
+
+function evaluatePixel(sample) {
+  return [2.5 * sample.B04, 2.5 * sample.B03, 2.5 * sample.B02];
+}
+"""
+
+EVALSCRIPT_THERMAL = """
+//VERSION=3
+function setup() {
+  return {
+    input: [{
+      bands: ["B12", "B11", "B04"]
+    }],
+    output: {
+      bands: 3,
+      sampleType: "AUTO"
+    }
+  };
+}
+
+function evaluatePixel(sample) {
+  return [2.5 * sample.B12, 2.5 * sample.B11, 2.5 * sample.B04];
+}
+"""
+
+# ============================================
+# VOLCANES - 43 VOLCANES ACTIVOS
 # ============================================
 
 VOLCANES = {
@@ -151,7 +202,7 @@ VOLCANES = {
         "activo": True
     },
     
-    # ZONA SUR (14 volcanes)
+    # ZONA SUR (13 volcanes)
     "Antuco": {
         "lat": -37.41,
         "lon": -71.35,
@@ -244,7 +295,7 @@ VOLCANES = {
         "activo": True
     },
     
-    # ZONA AUSTRAL (12 volcanes - FALTABA UNO)
+    # ZONA AUSTRAL (13 volcanes)
     "Osorno": {
         "lat": -41.10,
         "lon": -72.49,
@@ -338,9 +389,35 @@ VOLCANES = {
     }
 }
 
+# ============================================
+# FUNCIONES AUXILIARES
+# ============================================
+
 def get_active_volcanoes():
     """Retorna solo volcanes activos"""
     return {k: v for k, v in VOLCANES.items() if v.get('activo', False)}
+
+def get_image_path(volcano_name, date_str, image_type):
+    """Genera path para imagen"""
+    base_dir = "docs/sentinel2"
+    volcano_dir = os.path.join(base_dir, volcano_name)
+    os.makedirs(volcano_dir, exist_ok=True)
+    
+    filename = f"{date_str}_{image_type}.png"
+    return os.path.join(volcano_dir, filename)
+
+def get_metadata_path(volcano_name):
+    """Genera path para metadata"""
+    base_dir = "docs/sentinel2"
+    volcano_dir = os.path.join(base_dir, volcano_name)
+    os.makedirs(volcano_dir, exist_ok=True)
+    return os.path.join(volcano_dir, "metadata.csv")
+
+def validate_credentials():
+    """Valida que las credenciales existan"""
+    if not CLIENT_ID or not CLIENT_SECRET:
+        raise ValueError("❌ ERROR: SH_CLIENT_ID y SH_CLIENT_SECRET deben estar configurados en GitHub Secrets")
+    return True
 
 def count_by_zone():
     """Cuenta volcanes por zona"""
@@ -349,3 +426,7 @@ def count_by_zone():
         zona = v_data.get('zona', 'Sin zona')
         zones[zona] = zones.get(zona, 0) + 1
     return zones
+
+# Verificar al importar
+if __name__ != "__main__":
+    validate_credentials()
