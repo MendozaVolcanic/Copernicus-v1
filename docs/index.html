@@ -585,6 +585,7 @@
         <div class="action-buttons">
             <button class="btn-ui" onclick="toggleTimelapseMode()">🎬 Modo Comparación Multi-Volcán</button>
             <button class="btn-ui" style="background: #238636;" onclick="generarPPT()">📊 PPT Evaluación Mensual</button>
+            <button class="btn-ui" style="background: #0969da;" onclick="abrirCopernicusBrowser()">🌐 Copernicus Browser</button>
         </div>
 
         <div class="status-item">
@@ -600,7 +601,8 @@
             <option value="Llaima">Llaima</option>
         </select>
         
-        <button onclick="toggleCalendar()">📅 Ver Calendario</button>
+        <button onclick="toggleCalendar()">📅 Ver Imágenes</button>
+        <button onclick="toggleCalendarioCopernicus()" style="background: #0969da; border-color: #0969da;">🌐 Ver en Copernicus</button>
     </div>
 
     <!-- CALENDARIO MODAL -->
@@ -628,6 +630,7 @@
                 </select>
                 
                 <select id="calendar-year" onchange="updateCalendar()">
+                    <option value="2025">2025</option>
                     <option value="2026">2026</option>
                 </select>
             </div>
@@ -655,6 +658,59 @@
                 <div class="legend-item">
                     <div class="legend-box" style="background: #30363d;"></div>
                     <span>No disponible</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CALENDARIO COPERNICUS MODAL -->
+    <div id="calendar-copernicus-modal" onclick="closeModalCopernicusOutside(event)" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center;">
+        <div class="calendar-content" onclick="event.stopPropagation()">
+            <div class="calendar-header">
+                <h3>🌐 Copernicus Browser - Calendario</h3>
+                <button class="close-btn" onclick="toggleCalendarioCopernicus()">✕</button>
+            </div>
+            
+            <p style="text-align: center; color: #8b949e; margin-bottom: 15px; font-size: 0.85em;">
+                Click en cualquier fecha para abrir Copernicus Browser
+            </p>
+            
+            <div class="calendar-selectors">
+                <select id="calendar-copernicus-month" onchange="updateCalendarioCopernicus()">
+                    <option value="0">Enero</option>
+                    <option value="1">Febrero</option>
+                    <option value="2">Marzo</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Mayo</option>
+                    <option value="5">Junio</option>
+                    <option value="6">Julio</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Septiembre</option>
+                    <option value="9">Octubre</option>
+                    <option value="10">Noviembre</option>
+                    <option value="11">Diciembre</option>
+                </select>
+                
+                <select id="calendar-copernicus-year" onchange="updateCalendarioCopernicus()">
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                </select>
+            </div>
+            
+            <div id="calendar-copernicus-grid">
+                <div class="calendar-day-header">Dom</div>
+                <div class="calendar-day-header">Lun</div>
+                <div class="calendar-day-header">Mar</div>
+                <div class="calendar-day-header">Mié</div>
+                <div class="calendar-day-header">Jue</div>
+                <div class="calendar-day-header">Vie</div>
+                <div class="calendar-day-header">Sáb</div>
+            </div>
+            
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #0969da;"></div>
+                    <span>Click para abrir en Copernicus</span>
                 </div>
             </div>
         </div>
@@ -836,6 +892,10 @@
         
         let calendarMonth = new Date().getMonth();
         let calendarYear = 2026;
+        
+        // Segundo calendario (Copernicus)
+        let calendarCopernicusMonth = new Date().getMonth();
+        let calendarCopernicusYear = 2026;
         
         // CAMBIO QUIRÚRGICO 6: VARIABLE COPERNICUS
         let fechasDisponiblesCopernicus = {};
@@ -1207,6 +1267,95 @@
                     `cloudCoverage=30`;
                 
                 window.open(url, '_blank');
+            }
+        }
+
+        // BOTÓN COPERNICUS BROWSER (VOLCÁN ACTUAL)
+        function abrirCopernicusBrowser() {
+            const config = VOLCANES_CONFIG[currentVolcano];
+            
+            if (confirm(`🌐 COPERNICUS BROWSER\n\n` +
+                       `Volcán: ${currentVolcano}\n` +
+                       `Coordenadas: ${config.lat}, ${config.lon}\n\n` +
+                       `¿Abrir navegador Copernicus?`)) {
+                
+                // Fecha actual
+                const hoy = new Date().toISOString().split('T')[0];
+                
+                const url = `https://browser.dataspace.copernicus.eu/?` +
+                    `zoom=13&` +
+                    `lat=${config.lat}&` +
+                    `lng=${config.lon}&` +
+                    `themeId=DEFAULT-THEME&` +
+                    `datasetId=S2_L2A_CDAS&` +
+                    `fromTime=${hoy}T00:00:00.000Z&` +
+                    `toTime=${hoy}T23:59:59.999Z&` +
+                    `layerId=1_TRUE_COLOR&` +
+                    `cloudCoverage=30`;
+                
+                window.open(url, '_blank');
+            }
+        }
+
+        // CALENDARIO COPERNICUS
+        function toggleCalendarioCopernicus() {
+            const modal = document.getElementById('calendar-copernicus-modal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'flex';
+                updateCalendarioCopernicus();
+            }
+        }
+
+        function closeModalCopernicusOutside(event) {
+            if (event.target.id === 'calendar-copernicus-modal') {
+                toggleCalendarioCopernicus();
+            }
+        }
+
+        function updateCalendarioCopernicus() {
+            calendarCopernicusMonth = parseInt(document.getElementById('calendar-copernicus-month').value);
+            calendarCopernicusYear = parseInt(document.getElementById('calendar-copernicus-year').value);
+            
+            const grid = document.getElementById('calendar-copernicus-grid');
+            
+            const dayElements = grid.querySelectorAll('.calendar-day');
+            dayElements.forEach(el => el.remove());
+            
+            const firstDay = new Date(calendarCopernicusYear, calendarCopernicusMonth, 1);
+            const lastDay = new Date(calendarCopernicusYear, calendarCopernicusMonth + 1, 0);
+            const startDay = firstDay.getDay();
+            
+            for (let i = 0; i < startDay; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'calendar-day';
+                grid.appendChild(emptyDiv);
+            }
+            
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dateStr = `${calendarCopernicusYear}-${String(calendarCopernicusMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = day;
+                dayDiv.className = 'calendar-day';
+                dayDiv.style.cssText = 'background: #0969da; color: #fff; font-weight: bold; cursor: pointer;';
+                
+                dayDiv.onclick = () => {
+                    abrirCopernicusBrowserFecha(dateStr);
+                };
+                
+                dayDiv.onmouseover = () => {
+                    dayDiv.style.background = '#1f6feb';
+                    dayDiv.style.transform = 'scale(1.1)';
+                };
+                
+                dayDiv.onmouseout = () => {
+                    dayDiv.style.background = '#0969da';
+                    dayDiv.style.transform = 'scale(1)';
+                };
+                
+                grid.appendChild(dayDiv);
             }
         }
 
