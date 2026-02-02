@@ -8,6 +8,10 @@ on:
   # Permitir ejecución manual
   workflow_dispatch:
 
+# PERMISOS NECESARIOS PARA PUSH
+permissions:
+  contents: write
+
 jobs:
   monitoreo-completo:
     runs-on: ubuntu-latest
