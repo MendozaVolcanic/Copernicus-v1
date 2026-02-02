@@ -23,6 +23,15 @@
             display: flex !important;
         }
 
+        /* MODO RESUMEN FULLSCREEN */
+        body.resumen-mode #main-content {
+            display: none;
+        }
+        
+        body.resumen-mode #resumen-fullscreen {
+            display: flex !important;
+        }
+
         /* HEADER */
         header {
             background: linear-gradient(90deg, #161b22 0%, #1f2937 100%);
@@ -98,9 +107,10 @@
         .action-buttons {
             display: flex;
             gap: 10px;
+            flex-wrap: wrap;
         }
 
-        /* SELECTOR DE VOLCÁN + CALENDARIO */
+        /* SELECTOR DE VOLCÁN */
         #volcano-selector {
             background: #161b22;
             padding: 15px 20px;
@@ -116,7 +126,7 @@
             color: #58a6ff;
         }
 
-        #volcano-selector select, #volcano-selector button {
+        #volcano-selector select {
             background: #0d1117;
             color: #e0e0e0;
             border: 1px solid #30363d;
@@ -125,7 +135,7 @@
             cursor: pointer;
         }
 
-        /* NUEVA SECCIÓN: TIMELAPSES AUTOMÁTICOS */
+        /* TIMELAPSES AUTOMÁTICOS */
         #timelapse-automatico {
             background: #161b22;
             padding: 20px;
@@ -164,6 +174,7 @@
             width: 100%;
             border-radius: 6px;
             margin-bottom: 10px;
+            cursor: pointer;
         }
 
         .timelapse-info {
@@ -253,6 +264,7 @@
             text-align: center;
             border-radius: 4px;
             transition: all 0.2s;
+            font-size: 0.9em;
         }
 
         .calendar-day.downloaded {
@@ -414,6 +426,76 @@
             border-radius: 10px;
         }
 
+        /* FULLSCREEN RESUMEN VOLCANES */
+        #resumen-fullscreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #0b0e14;
+            z-index: 2000;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        #resumen-header {
+            background: #161b22;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 2px solid #58a6ff;
+            position: sticky;
+            top: 0;
+            z-index: 2001;
+        }
+
+        #resumen-header h2 {
+            color: #58a6ff;
+            margin: 0;
+        }
+
+        #resumen-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .volcano-summary-card {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 10px;
+            padding: 15px;
+        }
+
+        .volcano-summary-card h3 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .summary-images {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .summary-image-box {
+            text-align: center;
+        }
+
+        .summary-image-box img {
+            width: 100%;
+            border-radius: 6px;
+            margin-bottom: 5px;
+        }
+
+        .summary-image-box p {
+            font-size: 0.8em;
+            color: #8b949e;
+        }
+
         .fullscreen-btn {
             background: rgba(22, 27, 34, 0.9);
             color: white;
@@ -437,6 +519,10 @@
             .image-panel {
                 min-width: 100%;
             }
+            
+            #resumen-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -454,8 +540,8 @@
             </div>
             
             <div class="action-buttons">
+                <button class="btn-ui" onclick="verResumenVolcanes()">🗺️ Ver Todos los Volcanes</button>
                 <button class="btn-ui" onclick="toggleCalendar()">📅 Calendario</button>
-                <button class="btn-ui" onclick="descargarPPT()">📊 PPT Mensual</button>
                 <button class="btn-ui" onclick="abrirCopernicusBrowser()">🌍 Copernicus Browser</button>
             </div>
 
@@ -473,7 +559,7 @@
             </select>
         </div>
 
-        <!-- NUEVA SECCIÓN: TIMELAPSES AUTOMÁTICOS ÚLTIMOS 30 DÍAS -->
+        <!-- TIMELAPSES AUTOMÁTICOS -->
         <div id="timelapse-automatico">
             <h2>🎬 Timelapses Automáticos (Últimos 30 días)</h2>
             <p style="text-align: center; color: #8b949e; margin-bottom: 15px;">
@@ -486,8 +572,7 @@
                     <img id="timelapse-rgb-auto" 
                          src="" 
                          alt="Timelapse RGB"
-                         onclick="verTimelapseFullscreen('RGB')"
-                         style="cursor: pointer;">
+                         onclick="verTimelapseFullscreen('RGB')">
                     <div class="timelapse-info">
                         📷 Sentinel-2 L2A RGB (B04-B03-B02)<br>
                         📅 Últimos 30 días<br>
@@ -500,8 +585,7 @@
                     <img id="timelapse-thermal-auto" 
                          src="" 
                          alt="Timelapse Thermal"
-                         onclick="verTimelapseFullscreen('Thermal')"
-                         style="cursor: pointer;">
+                         onclick="verTimelapseFullscreen('Thermal')">
                     <div class="timelapse-info">
                         🌡️ Sentinel-2 L2A SWIR (B12-B11-B04)<br>
                         📅 Últimos 30 días<br>
@@ -511,7 +595,7 @@
             </div>
         </div>
 
-        <!-- TIMELINE ORIGINAL (IMÁGENES INDIVIDUALES) -->
+        <!-- TIMELINE -->
         <div id="timeline-container">
             <h3 style="color: #58a6ff; margin-bottom: 10px;">📅 Timeline de Imágenes</h3>
             <div id="timeline"></div>
@@ -593,6 +677,15 @@
         <img id="timelapse-gif" src="" alt="Timelapse">
     </div>
 
+    <!-- FULLSCREEN RESUMEN VOLCANES -->
+    <div id="resumen-fullscreen">
+        <div id="resumen-header">
+            <h2>🗺️ Resumen de Todos los Volcanes - Última Imagen</h2>
+            <button class="fullscreen-btn" onclick="cerrarResumen()" style="margin-top: 10px;">✕ Cerrar</button>
+        </div>
+        <div id="resumen-grid"></div>
+    </div>
+
     <script>
         // CONFIGURACIÓN
         const VOLCANES_CONFIG = {
@@ -617,6 +710,66 @@
         }
 
         // ========================================
+        // RESUMEN TODOS LOS VOLCANES
+        // ========================================
+        async function verResumenVolcanes() {
+            const grid = document.getElementById('resumen-grid');
+            grid.innerHTML = '<p style="text-align:center; color:#8b949e; padding:20px;">Cargando...</p>';
+            
+            document.body.classList.add('resumen-mode');
+            
+            for (const [volcano, config] of Object.entries(VOLCANES_CONFIG)) {
+                const card = document.createElement('div');
+                card.className = 'volcano-summary-card';
+                
+                // Obtener última fecha disponible
+                let ultimaFecha = '--';
+                try {
+                    const response = await fetch(`data/sentinel2/${volcano}/metadata.csv?t=${new Date().getTime()}`);
+                    const text = await response.text();
+                    const lines = text.split('\n').filter(l => l.trim());
+                    if (lines.length > 1) {
+                        const cols = lines[1].split(',');
+                        ultimaFecha = cols[0]?.trim() || '--';
+                    }
+                } catch (e) {
+                    console.error(`Error cargando ${volcano}:`, e);
+                }
+                
+                const timestamp = new Date().getTime();
+                
+                card.innerHTML = `
+                    <h3>🌋 ${volcano}</h3>
+                    <p style="text-align:center; color:#8b949e; margin-bottom:10px;">Última imagen: ${ultimaFecha}</p>
+                    <div class="summary-images">
+                        <div class="summary-image-box">
+                            <img src="data/sentinel2/${volcano}/RGB/${ultimaFecha}_RGB.png?t=${timestamp}" 
+                                 onerror="this.src='https://via.placeholder.com/400x400?text=Sin+imagen'"
+                                 onclick="verImagenGrande('${volcano}', '${ultimaFecha}', 'RGB')">
+                            <p>🖼️ RGB</p>
+                        </div>
+                        <div class="summary-image-box">
+                            <img src="data/sentinel2/${volcano}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${timestamp}" 
+                                 onerror="this.src='https://via.placeholder.com/400x400?text=Sin+imagen'"
+                                 onclick="verImagenGrande('${volcano}', '${ultimaFecha}', 'Thermal')">
+                            <p>🔥 Thermal</p>
+                        </div>
+                    </div>
+                `;
+                
+                grid.appendChild(card);
+            }
+        }
+
+        function cerrarResumen() {
+            document.body.classList.remove('resumen-mode');
+        }
+
+        function verImagenGrande(volcano, fecha, tipo) {
+            alert(`Ver imagen grande:\n${volcano}\n${fecha}\n${tipo}`);
+        }
+
+        // ========================================
         // TIMELAPSES AUTOMÁTICOS
         // ========================================
         async function cargarTimelapesAutomaticos(volcano) {
@@ -628,7 +781,9 @@
             imgRGB.src = `timelapses/${volcano}_RGB.gif?t=${timestamp}`;
             imgThermal.src = `timelapses/${volcano}_ThermalFalseColor.gif?t=${timestamp}`;
             
-            // Actualizar fechas de actualización
+            imgRGB.onerror = () => imgRGB.src = 'https://via.placeholder.com/800x600?text=Timelapse+no+disponible';
+            imgThermal.onerror = () => imgThermal.src = 'https://via.placeholder.com/800x600?text=Timelapse+no+disponible';
+            
             const ahora = new Date().toLocaleDateString('es-CL');
             document.getElementById('update-date-rgb').textContent = ahora;
             document.getElementById('update-date-thermal').textContent = ahora;
@@ -675,6 +830,8 @@
                     renderTimeline();
                     cargarImagenes(selectedDate);
                     document.getElementById('last-update').textContent = selectedDate;
+                } else {
+                    document.getElementById('last-update').textContent = 'Sin datos';
                 }
                 
                 await cargarFechasDisponiblesCopernicus(volcano);
@@ -692,6 +849,11 @@
             const timeline = document.getElementById('timeline');
             timeline.innerHTML = '';
             
+            if (availableDates.length === 0) {
+                timeline.innerHTML = '<p style="color:#8b949e;">No hay imágenes disponibles</p>';
+                return;
+            }
+            
             availableDates.slice(0, 20).forEach(date => {
                 const item = document.createElement('div');
                 item.className = 'timeline-item';
@@ -699,7 +861,7 @@
                 
                 const img = document.createElement('img');
                 img.className = 'timeline-thumb';
-                img.src = `data/sentinel2/${currentVolcano}/RGB/${date}_RGB.png`;
+                img.src = `data/sentinel2/${currentVolcano}/RGB/${date}_RGB.png?t=${new Date().getTime()}`;
                 img.onerror = () => img.src = 'https://via.placeholder.com/120x80?text=N/A';
                 
                 const dateLabel = document.createElement('div');
@@ -727,6 +889,9 @@
             const timestamp = new Date().getTime();
             imgRGB.src = `data/sentinel2/${currentVolcano}/RGB/${date}_RGB.png?t=${timestamp}`;
             imgThermal.src = `data/sentinel2/${currentVolcano}/ThermalFalseColor/${date}_ThermalFalseColor.png?t=${timestamp}`;
+            
+            imgRGB.onerror = () => imgRGB.src = 'https://via.placeholder.com/800x600?text=Imagen+no+disponible';
+            imgThermal.onerror = () => imgThermal.src = 'https://via.placeholder.com/800x600?text=Imagen+no+disponible';
         }
 
         // ========================================
@@ -776,14 +941,13 @@
             const yearSelect = document.getElementById('calendar-year');
             yearSelect.innerHTML = '';
             
-            const currentYear = new Date().getFullYear();
-            for (let year = currentYear - 2; year <= currentYear + 1; year++) {
-                const option = document.createElement('option');
-                option.value = year;
-                option.textContent = year;
-                if (year === currentYear) option.selected = true;
-                yearSelect.appendChild(option);
-            }
+            // Solo 2026 (año actual según datos)
+            const currentYear = 2026;
+            const option = document.createElement('option');
+            option.value = currentYear;
+            option.textContent = currentYear;
+            option.selected = true;
+            yearSelect.appendChild(option);
             
             calendarMonth = new Date().getMonth();
             calendarYear = currentYear;
@@ -796,7 +960,7 @@
             
             const grid = document.getElementById('calendar-grid');
             
-            // Limpiar solo los días, mantener headers
+            // Limpiar días pero mantener headers
             const dayElements = grid.querySelectorAll('.calendar-day');
             dayElements.forEach(el => el.remove());
             
@@ -804,10 +968,10 @@
             const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
             const startDay = firstDay.getDay();
             
-            // Obtener fechas disponibles de Copernicus
+            // Fechas disponibles
             const fechasCopernicus = fechasDisponiblesCopernicus[currentVolcano] || [];
             
-            // Días vacíos al inicio
+            // Días vacíos
             for (let i = 0; i < startDay; i++) {
                 const emptyDiv = document.createElement('div');
                 emptyDiv.className = 'calendar-day';
@@ -862,29 +1026,6 @@
                     `cloudCoverage=30`;
                 
                 window.open(url, '_blank');
-            }
-        }
-
-        // ========================================
-        // BOTONES AUXILIARES
-        // ========================================
-        function descargarPPT() {
-            const ahora = new Date();
-            const año = ahora.getFullYear();
-            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
-            const monthStr = `${año}-${mes}`;
-            
-            const pptUrl = `PPT_Mensuales/${currentVolcano}_${monthStr}.pptx`;
-            
-            if (confirm(`📊 DESCARGAR PPT EVALUACIÓN MENSUAL\n\n` +
-                       `Volcán: ${currentVolcano}\n` +
-                       `Mes: ${monthStr}\n\n` +
-                       `¿Descargar PPT?`)) {
-                
-                const a = document.createElement('a');
-                a.href = pptUrl;
-                a.download = `${currentVolcano}_Evaluacion_Mensual_${monthStr}.pptx`;
-                a.click();
             }
         }
 
