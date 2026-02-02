@@ -1,6 +1,7 @@
 """
-SENTINEL-2 DOWNLOADER
+SENTINEL-2 DOWNLOADER V2.0 - CON COMPRESIÓN
 Descarga automática de imágenes RGB y térmicas de volcanes chilenos
++ Compresión automática para ahorrar espacio
 """
 
 import requests
@@ -10,6 +11,8 @@ from datetime import datetime, timedelta
 import pytz
 import json
 from pathlib import Path
+from PIL import Image
+from io import BytesIO
 from config_sentinel2 import (
     CLIENT_ID, CLIENT_SECRET, TOKEN_URL,
     PROCESS_API_URL, CATALOG_API_URL,
@@ -21,6 +24,11 @@ from config_sentinel2 import (
     get_active_volcanoes, get_image_path, get_metadata_path,
     validate_credentials
 )
+
+# ========================================
+# NUEVO: Importar módulo de compresión
+# ========================================
+from image_compression import save_compressed
 
 # =========================
 # AUTENTICACIÓN OAUTH2
@@ -152,7 +160,7 @@ class SentinelHubSearcher:
 # =========================
 
 class SentinelHubDownloader:
-    """Descarga de imágenes procesadas"""
+    """Descarga de imágenes procesadas con compresión automática"""
     
     def __init__(self, auth):
         self.auth = auth
@@ -171,7 +179,7 @@ class SentinelHubDownloader:
     
     def download_image(self, lat, lon, fecha, tipo='RGB', output_path=None):
         """
-        Descarga imagen procesada
+        Descarga imagen procesada CON COMPRESIÓN AUTOMÁTICA
         
         Args:
             lat, lon: Coordenadas del volcán
@@ -240,16 +248,35 @@ class SentinelHubDownloader:
             )
             response.raise_for_status()
             
-            # Guardar imagen
+            # ========================================
+            # CRÍTICO: COMPRESIÓN AUTOMÁTICA
+            # ========================================
             if output_path:
                 Path(output_path).parent.mkdir(parents=True, exist_ok=True)
                 
-                with open(output_path, 'wb') as f:
-                    f.write(response.content)
+                # ANTES (sin compresión):
+                # with open(output_path, 'wb') as f:
+                #     f.write(response.content)
                 
-                # Verificar tamaño
-                size_mb = len(response.content) / (1024 * 1024)
-                print(f"   ✅ {tipo}: {size_mb:.2f} MB")
+                # AHORA (con compresión):
+                # 1. Abrir imagen en memoria
+                image = Image.open(BytesIO(response.content))
+                
+                # 2. Guardar con compresión lossless
+                #    - Fase 1: lossless (20% reducción, sin pérdida)
+                #    - Si repo crece >30 GB: cambiar a 'balanced'
+                #    - Si repo crece >40 GB: cambiar a 'aggressive'
+                _, size_mb = save_compressed(
+                    image, 
+                    output_path, 
+                    compression_level='lossless'  # ← AJUSTABLE SEGÚN NECESIDAD
+                )
+                
+                # Tamaño ANTES de compresión (aproximado)
+                size_original_mb = len(response.content) / (1024 * 1024)
+                reduccion_percent = ((size_original_mb - size_mb) / size_original_mb) * 100
+                
+                print(f"   ✅ {tipo}: {size_mb:.2f} MB (↓{reduccion_percent:.0f}% vs original)")
                 
                 return True
             
@@ -322,7 +349,7 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
             elif os.path.exists(output_path) and MODO_SOBRESCRITURA:
                 print(f"   🔄 {tipo}: Sobrescribiendo (modo prueba)")
             
-            # Descargar
+            # Descargar CON COMPRESIÓN
             exito = downloader.download_image(lat, lon, fecha, tipo, output_path)
             
             if exito:
@@ -369,7 +396,7 @@ def main():
     """Proceso principal"""
     
     print("="*80)
-    print("🛰️ SENTINEL-2 DOWNLOADER - INICIO")
+    print("🛰️ SENTINEL-2 DOWNLOADER V2.0 - CON COMPRESIÓN")
     print("="*80)
     
     # Autenticación
@@ -385,6 +412,7 @@ def main():
         return
     
     print(f"\n📋 Volcanes activos: {len(volcanes_activos)}")
+    print(f"📦 Compresión: lossless (↓20% sin pérdida de calidad)")
     
     # Procesar cada volcán
     for nombre, config in volcanes_activos.items():
