@@ -259,6 +259,59 @@
             border-radius: 2px;
         }
 
+        /* TIMELAPSES AUTOMÁTICOS */
+        #timelapse-automatico {
+            background: #161b22;
+            padding: 20px;
+            margin: 20px;
+            border-radius: 10px;
+            border: 2px solid #58a6ff;
+        }
+
+        #timelapse-automatico h2 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .timelapse-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .timelapse-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .timelapse-card h3 {
+            color: #58a6ff;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .timelapse-card img {
+            width: 100%;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .timelapse-card img:hover {
+            transform: scale(1.02);
+        }
+
+        .timelapse-info {
+            font-size: 0.85em;
+            color: #8b949e;
+            line-height: 1.6;
+        }
+
         /* TIMELINE */
         #timeline {
             background: #161b22;
@@ -609,6 +662,42 @@
 
     <!-- CONTENIDO PRINCIPAL -->
     <div id="main-content">
+        <!-- TIMELAPSES AUTOMÁTICOS (ÚLTIMOS 30 DÍAS) -->
+        <div id="timelapse-automatico">
+            <h2>🎬 Timelapses Automáticos (Últimos 30 días)</h2>
+            <p style="text-align: center; color: #8b949e; margin-bottom: 15px;">
+                Se actualizan automáticamente cada día a las 06:00 UTC
+            </p>
+            
+            <div class="timelapse-grid">
+                <div class="timelapse-card">
+                    <h3>🖼️ RGB Color Real</h3>
+                    <img id="timelapse-rgb-auto" 
+                         src="" 
+                         alt="Timelapse RGB"
+                         onclick="verTimelapseFullscreen('RGB')">
+                    <div class="timelapse-info">
+                        📷 Sentinel-2 L2A RGB (B04-B03-B02)<br>
+                        📅 Últimos 30 días<br>
+                        🔄 Actualizado: <span id="update-date-rgb">--</span>
+                    </div>
+                </div>
+
+                <div class="timelapse-card">
+                    <h3>🔥 SWIR Falso Color</h3>
+                    <img id="timelapse-thermal-auto" 
+                         src="" 
+                         alt="Timelapse Thermal"
+                         onclick="verTimelapseFullscreen('Thermal')">
+                    <div class="timelapse-info">
+                        🌡️ Sentinel-2 L2A SWIR (B12-B11-B04)<br>
+                        📅 Últimos 30 días<br>
+                        🔄 Actualizado: <span id="update-date-thermal">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div id="timeline">
             <h3>📅 Fechas Disponibles (últimos 30 días)</h3>
             <div id="timeline-dates">
@@ -765,6 +854,9 @@
             
             // CAMBIO QUIRÚRGICO 6: CARGAR FECHAS COPERNICUS
             await cargarFechasDisponiblesCopernicus(currentVolcano);
+            
+            // CARGAR TIMELAPSES AUTOMÁTICOS
+            await cargarTimelapesAutomaticos(currentVolcano);
             
             // FIX: Resetear timelapse si está visible
             const timelapseContainer = document.getElementById('timelapse-container');
@@ -1116,6 +1208,95 @@
                 
                 window.open(url, '_blank');
             }
+        }
+
+        // TIMELAPSES AUTOMÁTICOS (30 DÍAS)
+        async function cargarTimelapesAutomaticos(volcano) {
+            const timestamp = new Date().getTime();
+            
+            const imgRGB = document.getElementById('timelapse-rgb-auto');
+            const imgThermal = document.getElementById('timelapse-thermal-auto');
+            
+            // Rutas a GIFs en docs/timelapses/
+            imgRGB.src = `${REPO_BASE}/docs/timelapses/${volcano}_RGB.gif?t=${timestamp}`;
+            imgThermal.src = `${REPO_BASE}/docs/timelapses/${volcano}_ThermalFalseColor.gif?t=${timestamp}`;
+            
+            // Placeholder si no existe
+            imgRGB.onerror = () => {
+                imgRGB.src = 'https://via.placeholder.com/800x600/0d1117/8b949e?text=Timelapse+no+disponible';
+                imgRGB.style.cursor = 'not-allowed';
+            };
+            imgThermal.onerror = () => {
+                imgThermal.src = 'https://via.placeholder.com/800x600/0d1117/8b949e?text=Timelapse+no+disponible';
+                imgThermal.style.cursor = 'not-allowed';
+            };
+            
+            // Fecha de actualización
+            const ahora = new Date().toLocaleDateString('es-CL');
+            document.getElementById('update-date-rgb').textContent = ahora;
+            document.getElementById('update-date-thermal').textContent = ahora;
+        }
+
+        function verTimelapseFullscreen(tipo) {
+            const tipoArchivo = tipo === 'RGB' ? 'RGB' : 'ThermalFalseColor';
+            const timestamp = new Date().getTime();
+            
+            // Crear modal fullscreen
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                background: rgba(0,0,0,0.95);
+                z-index: 3000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+            `;
+            
+            const header = document.createElement('div');
+            header.style.cssText = `
+                position: absolute;
+                top: 0;
+                width: 100%;
+                background: #161b22;
+                padding: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #58a6ff;
+            `;
+            
+            const title = document.createElement('h2');
+            title.textContent = `🎬 ${currentVolcano} - ${tipo === 'RGB' ? 'Color Real' : 'SWIR Falso Color'} (30 días)`;
+            title.style.cssText = 'color: #58a6ff; margin: 0;';
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = '✕ Cerrar';
+            closeBtn.className = 'btn-ui';
+            closeBtn.onclick = () => document.body.removeChild(modal);
+            
+            header.appendChild(title);
+            header.appendChild(closeBtn);
+            
+            const img = document.createElement('img');
+            img.src = `${REPO_BASE}/docs/timelapses/${currentVolcano}_${tipoArchivo}.gif?t=${timestamp}`;
+            img.style.cssText = 'max-width: 90%; max-height: 80vh; border-radius: 10px; margin-top: 80px;';
+            img.onerror = () => {
+                img.src = 'https://via.placeholder.com/800x600/0d1117/8b949e?text=Timelapse+no+disponible';
+            };
+            
+            modal.appendChild(header);
+            modal.appendChild(img);
+            document.body.appendChild(modal);
+            
+            // Click fuera cierra
+            modal.onclick = (e) => {
+                if (e.target === modal) document.body.removeChild(modal);
+            };
         }
 
         window.onload = init;
