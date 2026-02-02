@@ -540,9 +540,10 @@
             </div>
             
             <div class="action-buttons">
-                <button class="btn-ui" onclick="verResumenVolcanes()">🗺️ Ver Todos los Volcanes</button>
+                <button class="btn-ui" onclick="verResumenVolcanes()">🗺️ Ver Todos</button>
                 <button class="btn-ui" onclick="toggleCalendar()">📅 Calendario</button>
-                <button class="btn-ui" onclick="abrirCopernicusBrowser()">🌍 Copernicus Browser</button>
+                <button class="btn-ui" onclick="descargarPPT()">📊 PPT Mensual</button>
+                <button class="btn-ui" onclick="abrirCopernicusBrowser()">🌍 Copernicus</button>
             </div>
 
             <div class="status-item">
@@ -723,14 +724,14 @@
                 card.className = 'volcano-summary-card';
                 
                 // Obtener última fecha disponible
-                let ultimaFecha = '--';
+                let ultimaFecha = '';
                 try {
-                    const response = await fetch(`data/sentinel2/${volcano}/metadata.csv?t=${new Date().getTime()}`);
+                    const response = await fetch(`../data/sentinel2/${volcano}/metadata.csv?t=${new Date().getTime()}`);
                     const text = await response.text();
                     const lines = text.split('\n').filter(l => l.trim());
                     if (lines.length > 1) {
                         const cols = lines[1].split(',');
-                        ultimaFecha = cols[0]?.trim() || '--';
+                        ultimaFecha = cols[0]?.trim() || '';
                     }
                 } catch (e) {
                     console.error(`Error cargando ${volcano}:`, e);
@@ -738,20 +739,27 @@
                 
                 const timestamp = new Date().getTime();
                 
+                // Construir rutas correctas
+                const rutaRGB = ultimaFecha ? 
+                    `../data/sentinel2/${volcano}/RGB/${ultimaFecha}_RGB.png?t=${timestamp}` :
+                    'https://via.placeholder.com/400x400?text=Sin+imagen';
+                
+                const rutaThermal = ultimaFecha ?
+                    `../data/sentinel2/${volcano}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${timestamp}` :
+                    'https://via.placeholder.com/400x400?text=Sin+imagen';
+                
                 card.innerHTML = `
                     <h3>🌋 ${volcano}</h3>
-                    <p style="text-align:center; color:#8b949e; margin-bottom:10px;">Última imagen: ${ultimaFecha}</p>
+                    <p style="text-align:center; color:#8b949e; margin-bottom:10px;">Última imagen: ${ultimaFecha || 'Sin datos'}</p>
                     <div class="summary-images">
                         <div class="summary-image-box">
-                            <img src="data/sentinel2/${volcano}/RGB/${ultimaFecha}_RGB.png?t=${timestamp}" 
-                                 onerror="this.src='https://via.placeholder.com/400x400?text=Sin+imagen'"
-                                 onclick="verImagenGrande('${volcano}', '${ultimaFecha}', 'RGB')">
+                            <img src="${rutaRGB}" 
+                                 onerror="this.src='https://via.placeholder.com/400x400?text=Sin+imagen'">
                             <p>🖼️ RGB</p>
                         </div>
                         <div class="summary-image-box">
-                            <img src="data/sentinel2/${volcano}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${timestamp}" 
-                                 onerror="this.src='https://via.placeholder.com/400x400?text=Sin+imagen'"
-                                 onclick="verImagenGrande('${volcano}', '${ultimaFecha}', 'Thermal')">
+                            <img src="${rutaThermal}" 
+                                 onerror="this.src='https://via.placeholder.com/400x400?text=Sin+imagen'">
                             <p>🔥 Thermal</p>
                         </div>
                     </div>
@@ -763,10 +771,6 @@
 
         function cerrarResumen() {
             document.body.classList.remove('resumen-mode');
-        }
-
-        function verImagenGrande(volcano, fecha, tipo) {
-            alert(`Ver imagen grande:\n${volcano}\n${fecha}\n${tipo}`);
         }
 
         // ========================================
@@ -808,7 +812,7 @@
         // ========================================
         async function cargarDatosVolcan(volcano) {
             try {
-                const response = await fetch(`data/sentinel2/${volcano}/metadata.csv?t=${new Date().getTime()}`);
+                const response = await fetch(`../data/sentinel2/${volcano}/metadata.csv?t=${new Date().getTime()}`);
                 const text = await response.text();
                 const lines = text.split('\n').filter(l => l.trim());
                 
@@ -832,6 +836,7 @@
                     document.getElementById('last-update').textContent = selectedDate;
                 } else {
                     document.getElementById('last-update').textContent = 'Sin datos';
+                    document.getElementById('timeline').innerHTML = '<p style="color:#8b949e; padding:20px;">No hay imágenes disponibles</p>';
                 }
                 
                 await cargarFechasDisponiblesCopernicus(volcano);
@@ -839,6 +844,7 @@
             } catch (error) {
                 console.error('Error cargando datos:', error);
                 document.getElementById('last-update').textContent = 'Error';
+                document.getElementById('timeline').innerHTML = '<p style="color:#ff6b6b; padding:20px;">Error cargando datos</p>';
             }
         }
 
@@ -861,7 +867,7 @@
                 
                 const img = document.createElement('img');
                 img.className = 'timeline-thumb';
-                img.src = `data/sentinel2/${currentVolcano}/RGB/${date}_RGB.png?t=${new Date().getTime()}`;
+                img.src = `../data/sentinel2/${currentVolcano}/RGB/${date}_RGB.png?t=${new Date().getTime()}`;
                 img.onerror = () => img.src = 'https://via.placeholder.com/120x80?text=N/A';
                 
                 const dateLabel = document.createElement('div');
@@ -887,8 +893,8 @@
             const imgThermal = document.getElementById('main-thermal');
             
             const timestamp = new Date().getTime();
-            imgRGB.src = `data/sentinel2/${currentVolcano}/RGB/${date}_RGB.png?t=${timestamp}`;
-            imgThermal.src = `data/sentinel2/${currentVolcano}/ThermalFalseColor/${date}_ThermalFalseColor.png?t=${timestamp}`;
+            imgRGB.src = `../data/sentinel2/${currentVolcano}/RGB/${date}_RGB.png?t=${timestamp}`;
+            imgThermal.src = `../data/sentinel2/${currentVolcano}/ThermalFalseColor/${date}_ThermalFalseColor.png?t=${timestamp}`;
             
             imgRGB.onerror = () => imgRGB.src = 'https://via.placeholder.com/800x600?text=Imagen+no+disponible';
             imgThermal.onerror = () => imgThermal.src = 'https://via.placeholder.com/800x600?text=Imagen+no+disponible';
@@ -902,6 +908,51 @@
             await cargarDatosVolcan(currentVolcano);
             await cargarTimelapesAutomaticos(currentVolcano);
             updateCalendar();
+        }
+
+        // ========================================
+        // PPT MENSUAL
+        // ========================================
+        function descargarPPT() {
+            const ahora = new Date();
+            const año = 2026;
+            const mes = String(ahora.getMonth() + 1).padStart(2, '0');
+            const monthStr = `${año}-${mes}`;
+            
+            // Ruta al PPT
+            const pptUrl = `../PPT_Mensuales/${currentVolcano}_${monthStr}.pptx`;
+            
+            if (confirm(`📊 DESCARGAR PPT EVALUACIÓN MENSUAL\n\n` +
+                       `Volcán: ${currentVolcano}\n` +
+                       `Mes: ${monthStr}\n\n` +
+                       `⚠️ NOTA: El PPT se genera automáticamente el día 1 de cada mes.\n\n` +
+                       `¿Intentar descargar?`)) {
+                
+                // Intentar descargar
+                fetch(pptUrl, { method: 'HEAD' })
+                    .then(response => {
+                        if (response.ok) {
+                            const a = document.createElement('a');
+                            a.href = pptUrl;
+                            a.download = `${currentVolcano}_Evaluacion_Mensual_${monthStr}.pptx`;
+                            a.click();
+                        } else {
+                            alert('❌ PPT NO DISPONIBLE\n\n' +
+                                  'El PPT aún no ha sido generado.\n\n' +
+                                  'Opciones:\n' +
+                                  '1. Esperar al día 1 del próximo mes (generación automática)\n' +
+                                  '2. Generar manualmente usando el selector de fechas + ppt_generator.py');
+                        }
+                    })
+                    .catch(() => {
+                        alert('❌ PPT NO DISPONIBLE\n\n' +
+                              'El archivo no existe en el repositorio.\n\n' +
+                              'Para generar PPT manualmente:\n' +
+                              '1. python selector_fechas_timelapse.py\n' +
+                              '2. python timelapse_generator.py\n' +
+                              '3. python ppt_generator.py');
+                    });
+            }
         }
 
         // ========================================
@@ -941,7 +992,7 @@
             const yearSelect = document.getElementById('calendar-year');
             yearSelect.innerHTML = '';
             
-            // Solo 2026 (año actual según datos)
+            // Solo 2026
             const currentYear = 2026;
             const option = document.createElement('option');
             option.value = currentYear;
@@ -960,7 +1011,7 @@
             
             const grid = document.getElementById('calendar-grid');
             
-            // Limpiar días pero mantener headers
+            // Limpiar días
             const dayElements = grid.querySelectorAll('.calendar-day');
             dayElements.forEach(el => el.remove());
             
@@ -968,7 +1019,6 @@
             const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
             const startDay = firstDay.getDay();
             
-            // Fechas disponibles
             const fechasCopernicus = fechasDisponiblesCopernicus[currentVolcano] || [];
             
             // Días vacíos
@@ -1012,7 +1062,7 @@
             if (confirm(`🔵 FECHA DISPONIBLE EN COPERNICUS\n\n` +
                        `Volcán: ${currentVolcano}\n` +
                        `Fecha: ${fecha}\n\n` +
-                       `¿Abrir Copernicus Browser para ver esta imagen?`)) {
+                       `¿Abrir Copernicus Browser?`)) {
                 
                 const url = `https://browser.dataspace.copernicus.eu/?` +
                     `zoom=13&` +
