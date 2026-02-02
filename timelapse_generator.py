@@ -1,6 +1,7 @@
 """
-TIMELAPSE_GENERATOR.PY V2.1 - Con escala corregida (3 km)
-Genera GIF animado con todas las imágenes del último mes
+TIMELAPSE_GENERATOR.PY V2.2
+Genera GIF animado con imágenes YA COMPRIMIDAS (no recomprime)
+Escala corregida: 3 km
 """
 
 import os
@@ -149,6 +150,8 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
     - Fecha (arriba derecha)
     - Escala (abajo derecha)
     - Tipo de imagen (abajo izquierda)
+    
+    NOTA: Trabaja con imágenes YA COMPRIMIDAS (no recomprime)
     """
     from PIL import ImageDraw, ImageFont
     
@@ -212,10 +215,6 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
     img_final = Image.alpha_composite(img_copy, overlay)
     
     # 4. ESCALA (abajo derecha) - aplicar DESPUÉS del composite
-    # FIX CRÍTICO: Escala corregida a 3 km (buffer real del bbox)
-    # Buffer usado en descarga = 3 km
-    # Área total = 6 km × 6 km
-    # Escala mostrada = 3 km (mitad del área)
     pixel_size = 10 if tipo == 'RGB' else 20
     img_final = agregar_escala_kilometros(img_final, escala_km=3, pixel_size_m=pixel_size)
     
@@ -231,7 +230,8 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
 
 def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None):
     """
-    Genera GIF timelapse para un volcán y tipo de imagen
+    Genera GIF timelapse usando imágenes YA COMPRIMIDAS
+    NO recomprime las imágenes, solo agrega overlays y crea el GIF
     """
     
     print(f"\n🎬 Generando GIF: {volcan_nombre} - {tipo}")
@@ -255,13 +255,17 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None):
     
     for img_path in imagenes_paths:
         try:
+            # ========================================
+            # IMPORTANTE: Cargar imagen YA COMPRIMIDA
+            # NO recomprimir, solo agregar overlays
+            # ========================================
             img = Image.open(img_path)
             
             nombre_archivo = os.path.basename(img_path)
             fecha = nombre_archivo.split('_')[0]
             fechas.append(fecha)
             
-            # Agregar overlay estilo Copernicus
+            # Agregar overlay estilo Copernicus (SIN recomprimir)
             img_con_overlay = agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus)
             imagenes.append(img_con_overlay)
             
@@ -284,16 +288,22 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None):
     output_path = f"{carpeta_gif}/{volcan_nombre}_{tipo}_{mes_actual}.gif"
     
     try:
+        # ========================================
+        # GIF con optimize=True automáticamente comprime
+        # PIL es inteligente: ~3-5 MB para GIFs
+        # ========================================
         imagenes[0].save(
             output_path,
             save_all=True,
             append_images=imagenes[1:],
             duration=DURACION_FRAME,
             loop=0,
-            optimize=True
+            optimize=True  # PIL optimiza automáticamente
         )
         
+        size_mb = os.path.getsize(output_path) / (1024 * 1024)
         print(f"   ✅ GIF generado: {output_path}")
+        print(f"   📦 Tamaño: {size_mb:.2f} MB")
         print(f"   📅 Período: {fecha_inicio} → {fecha_fin}")
         
         return output_path
@@ -304,7 +314,8 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None):
 
 def main():
     print("="*80)
-    print("🎬 GENERADOR DE TIMELAPSE GIF - V2.1 (Escala 3 km)")
+    print("🎬 GENERADOR DE TIMELAPSE GIF V2.2")
+    print("   (Usa imágenes YA comprimidas, no recomprime)")
     print("="*80)
     
     # Descargar logo de Copernicus
@@ -335,7 +346,8 @@ def main():
     print("="*80)
     
     for gif in gifs_generados:
-        print(f"   📁 {gif}")
+        size_mb = os.path.getsize(gif) / (1024 * 1024)
+        print(f"   📁 {gif} ({size_mb:.2f} MB)")
 
 
 if __name__ == "__main__":
