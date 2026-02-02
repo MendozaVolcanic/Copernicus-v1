@@ -16,7 +16,20 @@ import pytz
 # CONFIGURACIÓN
 # =========================
 
-VOLCANES_ACTIVOS = ["Villarrica", "Llaima"]
+VOLCANES_ACTIVOS = [
+    # ZONA NORTE
+    "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", "Ollagüe", "San Pedro", "Láscar",
+    # ZONA CENTRO
+    "Tupungatito", "San José", "Tinguiririca", "Planchón-Peteroa", "Descabezado Grande", 
+    "Tatara-San Pedro", "Laguna del Maule", "Nevado de Longaví", "Nevados de Chillán",
+    # ZONA SUR
+    "Antuco", "Copahue", "Callaqui", "Lonquimay", "Llaima", "Sollipulli", "Villarrica", 
+    "Quetrupillán", "Lanín", "Mocho-Choshuenco", "Carrán - Los Venados", "Puyehue - Cordón Caulle", 
+    "Antillanca – Casablanca",
+    # ZONA AUSTRAL
+    "Osorno", "Calbuco", "Yate", "Hornopirén", "Huequi", "Michinmahuida", "Chaitén", 
+    "Corcovado", "Melimoyu", "Mentolat", "Cay", "Macá", "Hudson"
+]
 DIAS_TIMELAPSE = 30  # Últimos 30 días para dashboard
 DURACION_FRAME = 1000  # ms
 
