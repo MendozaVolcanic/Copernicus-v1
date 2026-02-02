@@ -106,16 +106,20 @@ class SentinelHubSearcher:
         
         bbox_data = self.create_bbox(lat, lon)
         
-        params = {
-            'box': ','.join(map(str, bbox_data["bbox"])),
-            'startDate': f"{start_date}T00:00:00Z",
-            'completionDate': f"{end_date}T23:59:59Z",
-            'maxRecords': 50,
-            'cloudCover': f'[0,{max_cloud}]',
-            'sortParam': 'startDate',
-            'sortOrder': 'descending',
-            'productType': 'S2MSI2A'
-        }
+   params = {
+       'collections': 'sentinel-2-l2a',
+       'bbox': ','.join(map(str, bbox_data["bbox"])),
+       'datetime': f"{start_date}T00:00:00Z/{end_date}T23:59:59Z",
+       'limit': 50
+   }
+   
+   # Agregar filtro de nubes si es necesario
+   if max_cloud < 100:
+       params['query'] = {
+           'eo:cloud_cover': {
+               'lte': max_cloud
+           }
+       }
         
         try:
             response = requests.get(
