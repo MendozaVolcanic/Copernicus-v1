@@ -413,6 +413,9 @@
             max-width: 90%;
             max-height: 80vh;
             border-radius: 6px;
+            object-fit: contain;
+            width: auto;
+            height: auto;
         }
 
         .image-date-overlay {
@@ -426,6 +429,20 @@
             font-size: 0.85em;
             font-weight: bold;
             border: 1px solid #58a6ff;
+        }
+
+        .image-scale-indicator {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
         }
 
         .loading-spinner {
@@ -608,10 +625,17 @@
     </div>
 
     <div id="volcano-selector">
-        <label for="volcano-select">🌋 VOLCÁN:</label>
+        <label for="zona-select">🗺️ ZONA:</label>
+        <select id="zona-select" onchange="cambiarZona()">
+            <option value="Sur">Zona Sur</option>
+            <option value="Norte">Zona Norte</option>
+            <option value="Centro">Zona Centro</option>
+            <option value="Austral">Zona Austral</option>
+        </select>
+        
+        <label for="volcano-select" style="margin-left: 15px;">🌋 VOLCÁN:</label>
         <select id="volcano-select" onchange="loadVolcano()">
-            <option value="Villarrica">Villarrica</option>
-            <option value="Llaima">Llaima</option>
+            <!-- Se llena dinámicamente según zona -->
         </select>
         
         <button onclick="toggleCalendar()">📅 Ver Imágenes</button>
@@ -857,7 +881,15 @@
     <!-- MODO TIMELAPSE FULLSCREEN -->
     <div id="timelapse-fullscreen">
         <div class="timelapse-header">
-            <h2 style="color: #58a6ff; margin: 0;">🎬 Comparación Multi-Volcán - Últimas Imágenes</h2>
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h2 style="color: #58a6ff; margin: 0;">🎬 Comparación Multi-Volcán - Últimas Imágenes</h2>
+                <select id="zona-multi-select" onchange="loadMultiVolcanoViewZona()" style="padding: 8px 12px; background: #161b22; color: white; border: 1px solid #30363d; border-radius: 6px;">
+                    <option value="Sur">Zona Sur</option>
+                    <option value="Norte">Zona Norte</option>
+                    <option value="Centro">Zona Centro</option>
+                    <option value="Austral">Zona Austral</option>
+                </select>
+            </div>
             <button class="btn-ui" onclick="toggleTimelapseMode()">← Volver al Dashboard</button>
         </div>
         <div class="timelapse-content">
@@ -898,8 +930,56 @@
         const REPO_BASE = 'https://raw.githubusercontent.com/MendozaVolcanic/Copernicus-v1/main';
         
         const VOLCANES_CONFIG = {
-            'Villarrica': { lat: -39.42, lon: -71.93 },
-            'Llaima': { lat: -38.69, lon: -71.73 }
+            // ZONA NORTE (8 volcanes)
+            'Taapaca': { lat: -18.10, lon: -69.50, zona: 'Norte' },
+            'Parinacota': { lat: -18.17, lon: -69.15, zona: 'Norte' },
+            'Guallatiri': { lat: -18.42, lon: -69.09, zona: 'Norte' },
+            'Isluga': { lat: -19.15, lon: -68.83, zona: 'Norte' },
+            'Irruputuncu': { lat: -20.73, lon: -68.55, zona: 'Norte' },
+            'Ollagüe': { lat: -21.30, lon: -68.18, zona: 'Norte' },
+            'San Pedro': { lat: -21.88, lon: -68.40, zona: 'Norte' },
+            'Láscar': { lat: -23.37, lon: -67.73, zona: 'Norte' },
+            
+            // ZONA CENTRO (10 volcanes)
+            'Tupungatito': { lat: -33.40, lon: -69.80, zona: 'Centro' },
+            'San José': { lat: -33.78, lon: -69.90, zona: 'Centro' },
+            'Tinguiririca': { lat: -34.81, lon: -70.35, zona: 'Centro' },
+            'Planchón-Peteroa': { lat: -35.24, lon: -70.57, zona: 'Centro' },
+            'Descabezado Grande': { lat: -35.58, lon: -70.75, zona: 'Centro' },
+            'Tatara-San Pedro': { lat: -36.00, lon: -70.80, zona: 'Centro' },
+            'Laguna del Maule': { lat: -36.02, lon: -70.60, zona: 'Centro' },
+            'Nevado de Longaví': { lat: -36.19, lon: -71.16, zona: 'Centro' },
+            'Nevados de Chillán': { lat: -36.86, lon: -71.38, zona: 'Centro' },
+            
+            // ZONA SUR (14 volcanes)
+            'Antuco': { lat: -37.41, lon: -71.35, zona: 'Sur' },
+            'Copahue': { lat: -37.85, lon: -71.17, zona: 'Sur' },
+            'Callaqui': { lat: -37.92, lon: -71.45, zona: 'Sur' },
+            'Lonquimay': { lat: -38.38, lon: -71.58, zona: 'Sur' },
+            'Llaima': { lat: -38.69, lon: -71.73, zona: 'Sur' },
+            'Sollipulli': { lat: -38.97, lon: -71.52, zona: 'Sur' },
+            'Villarrica': { lat: -39.42, lon: -71.93, zona: 'Sur' },
+            'Quetrupillán': { lat: -39.50, lon: -71.70, zona: 'Sur' },
+            'Lanín': { lat: -39.64, lon: -71.50, zona: 'Sur' },
+            'Mocho-Choshuenco': { lat: -39.93, lon: -72.03, zona: 'Sur' },
+            'Carrán - Los Venados': { lat: -40.35, lon: -72.07, zona: 'Sur' },
+            'Puyehue - Cordón Caulle': { lat: -40.59, lon: -72.12, zona: 'Sur' },
+            'Antillanca – Casablanca': { lat: -40.77, lon: -72.15, zona: 'Sur' },
+            
+            // ZONA AUSTRAL (12 volcanes)
+            'Osorno': { lat: -41.10, lon: -72.49, zona: 'Austral' },
+            'Calbuco': { lat: -41.33, lon: -72.61, zona: 'Austral' },
+            'Yate': { lat: -41.76, lon: -72.40, zona: 'Austral' },
+            'Hornopirén': { lat: -41.87, lon: -72.43, zona: 'Austral' },
+            'Huequi': { lat: -42.38, lon: -72.58, zona: 'Austral' },
+            'Michinmahuida': { lat: -42.79, lon: -72.44, zona: 'Austral' },
+            'Chaitén': { lat: -42.83, lon: -72.65, zona: 'Austral' },
+            'Corcovado': { lat: -43.18, lon: -72.80, zona: 'Austral' },
+            'Melimoyu': { lat: -44.08, lon: -72.88, zona: 'Austral' },
+            'Mentolat': { lat: -44.70, lon: -73.08, zona: 'Austral' },
+            'Cay': { lat: -45.07, lon: -73.00, zona: 'Austral' },
+            'Macá': { lat: -45.10, lon: -73.17, zona: 'Austral' },
+            'Hudson': { lat: -45.90, lon: -72.97, zona: 'Austral' }
         };
         
         let currentVolcano = 'Villarrica';
@@ -919,6 +999,34 @@
 
         async function init() {
             await loadVolcano();
+        }
+
+        function cambiarZona() {
+            const zonaSelect = document.getElementById('zona-select');
+            const volcanoSelect = document.getElementById('volcano-select');
+            const zona = zonaSelect.value;
+            
+            // Limpiar opciones actuales
+            volcanoSelect.innerHTML = '';
+            
+            // Filtrar volcanes por zona
+            const volcanesZona = Object.entries(VOLCANES_CONFIG)
+                .filter(([nombre, config]) => config.zona === zona)
+                .map(([nombre, config]) => nombre)
+                .sort();
+            
+            // Agregar opciones
+            volcanesZona.forEach(nombre => {
+                const option = document.createElement('option');
+                option.value = nombre;
+                option.textContent = nombre;
+                volcanoSelect.appendChild(option);
+            });
+            
+            // Cargar primer volcán de la zona
+            if (volcanesZona.length > 0) {
+                loadVolcano();
+            }
         }
 
         async function loadVolcano() {
@@ -1057,7 +1165,10 @@
             
             const rgbImg = new Image();
             rgbImg.onload = () => {
-                rgbContainer.innerHTML = `<div class="image-date-overlay">📅 ${date}</div>`;
+                rgbContainer.innerHTML = `
+                    <div class="image-date-overlay">📅 ${date}</div>
+                    <div class="image-scale-indicator">🔍 3 km</div>
+                `;
                 rgbContainer.appendChild(rgbImg);
             };
             rgbImg.onerror = () => {
@@ -1067,7 +1178,10 @@
             
             const thermalImg = new Image();
             thermalImg.onload = () => {
-                thermalContainer.innerHTML = `<div class="image-date-overlay">📅 ${date}</div>`;
+                thermalContainer.innerHTML = `
+                    <div class="image-date-overlay">📅 ${date}</div>
+                    <div class="image-scale-indicator">🔍 3 km</div>
+                `;
                 thermalContainer.appendChild(thermalImg);
             };
             thermalImg.onerror = () => {
@@ -1089,7 +1203,78 @@
             document.body.classList.toggle('timelapse-mode');
             
             if (document.body.classList.contains('timelapse-mode')) {
-                loadMultiVolcanoView();
+                // Seleccionar Zona Sur por defecto
+                document.getElementById('zona-multi-select').value = 'Sur';
+                loadMultiVolcanoViewZona();
+            }
+        }
+
+        async function loadMultiVolcanoViewZona() {
+            const zonaSelect = document.getElementById('zona-multi-select');
+            const zona = zonaSelect.value;
+            
+            const volcanesGrid = document.getElementById('volcanes-grid');
+            volcanesGrid.innerHTML = '';
+            
+            // Filtrar volcanes por zona
+            const volcanesZona = Object.entries(VOLCANES_CONFIG)
+                .filter(([nombre, config]) => config.zona === zona)
+                .map(([nombre, config]) => nombre)
+                .sort();
+            
+            for (const volcan of volcanesZona) {
+                const panel = document.createElement('div');
+                panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px;';
+                
+                // Obtener última fecha
+                let ultimaFecha = '';
+                try {
+                    const metadataUrl = `${REPO_BASE}/data/sentinel2/${volcan}/metadata.csv?t=${Date.now()}`;
+                    const response = await fetch(metadataUrl);
+                    const csvText = await response.text();
+                    const lines = csvText.trim().split('\n');
+                    
+                    if (lines.length > 1) {
+                        const values = lines[1].split(',');
+                        ultimaFecha = values[0];
+                    }
+                } catch (e) {
+                    console.error(`Error obteniendo fecha de ${volcan}:`, e);
+                }
+                
+                panel.innerHTML = `
+                    <h2 style="color: #58a6ff; margin-bottom: 5px;">${volcan}</h2>
+                    ${ultimaFecha ? `<p style="color: #8b949e; font-size: 0.85em; margin-bottom: 15px;">📅 ${ultimaFecha}</p>` : ''}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 10px;">
+                            <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">RGB</h4>
+                            <div id="rgb-${volcan}" style="min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                        <div style="background: #0d1117; border-radius: 6px; padding: 10px;">
+                            <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">Thermal</h4>
+                            <div id="thermal-${volcan}" style="min-height: 200px; display: flex; align-items: center; justify-content: center;">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                volcanesGrid.appendChild(panel);
+                
+                try {
+                    if (ultimaFecha) {
+                        const rgbUrl = `${REPO_BASE}/data/sentinel2/${volcan}/RGB/${ultimaFecha}_RGB.png?t=${Date.now()}`;
+                        const thermalUrl = `${REPO_BASE}/data/sentinel2/${volcan}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
+                        
+                        document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
+                        document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
+                    }
+                } catch (e) {
+                    document.getElementById(`rgb-${volcan}`).innerHTML = '<div class="no-image">Error</div>';
+                    document.getElementById(`thermal-${volcan}`).innerHTML = '<div class="no-image">Error</div>';
+                }
             }
         }
 
@@ -1474,7 +1659,9 @@
             };
         }
 
-        window.onload = init;
+        window.onload = function() {
+            cambiarZona(); // Carga zona Sur por defecto
+        };
     </script>
 </body>
 </html>
