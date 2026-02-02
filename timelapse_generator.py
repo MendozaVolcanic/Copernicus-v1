@@ -1,5 +1,5 @@
 """
-TIMELAPSE_GENERATOR.PY V2 - Con escala y logo Copernicus
+TIMELAPSE_GENERATOR.PY V2.1 - Con escala corregida (3 km)
 Genera GIF animado con todas las imágenes del último mes
 """
 
@@ -77,13 +77,13 @@ def crear_logo_copernicus_texto():
     return logo_img
 
 
-def agregar_escala_kilometros(img, escala_km=5, pixel_size_m=10):
+def agregar_escala_kilometros(img, escala_km=3, pixel_size_m=10):
     """
     Agrega una barra de escala de kilómetros a la imagen
     
     Args:
         img: PIL Image
-        escala_km: Kilómetros a representar en la escala
+        escala_km: Kilómetros a representar en la escala (3 km = buffer usado)
         pixel_size_m: Tamaño de píxel en metros (10m para RGB, 20m para Thermal)
     
     Returns:
@@ -212,8 +212,12 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
     img_final = Image.alpha_composite(img_copy, overlay)
     
     # 4. ESCALA (abajo derecha) - aplicar DESPUÉS del composite
+    # FIX CRÍTICO: Escala corregida a 3 km (buffer real del bbox)
+    # Buffer usado en descarga = 3 km
+    # Área total = 6 km × 6 km
+    # Escala mostrada = 3 km (mitad del área)
     pixel_size = 10 if tipo == 'RGB' else 20
-    img_final = agregar_escala_kilometros(img_final, escala_km=5, pixel_size_m=pixel_size)
+    img_final = agregar_escala_kilometros(img_final, escala_km=3, pixel_size_m=pixel_size)
     
     # Convertir de vuelta a RGB si es necesario
     if img_final.mode == 'RGBA':
@@ -300,7 +304,7 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None):
 
 def main():
     print("="*80)
-    print("🎬 GENERADOR DE TIMELAPSE GIF - V2 (Estilo Copernicus)")
+    print("🎬 GENERADOR DE TIMELAPSE GIF - V2.1 (Escala 3 km)")
     print("="*80)
     
     # Descargar logo de Copernicus
