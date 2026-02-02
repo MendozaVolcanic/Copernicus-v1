@@ -164,14 +164,12 @@ def generar_ppt_mensual(volcan_nombre, mes=None, año=None):
     
     for idx, shape in enumerate(slide.shapes):
         if hasattr(shape, "text"):
-            # Título principal
-            if "Cambios Morfológicos" in shape.text:
-                # Preservar formato modificando runs en vez de reemplazar texto
-                for paragraph in shape.text_frame.paragraphs:
-                    for run in paragraph.runs:
-                        if "Cambios Morfológicos" in run.text:
-                            run.text = f"Cambios Morfológicos - {volcan_nombre}"
-                print(f"   ✅ Actualizado título")
+            # Título principal - NO MODIFICAR (se cambió en plantilla)
+            # La plantilla ahora dice "Sentinel - Cambios Morfológicos y anomalías térmicas"
+            # Ya no agregamos el nombre del volcán aquí
+            if "Cambios Morfológicos" in shape.text or "Sentinel" in shape.text:
+                # Solo registrar que se encontró, pero NO modificar
+                print(f"   ✅ Título encontrado (sin modificar): {shape.text[:50]}...")
             
             # Identificar textos por posición
             elif hasattr(shape, 'left'):
@@ -180,22 +178,36 @@ def generar_ppt_mensual(volcan_nombre, mes=None, año=None):
                 # FIX CRÍTICO: Invertir lógica (estaba al revés)
                 # Texto DERECHO (x > 5) = THERMAL (derecha)
                 if x_pos > 5 and ("Time Lapse" in shape.text or "Imágenes Sentinel" in shape.text):
-                    # Preservar formato
+                    # Preservar COMPLETAMENTE el formato usando runs
                     for paragraph in shape.text_frame.paragraphs:
-                        paragraph.clear()  # Limpiar párrafo
-                    # Agregar texto nuevo con formato original
-                    p = shape.text_frame.paragraphs[0]
-                    p.text = rango_fechas_thermal
+                        for run in paragraph.runs:
+                            run.text = rango_fechas_thermal
+                            break  # Solo modificar primer run
+                        break  # Solo modificar primer párrafo
                     print(f"   ✅ Actualizado texto THERMAL derecho (x={x_pos:.2f}\")")
                 
                 # Texto IZQUIERDO (x < 5) = RGB (izquierda)
                 elif x_pos < 5 and ("Time Lapse" in shape.text or "Imágenes Sentinel" in shape.text):
-                    # Preservar formato
+                    # Preservar COMPLETAMENTE el formato usando runs
                     for paragraph in shape.text_frame.paragraphs:
-                        paragraph.clear()
-                    p = shape.text_frame.paragraphs[0]
-                    p.text = rango_fechas_rgb
+                        for run in paragraph.runs:
+                            run.text = rango_fechas_rgb
+                            break
+                        break
                     print(f"   ✅ Actualizado texto RGB izquierdo (x={x_pos:.2f}\")")
+                
+                # FIX NUEVO: Texto de evaluación (abajo) - cambiar nombre de volcán
+                elif "No se registran datos" in shape.text or "volcán" in shape.text.lower():
+                    # Buscar y reemplazar nombre de volcán
+                    for paragraph in shape.text_frame.paragraphs:
+                        for run in paragraph.runs:
+                            # Reemplazar cualquier nombre de volcán con el actual
+                            texto_modificado = run.text
+                            for nombre_volcan in ["Tupungatito", "Villarrica", "Llaima"]:
+                                if nombre_volcan in texto_modificado:
+                                    texto_modificado = texto_modificado.replace(nombre_volcan, volcan_nombre)
+                            run.text = texto_modificado
+                    print(f"   ✅ Actualizado texto evaluación con volcán: {volcan_nombre}")
         
         # Marcar imágenes para reemplazo
         if shape.shape_type == 13:  # Picture
