@@ -113,20 +113,13 @@ class SentinelHubSearcher:
             'limit': 50
         }
         
-        # Filtro de nubes (opcional pero recomendado)
+        # Filtro de nubes
         if max_cloud < 100:
             params['query'] = {
                 'eo:cloud_cover': {
                     'lte': max_cloud
                 }
             }
-   # Agregar filtro de nubes si es necesario
-   if max_cloud < 100:
-       params['query'] = {
-           'eo:cloud_cover': {
-               'lte': max_cloud
-           }
-       }
         
         try:
             response = requests.get(
@@ -259,12 +252,12 @@ def limpiar_imagenes_antiguas(volcan_nombre):
     borrados = 0
     
     for tipo in ['RGB', 'ThermalFalseColor']:
-        carpeta = f"data/sentinel2/{volcan_nombre}/{tipo}"
+        carpeta = f"docs/sentinel2/{volcan_nombre}"
         
         if not os.path.exists(carpeta):
             continue
         
-        for img_path in glob.glob(f"{carpeta}/*.png"):
+        for img_path in glob.glob(f"{carpeta}/*_{tipo}.png"):
             nombre = os.path.basename(img_path)
             fecha = nombre.split('_')[0]
             
@@ -294,13 +287,13 @@ def generar_json_fechas_disponibles():
     fechas_por_volcan = {}
     
     for volcan_nombre in volcanes_activos.keys():
-        carpeta_rgb = f"data/sentinel2/{volcan_nombre}/RGB"
+        carpeta_volcan = f"docs/sentinel2/{volcan_nombre}"
         
-        if not os.path.exists(carpeta_rgb):
+        if not os.path.exists(carpeta_volcan):
             continue
         
         fechas = []
-        for img_path in glob.glob(f"{carpeta_rgb}/*.png"):
+        for img_path in glob.glob(f"{carpeta_volcan}/*_RGB.png"):
             nombre = os.path.basename(img_path)
             fecha = nombre.split('_')[0]
             fechas.append(fecha)
@@ -358,9 +351,10 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
         print(f"\n   📅 {fecha} | ☁️ {cloud_cover:.1f}% | 🛰️ {sensor}")
         
         for tipo in ['RGB', 'ThermalFalseColor']:
-            output_path = get_image_path(nombre_volcan, tipo, fecha)
+            output_path = get_image_path(nombre_volcan, fecha, tipo)
             
-            from config_sentinel2 import MODO_SOBRESCRITURA
+            # MODO_SOBRESCRITURA: False = no sobrescribir existentes
+            MODO_SOBRESCRITURA = False
             
             if os.path.exists(output_path) and not MODO_SOBRESCRITURA:
                 print(f"   ⏭️ {tipo}: Ya existe")
