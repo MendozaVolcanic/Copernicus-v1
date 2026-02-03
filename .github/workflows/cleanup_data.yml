@@ -1,0 +1,60 @@
+name: 🗑️ Eliminar data/sentinel2
+
+on:
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Eliminar carpeta data/sentinel2
+        run: |
+          echo "🗑️ Eliminando data/sentinel2..."
+          
+          if [ -d "data/sentinel2" ]; then
+            # Mostrar tamaño antes
+            echo "📊 Tamaño antes:"
+            du -sh data/sentinel2
+            
+            # Eliminar carpeta
+            git rm -rf data/sentinel2
+            
+            echo "✅ Carpeta eliminada"
+          else
+            echo "⚠️ Carpeta data/sentinel2 no existe"
+          fi
+          
+          # Eliminar carpeta data/ completa si quedó vacía
+          if [ -d "data" ] && [ ! "$(ls -A data)" ]; then
+            git rm -rf data
+            echo "✅ Carpeta data/ vacía eliminada"
+          fi
+      
+      - name: Commit cambios
+        run: |
+          git config user.name "CleanupBot"
+          git config user.email "cleanup@volcano.com"
+          
+          if ! git diff --quiet --staged; then
+            git commit -m "🗑️ Cleanup: Eliminar data/sentinel2 (migrado a docs/)"
+            git push
+            echo "✅ Limpieza completada y guardada"
+          else
+            echo "ℹ️ No hay cambios para commitear"
+          fi
+      
+      - name: Mostrar tamaño final del repo
+        run: |
+          echo ""
+          echo "📊 Tamaño final del repositorio:"
+          du -sh .
+          echo ""
+          echo "📁 Carpetas principales:"
+          du -sh docs/ || echo "docs/ no existe"
+          du -sh .git/ || echo ".git/ no existe"
