@@ -139,9 +139,17 @@ class SentinelHubSearcher:
             results = []
             for feature in features:
                 props = feature['properties']
+                
+                # VALIDACIÓN: Asegurar que fecha no esté vacía
+                fecha = props.get('startDate', props.get('published', props.get('datetime', '')))[:10]
+                
+                if not fecha or len(fecha) != 10:
+                    print(f"   ⚠️ Imagen sin fecha válida, saltando...")
+                    continue
+                
                 results.append({
-                    'date': props.get('startDate', props.get('published', ''))[:10],
-                    'cloud_cover': props.get('cloudCover', 0),
+                    'date': fecha,
+                    'cloud_cover': props.get('cloudCover', props.get('eo:cloud_cover', 0)),
                     'sensor': 'Sentinel-2A' if props.get('platform', '').endswith('2A') else 'Sentinel-2B'
                 })
             
@@ -233,6 +241,15 @@ class SentinelHubDownloader:
             
         except requests.exceptions.RequestException as e:
             print(f"   ❌ Error descarga {tipo}: {e}")
+            
+            # Logging detallado del error
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_detail = e.response.json()
+                    print(f"      🔍 Detalle JSON: {error_detail}")
+                except:
+                    print(f"      🔍 Detalle texto: {e.response.text[:500]}")
+            
             return False
 
 # =========================
@@ -252,12 +269,12 @@ def limpiar_imagenes_antiguas(volcan_nombre):
     borrados = 0
     
     for tipo in ['RGB', 'ThermalFalseColor']:
-        carpeta = f"docs/sentinel2/{volcan_nombre}"
+        carpeta = f"data/sentinel2/{volcan_nombre}/{tipo}"
         
         if not os.path.exists(carpeta):
             continue
         
-        for img_path in glob.glob(f"{carpeta}/*_{tipo}.png"):
+        for img_path in glob.glob(f"{carpeta}/*.png"):
             nombre = os.path.basename(img_path)
             fecha = nombre.split('_')[0]
             
@@ -287,13 +304,13 @@ def generar_json_fechas_disponibles():
     fechas_por_volcan = {}
     
     for volcan_nombre in volcanes_activos.keys():
-        carpeta_volcan = f"docs/sentinel2/{volcan_nombre}"
+        carpeta_rgb = f"data/sentinel2/{volcan_nombre}/RGB"
         
-        if not os.path.exists(carpeta_volcan):
+        if not os.path.exists(carpeta_rgb):
             continue
         
         fechas = []
-        for img_path in glob.glob(f"{carpeta_volcan}/*_RGB.png"):
+        for img_path in glob.glob(f"{carpeta_rgb}/*.png"):
             nombre = os.path.basename(img_path)
             fecha = nombre.split('_')[0]
             fechas.append(fecha)
@@ -348,12 +365,17 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
         cloud_cover = resultado['cloud_cover']
         sensor = resultado['sensor']
         
+        # VALIDACIÓN: Saltar si fecha vacía o inválida
+        if not fecha or len(fecha) != 10:
+            print(f"\n   ⚠️ Saltando resultado con fecha inválida")
+            continue
+        
         print(f"\n   📅 {fecha} | ☁️ {cloud_cover:.1f}% | 🛰️ {sensor}")
         
         for tipo in ['RGB', 'ThermalFalseColor']:
             output_path = get_image_path(nombre_volcan, fecha, tipo)
             
-            # MODO_SOBRESCRITURA: False = no sobrescribir existentes
+            # Modo sobrescritura: False por defecto
             MODO_SOBRESCRITURA = False
             
             if os.path.exists(output_path) and not MODO_SOBRESCRITURA:
