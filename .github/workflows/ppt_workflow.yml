@@ -1,13 +1,13 @@
-name: Generar PPT Evaluación Mensual
+name: Generar PPT EvaluaciÃ³n Mensual
 
 on:
-  # Ejecutar DESPUÉS de que timelapse termine
+  # Ejecutar DESPUÃ‰S de que timelapse termine
   workflow_run:
     workflows: ["Generar Timelapse GIF"]
     types:
       - completed
   
-  # Permitir ejecución manual
+  # Permitir ejecuciÃ³n manual
   workflow_dispatch:
 
 concurrency:
@@ -44,15 +44,15 @@ jobs:
 
       - name: Verificar plantilla PPT
         run: |
-          echo "📂 Listando contenido de data/..."
+          echo "ðŸ“‚ Listando contenido de data/..."
           ls -la data/
           echo ""
-          echo "🔍 Buscando archivos .pptx en data/..."
+          echo "ðŸ” Buscando archivos .pptx en data/..."
           find data/ -name "*.pptx" -type f
           echo ""
           
           if [ ! -f "data/Cambios_morfologicos.pptx" ]; then
-            echo "❌ ERROR: Plantilla NO encontrada"
+            echo "âŒ ERROR: Plantilla NO encontrada"
             echo ""
             echo "Ruta esperada: data/Cambios_morfologicos.pptx"
             echo ""
@@ -62,7 +62,7 @@ jobs:
             exit 1
           fi
           
-          echo "✅ Plantilla encontrada:"
+          echo "âœ… Plantilla encontrada:"
           ls -lh data/Cambios_morfologicos.pptx
 
       - name: Generar PPT
@@ -75,12 +75,12 @@ jobs:
           git config --global user.email "ppt@sentinel2.com"
           
           # Agregar PPTs generados
-          git add data/sentinel2/**/reportes/*.pptx
+          git add docs/sentinel2/**/reportes/*.pptx
           
           if ! git diff --quiet --staged; then
-            git commit -m "📊 PPT Evaluación Mensual generado - $(date +'%Y-%m')"
+            git commit -m "ðŸ“Š PPT EvaluaciÃ³n Mensual generado - $(date +'%Y-%m')"
             git pull origin main --rebase -X ours
             git push origin main
           else
-            echo "ℹ️ No hay nuevos PPTs para guardar"
+            echo "â„¹ï¸ No hay nuevos PPTs para guardar"
           fi
