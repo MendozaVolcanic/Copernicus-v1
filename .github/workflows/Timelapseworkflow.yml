@@ -1,13 +1,13 @@
 name: Generar Timelapse GIF
 
 on:
-  # Ejecutar DESPUÉS de Sentinel-2 Auto
+  # Ejecutar DESPUÃ‰S de Sentinel-2 Auto
   workflow_run:
     workflows: ["Sentinel-2 Auto Download"]
     types:
       - completed
   
-  # Permitir ejecución manual
+  # Permitir ejecuciÃ³n manual
   workflow_dispatch:
 
 concurrency:
@@ -23,19 +23,19 @@ jobs:
       contents: write
     
     steps:
-      - name: Verificar si es día 1 del mes
+      - name: Verificar si es dÃ­a 1 del mes
         id: check-date
         run: |
-          # Obtener día del mes
+          # Obtener dÃ­a del mes
           DAY=$(date -u +%d)
           
-          # Si es día 1 o ejecución manual, continuar
+          # Si es dÃ­a 1 o ejecuciÃ³n manual, continuar
           if [ "$DAY" = "01" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "✅ Es día 1 del mes o ejecución manual - continuar"
+            echo "âœ… Es dÃ­a 1 del mes o ejecuciÃ³n manual - continuar"
           else
             echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "⏭️ No es día 1 del mes - saltar timelapse"
+            echo "â­ï¸ No es dÃ­a 1 del mes - saltar timelapse"
           fi
 
       - name: Checkout del repositorio
@@ -68,12 +68,12 @@ jobs:
           git config --global user.email "timelapse@sentinel2.com"
           
           # Agregar GIFs generados
-          git add data/sentinel2/**/timelapses/*.gif
+          git add docs/sentinel2/**/timelapses/*.gif
           
           if ! git diff --quiet --staged; then
-            git commit -m "🎬 Timelapse GIF generado - $(date +'%Y-%m')"
+            git commit -m "ðŸŽ¬ Timelapse GIF generado - $(date +'%Y-%m')"
             git pull origin main --rebase -X ours
             git push origin main
           else
-            echo "ℹ️ No hay nuevos GIFs para guardar"
+            echo "â„¹ï¸ No hay nuevos GIFs para guardar"
           fi
