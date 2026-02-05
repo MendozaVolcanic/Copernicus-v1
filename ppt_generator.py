@@ -1,6 +1,6 @@
 """
 PPT_GENERATOR.PY V5.0 - CORREGIDO FINAL
-NO modifica tÃ­tulo - Solo actualiza fechas timelapses - Comprime < 3MB
+NO modifica ttulo - Solo actualiza fechas timelapses - Comprime < 3MB
 """
 
 import os
@@ -11,17 +11,17 @@ from PIL import Image
 
 VOLCANES_ACTIVOS = [
     # ZONA NORTE
-    "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", "OllagÃ¼e", "San Pedro", "LÃ¡scar",
+    "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", "Ollage", "San Pedro", "Lscar",
     # ZONA CENTRO
-    "Tupungatito", "San JosÃ©", "Tinguiririca", "PlanchÃ³n-Peteroa", "Descabezado Grande", 
-    "Tatara-San Pedro", "Laguna del Maule", "Nevado de LongavÃ­", "Nevados de ChillÃ¡n",
+    "Tupungatito", "San Jos", "Tinguiririca", "Planchn-Peteroa", "Descabezado Grande", 
+    "Tatara-San Pedro", "Laguna del Maule", "Nevado de Longav", "Nevados de Chilln",
     # ZONA SUR
     "Antuco", "Copahue", "Callaqui", "Lonquimay", "Llaima", "Sollipulli", "Villarrica", 
-    "QuetrupillÃ¡n", "LanÃ­n", "Mocho-Choshuenco", "CarrÃ¡n - Los Venados", "Puyehue - CordÃ³n Caulle", 
-    "Antillanca â€“ Casablanca",
+    "Quetrupilln", "Lann", "Mocho-Choshuenco", "Carrn - Los Venados", "Puyehue - Cordn Caulle", 
+    "Antillanca  Casablanca",
     # ZONA AUSTRAL
-    "Osorno", "Calbuco", "Yate", "HornopirÃ©n", "Huequi", "Michinmahuida", "ChaitÃ©n", 
-    "Corcovado", "Melimoyu", "Mentolat", "Cay", "MacÃ¡", "Hudson"
+    "Osorno", "Calbuco", "Yate", "Hornopirn", "Huequi", "Michinmahuida", "Chaitn", 
+    "Corcovado", "Melimoyu", "Mentolat", "Cay", "Mac", "Hudson"
 ]
 PLANTILLA_PATH = "data/Cambios_morfologicos.pptx"
 OUTPUT_DIR = "docs/sentinel2"
@@ -48,7 +48,7 @@ def comprimir_gif(input_path, output_path, max_size_mb=1.2):
             print(f"      GIF OK ({size_mb:.2f} MB)")
             return output_path
         
-        print(f"      Comprimiendo ({size_mb:.2f} MB â†’ {max_size_mb:.2f} MB)...")
+        print(f"      Comprimiendo ({size_mb:.2f} MB  {max_size_mb:.2f} MB)...")
         img = Image.open(input_path)
         frames = []
         try:
@@ -61,27 +61,27 @@ def comprimir_gif(input_path, output_path, max_size_mb=1.2):
         
         frames[0].save(output_path, save_all=True, append_images=frames[1:],
                       optimize=True, duration=img.info.get('duration', 100), loop=0)
-        print(f"       {size_mb:.2f} MB â†’ {os.path.getsize(output_path)/(1024*1024):.2f} MB")
+        print(f"       {size_mb:.2f} MB  {os.path.getsize(output_path)/(1024*1024):.2f} MB")
         return output_path
     except Exception as e:
-        print(f"      âš ï¸ Error: {e}")
+        print(f"       Error: {e}")
         import shutil
         shutil.copy2(input_path, output_path)
         return output_path
 
 def generar_ppt(volcan_nombre):
-    print(f"\nðŸ“Š {volcan_nombre}")
+    print(f"\n {volcan_nombre}")
     
     carpeta_timelapses = f"docs/sentinel2/{volcan_nombre}/timelapses"
     if not os.path.exists(carpeta_timelapses):
-        print(f"   âŒ No existe: {carpeta_timelapses}")
+        print(f"    No existe: {carpeta_timelapses}")
         return None
     
     gifs_rgb = sorted(glob.glob(f"{carpeta_timelapses}/{volcan_nombre}_RGB_*.gif"))
     gifs_thermal = sorted(glob.glob(f"{carpeta_timelapses}/{volcan_nombre}_ThermalFalseColor_*.gif"))
     
     if not gifs_rgb or not gifs_thermal:
-        print(f"   âš ï¸ GIFs incompletos")
+        print(f"    GIFs incompletos")
         return None
     
     gif_rgb_path = gifs_rgb[-1]
@@ -89,21 +89,21 @@ def generar_ppt(volcan_nombre):
     
     partes = os.path.basename(gif_rgb_path).replace('.gif', '').split('_')
     if len(partes) < 4:
-        print(f"   âš ï¸ No se pudieron extraer fechas")
+        print(f"    No se pudieron extraer fechas")
         return None
     
     fecha_inicio, fecha_fin = partes[-2], partes[-1]
-    print(f"   ðŸ“… {fecha_inicio} â†’ {fecha_fin}")
+    print(f"    {fecha_inicio}  {fecha_fin}")
     
     temp_rgb = f"/tmp/{volcan_nombre}_RGB.gif"
     temp_thermal = f"/tmp/{volcan_nombre}_Thermal.gif"
     
-    print(f"    Comprimiendo...")
+    print(f"    Comprimiendo...")
     gif_rgb_final = comprimir_gif(gif_rgb_path, temp_rgb)
     gif_thermal_final = comprimir_gif(gif_thermal_path, temp_thermal)
     
     if not os.path.exists(PLANTILLA_PATH):
-        print(f"   âŒ Plantilla no encontrada")
+        print(f"    Plantilla no encontrada")
         return None
     
     prs = Presentation(PLANTILLA_PATH)
@@ -113,10 +113,10 @@ def generar_ppt(volcan_nombre):
     fecha_fin_es = formatear_fecha_espanol(fecha_fin)
     ano = fecha_fin.split('-')[0]
     
-    texto_rgb = f"Imagenes Sentinel 2 L2A color verdadero, Time Lapse {fecha_inicio_es} â€“ {fecha_fin_es} {ano}"
-    texto_thermal = f"Imagenes Sentinel 2 L2A Falso color, Time Lapse {fecha_inicio_es} â€“ {fecha_fin_es} {ano}"
+    texto_rgb = f"Imagenes Sentinel 2 L2A color verdadero, Time Lapse {fecha_inicio_es}  {fecha_fin_es} {ano}"
+    texto_thermal = f"Imagenes Sentinel 2 L2A Falso color, Time Lapse {fecha_inicio_es}  {fecha_fin_es} {ano}"
     
-    print(f"   ðŸ“ Actualizando textos...")
+    print(f"    Actualizando textos...")
     textos_ok = 0
     
     for shape in slide.shapes:
@@ -160,9 +160,9 @@ def generar_ppt(volcan_nombre):
             textos_ok += 1
     
     if textos_ok != 2:
-        print(f"   âš ï¸ Textos: {textos_ok}/2")
+        print(f"    Textos: {textos_ok}/2")
     
-    print(f"   ðŸ–¼ï¸ Reemplazando GIFs...")
+    print(f"    Reemplazando GIFs...")
     shapes_img = [{'shape': s, 'top': s.top, 'left': s.left, 
                    'width': s.width, 'height': s.height}
                   for s in slide.shapes if s.shape_type == 13]
@@ -190,7 +190,7 @@ def generar_ppt(volcan_nombre):
     try:
         prs.save(output_path)
         size_mb = os.path.getsize(output_path) / (1024 * 1024)
-        status = "" if size_mb < 3.0 else "âš ï¸"
+        status = "" if size_mb < 3.0 else ""
         print(f"   {status} PPT: {size_mb:.2f} MB")
         
         try:
@@ -201,26 +201,36 @@ def generar_ppt(volcan_nombre):
         
         return output_path
     except Exception as e:
-        print(f"   âŒ Error: {e}")
+        print(f"    Error: {e}")
         return None
 
 def main():
     print("="*80)
-    print("ðŸ“Š PPT GENERATOR V5.0 - NO modifica tÃ­tulo, solo fechas")
+    print(" PPT GENERATOR V5.0 - NO modifica ttulo, solo fechas")
     print("="*80)
     
     if not os.path.exists(PLANTILLA_PATH):
-        print(f"\nâŒ Plantilla no encontrada: {PLANTILLA_PATH}")
+        print(f"\n Plantilla no encontrada: {PLANTILLA_PATH}")
         return
     
+    # Leer variables de entorno si existen (para workflow manual)
+    volcan_env = os.getenv('VOLCAN')
+    
+    if volcan_env:
+        print(f"\nMODO MANUAL: Procesando {volcan_env}")
+        volcanes_a_procesar = [volcan_env]
+    else:
+        print("\nMODO AUTOMATICO: Procesando todos los volcanes")
+        volcanes_a_procesar = VOLCANES_ACTIVOS
+    
     ppts = []
-    for volcan in VOLCANES_ACTIVOS:
+    for volcan in volcanes_a_procesar:
         try:
             ppt = generar_ppt(volcan)
             if ppt:
                 ppts.append(ppt)
         except Exception as e:
-            print(f"âŒ Error en {volcan}: {e}")
+            print(f" Error en {volcan}: {e}")
     
     print("\n" + "="*80)
     print(f" {len(ppts)} PPTs generados")
