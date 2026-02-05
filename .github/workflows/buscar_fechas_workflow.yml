@@ -2,11 +2,11 @@ name: Buscar Fechas Disponibles Copernicus
 
 on:
   schedule:
-    - cron: '0 */6 * * *'  # Cada 6 horas
+    - cron: '0 */6 * * *'
   workflow_dispatch:
     inputs:
       meses_atras:
-        description: 'Meses hacia atrÃ¡s a consultar'
+        description: 'Meses hacia atras a consultar'
         required: false
         default: '3'
 
@@ -30,7 +30,7 @@ jobs:
         run: |
           pip install requests python-dateutil
       
-      - name: Crear script de bÃºsqueda
+      - name: Crear script de busqueda
         run: |
           cat > buscar_fechas_copernicus.py << 'EOFPY'
           import requests
@@ -40,7 +40,6 @@ jobs:
           import os
           import math
           
-          # ConfiguraciÃ³n
           VOLCANES = {
               "Villarrica": {"lat": -39.42, "lon": -71.93},
               "Llaima": {"lat": -38.69, "lon": -71.73}
@@ -51,7 +50,6 @@ jobs:
           BUFFER_KM = 3
           
           def get_access_token():
-              """Obtiene token OAuth2"""
               url = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
               data = {
                   "grant_type": "client_credentials",
@@ -62,7 +60,6 @@ jobs:
               return response.json()['access_token']
           
           def create_bbox(lat, lon, buffer_km=3):
-              """Crea bounding box"""
               delta_lat = buffer_km / 111.32
               delta_lon = buffer_km / (111.32 * abs(math.cos(math.radians(lat))))
               
@@ -74,7 +71,6 @@ jobs:
               ]
           
           def buscar_fechas_disponibles(volcan_nombre, lat, lon, fecha_inicio, fecha_fin, token):
-              """Busca fechas disponibles en Copernicus para un volcÃ¡n"""
               bbox = create_bbox(lat, lon, BUFFER_KM)
               
               url = "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search"
@@ -99,13 +95,12 @@ jobs:
               response = requests.post(url, json=body, headers=headers, timeout=30)
               
               if response.status_code != 200:
-                  print(f"âŒ Error consultando {volcan_nombre}: {response.status_code}")
+                  print(f"Error consultando {volcan_nombre}: {response.status_code}")
                   print(f"   Response: {response.text[:200]}")
                   return []
               
               data = response.json()
               
-              # Extraer fechas Ãºnicas
               fechas = set()
               for feature in data.get('features', []):
                   fecha_str = feature['properties']['datetime'][:10]
@@ -115,29 +110,27 @@ jobs:
           
           def main():
               print("="*80)
-              print("ðŸ” BUSCANDO FECHAS DISPONIBLES EN COPERNICUS")
+              print("BUSCANDO FECHAS DISPONIBLES EN COPERNICUS")
               print("="*80)
               
-              # Obtener token
               try:
                   token = get_access_token()
-                  print("âœ… Token obtenido")
+                  print("Token obtenido")
               except Exception as e:
-                  print(f"âŒ Error obteniendo token: {e}")
+                  print(f"Error obteniendo token: {e}")
                   return
               
-              # Definir rango de bÃºsqueda
               meses_atras = int(os.environ.get('MESES_ATRAS', '3'))
               fecha_fin = datetime.now()
               fecha_inicio = fecha_fin - relativedelta(months=meses_atras)
               
-              print(f"ðŸ“… Buscando desde {fecha_inicio.date()} hasta {fecha_fin.date()}")
-              print(f"   ({meses_atras} meses hacia atrÃ¡s)")
+              print(f"Buscando desde {fecha_inicio.date()} hasta {fecha_fin.date()}")
+              print(f"   ({meses_atras} meses hacia atras)")
               
               metadata = {}
               
               for volcan_nombre, coords in VOLCANES.items():
-                  print(f"\nðŸŒ‹ Procesando: {volcan_nombre}")
+                  print(f"\nProcesando: {volcan_nombre}")
                   
                   try:
                       fechas = buscar_fechas_disponibles(
@@ -149,37 +142,33 @@ jobs:
                           token
                       )
                       
-                      print(f"   âœ… {len(fechas)} fechas encontradas")
+                      print(f"   {len(fechas)} fechas encontradas")
                       
-                      # Organizar por aÃ±o-mes
                       metadata[volcan_nombre] = {}
                       for fecha in fechas:
-                          aÃ±o_mes = fecha[:7]
-                          if aÃ±o_mes not in metadata[volcan_nombre]:
-                              metadata[volcan_nombre][aÃ±o_mes] = []
-                          metadata[volcan_nombre][aÃ±o_mes].append(fecha)
+                          ano_mes = fecha[:7]
+                          if ano_mes not in metadata[volcan_nombre]:
+                              metadata[volcan_nombre][ano_mes] = []
+                          metadata[volcan_nombre][ano_mes].append(fecha)
                       
-                      # Mostrar resumen por mes
                       for mes, dias in sorted(metadata[volcan_nombre].items()):
-                          print(f"      {mes}: {len(dias)} dÃ­as")
+                          print(f"      {mes}: {len(dias)} dias")
                   
                   except Exception as e:
-                      print(f"   âŒ Error procesando {volcan_nombre}: {e}")
+                      print(f"   Error procesando {volcan_nombre}: {e}")
                       metadata[volcan_nombre] = {}
               
-              # Guardar JSON
               output_path = 'docs/sentinel2/fechas_disponibles_copernicus.json'
               os.makedirs(os.path.dirname(output_path), exist_ok=True)
               
               with open(output_path, 'w') as f:
                   json.dump(metadata, f, indent=2)
               
-              print(f"\nâœ… Metadata guardada en: {output_path}")
+              print(f"\nMetadata guardada en: {output_path}")
               
-              # Resumen final
               total_fechas = sum(len(fechas) for volcan_data in metadata.values() 
                                 for fechas in volcan_data.values())
-              print(f"\nðŸ“Š RESUMEN:")
+              print(f"\nRESUMEN:")
               print(f"   Total volcanes: {len(metadata)}")
               print(f"   Total fechas disponibles: {total_fechas}")
               print("="*80)
@@ -188,7 +177,7 @@ jobs:
               main()
           EOFPY
       
-      - name: Ejecutar bÃºsqueda
+      - name: Ejecutar busqueda
         env:
           SH_CLIENT_ID: ${{ secrets.SH_CLIENT_ID }}
           SH_CLIENT_SECRET: ${{ secrets.SH_CLIENT_SECRET }}
@@ -203,10 +192,10 @@ jobs:
           git add docs/sentinel2/fechas_disponibles_copernicus.json
           
           if git diff --quiet --staged; then
-            echo "â„¹ï¸ No hay cambios en fechas disponibles"
+            echo "No hay cambios en fechas disponibles"
           else
-            git commit -m "ðŸ—“ï¸ Actualizar fechas disponibles Copernicus"
+            git commit -m "Actualizar fechas disponibles Copernicus"
             git pull origin main --rebase -X ours
             git push origin main
-            echo "âœ… Fechas actualizadas y pusheadas"
+            echo "Fechas actualizadas y pusheadas"
           fi
