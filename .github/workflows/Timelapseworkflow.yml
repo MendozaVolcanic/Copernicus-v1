@@ -1,13 +1,11 @@
 name: Generar Timelapse GIF
 
 on:
-  # Ejecutar DESPUÃ‰S de Sentinel-2 Auto
   workflow_run:
     workflows: ["Sentinel-2 Auto Download"]
     types:
       - completed
   
-  # Permitir ejecuciÃ³n manual
   workflow_dispatch:
 
 concurrency:
@@ -16,26 +14,23 @@ concurrency:
 
 jobs:
   generate-timelapse:
-    # Solo ejecutar si el workflow anterior fue exitoso O es manual
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
     
     steps:
-      - name: Verificar si es dÃ­a 1 del mes
+      - name: Verificar si es dia 1 del mes
         id: check-date
         run: |
-          # Obtener dÃ­a del mes
           DAY=$(date -u +%d)
           
-          # Si es dÃ­a 1 o ejecuciÃ³n manual, continuar
           if [ "$DAY" = "01" ] || [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "should_run=true" >> $GITHUB_OUTPUT
-            echo "âœ… Es dÃ­a 1 del mes o ejecuciÃ³n manual - continuar"
+            echo "Es dia 1 del mes o ejecucion manual - continuar"
           else
             echo "should_run=false" >> $GITHUB_OUTPUT
-            echo "â­ï¸ No es dÃ­a 1 del mes - saltar timelapse"
+            echo "No es dia 1 del mes - saltar timelapse"
           fi
 
       - name: Checkout del repositorio
@@ -67,13 +62,12 @@ jobs:
           git config --global user.name "TimelapseBot"
           git config --global user.email "timelapse@sentinel2.com"
           
-          # Agregar GIFs generados
           git add docs/sentinel2/**/timelapses/*.gif
           
           if ! git diff --quiet --staged; then
-            git commit -m "ðŸŽ¬ Timelapse GIF generado - $(date +'%Y-%m')"
+            git commit -m "Timelapse GIF generado - $(date +'%Y-%m')"
             git pull origin main --rebase -X ours
             git push origin main
           else
-            echo "â„¹ï¸ No hay nuevos GIFs para guardar"
+            echo "No hay nuevos GIFs para guardar"
           fi
