@@ -61,7 +61,7 @@ def comprimir_gif(input_path, output_path, max_size_mb=1.2):
         
         frames[0].save(output_path, save_all=True, append_images=frames[1:],
                       optimize=True, duration=img.info.get('duration', 100), loop=0)
-        print(f"      âœ… {size_mb:.2f} MB â†’ {os.path.getsize(output_path)/(1024*1024):.2f} MB")
+        print(f"       {size_mb:.2f} MB â†’ {os.path.getsize(output_path)/(1024*1024):.2f} MB")
         return output_path
     except Exception as e:
         print(f"      âš ï¸ Error: {e}")
@@ -98,7 +98,7 @@ def generar_ppt(volcan_nombre):
     temp_rgb = f"/tmp/{volcan_nombre}_RGB.gif"
     temp_thermal = f"/tmp/{volcan_nombre}_Thermal.gif"
     
-    print(f"   ðŸ—œï¸ Comprimiendo...")
+    print(f"    Comprimiendo...")
     gif_rgb_final = comprimir_gif(gif_rgb_path, temp_rgb)
     gif_thermal_final = comprimir_gif(gif_thermal_path, temp_thermal)
     
@@ -111,10 +111,10 @@ def generar_ppt(volcan_nombre):
     
     fecha_inicio_es = formatear_fecha_espanol(fecha_inicio)
     fecha_fin_es = formatear_fecha_espanol(fecha_fin)
-    aÃ±o = fecha_fin.split('-')[0]
+    ano = fecha_fin.split('-')[0]
     
-    texto_rgb = f"ImÃ¡genes Sentinel 2 L2A color verdadero, Time Lapse {fecha_inicio_es} â€“ {fecha_fin_es} {aÃ±o}"
-    texto_thermal = f"ImÃ¡genes Sentinel 2 L2A Falso color, Time Lapse {fecha_inicio_es} â€“ {fecha_fin_es} {aÃ±o}"
+    texto_rgb = f"Imagenes Sentinel 2 L2A color verdadero, Time Lapse {fecha_inicio_es} â€“ {fecha_fin_es} {ano}"
+    texto_thermal = f"Imagenes Sentinel 2 L2A Falso color, Time Lapse {fecha_inicio_es} â€“ {fecha_fin_es} {ano}"
     
     print(f"   ðŸ“ Actualizando textos...")
     textos_ok = 0
@@ -139,7 +139,7 @@ def generar_ppt(volcan_nombre):
                 if fmt['size']: run.font.size = fmt['size']
                 if fmt['bold'] is not None: run.font.bold = fmt['bold']
                 if fmt['italic'] is not None: run.font.italic = fmt['italic']
-            print(f"      âœ… RGB")
+            print(f"       RGB")
             textos_ok += 1
         
         elif "falso color" in texto.lower() and "time lapse" in texto.lower():
@@ -156,7 +156,7 @@ def generar_ppt(volcan_nombre):
                 if fmt['size']: run.font.size = fmt['size']
                 if fmt['bold'] is not None: run.font.bold = fmt['bold']
                 if fmt['italic'] is not None: run.font.italic = fmt['italic']
-            print(f"      âœ… Thermal")
+            print(f"       Thermal")
             textos_ok += 1
     
     if textos_ok != 2:
@@ -173,13 +173,13 @@ def generar_ppt(volcan_nombre):
         s = shapes_img[0]
         s['shape'].element.getparent().remove(s['shape'].element)
         slide.shapes.add_picture(gif_rgb_final, s['left'], s['top'], s['width'], s['height'])
-        print(f"      âœ… RGB")
+        print(f"       RGB")
         
         # Thermal (abajo)
         s = shapes_img[1]
         s['shape'].element.getparent().remove(s['shape'].element)
         slide.shapes.add_picture(gif_thermal_final, s['left'], s['top'], s['width'], s['height'])
-        print(f"      âœ… Thermal")
+        print(f"       Thermal")
     
     carpeta_reportes = os.path.join(OUTPUT_DIR, volcan_nombre, "reportes")
     os.makedirs(carpeta_reportes, exist_ok=True)
@@ -190,7 +190,7 @@ def generar_ppt(volcan_nombre):
     try:
         prs.save(output_path)
         size_mb = os.path.getsize(output_path) / (1024 * 1024)
-        status = "âœ…" if size_mb < 3.0 else "âš ï¸"
+        status = "" if size_mb < 3.0 else "âš ï¸"
         print(f"   {status} PPT: {size_mb:.2f} MB")
         
         try:
@@ -223,7 +223,7 @@ def main():
             print(f"âŒ Error en {volcan}: {e}")
     
     print("\n" + "="*80)
-    print(f"âœ… {len(ppts)} PPTs generados")
+    print(f" {len(ppts)} PPTs generados")
     for ppt in ppts:
         size_mb = os.path.getsize(ppt) / (1024 * 1024)
         print(f"   {os.path.basename(ppt)}: {size_mb:.2f} MB")
