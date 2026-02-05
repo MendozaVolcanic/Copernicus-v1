@@ -1,13 +1,11 @@
-name: Generar PPT EvaluaciÃ³n Mensual
+name: Generar PPT Evaluacion Mensual
 
 on:
-  # Ejecutar DESPUÃ‰S de que timelapse termine
   workflow_run:
     workflows: ["Generar Timelapse GIF"]
     types:
       - completed
   
-  # Permitir ejecuciÃ³n manual
   workflow_dispatch:
 
 concurrency:
@@ -16,7 +14,6 @@ concurrency:
 
 jobs:
   generate-ppt:
-    # Solo ejecutar si el workflow de timelapse fue exitoso
     if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     permissions:
@@ -27,7 +24,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          lfs: true  # Habilitar Git LFS
+          lfs: true
       
       - name: Descargar archivos LFS
         run: git lfs pull
@@ -44,15 +41,15 @@ jobs:
 
       - name: Verificar plantilla PPT
         run: |
-          echo "ðŸ“‚ Listando contenido de data/..."
+          echo "Listando contenido de data/..."
           ls -la data/
           echo ""
-          echo "ðŸ” Buscando archivos .pptx en data/..."
+          echo "Buscando archivos .pptx en data/..."
           find data/ -name "*.pptx" -type f
           echo ""
           
           if [ ! -f "data/Cambios_morfologicos.pptx" ]; then
-            echo "âŒ ERROR: Plantilla NO encontrada"
+            echo "ERROR: Plantilla NO encontrada"
             echo ""
             echo "Ruta esperada: data/Cambios_morfologicos.pptx"
             echo ""
@@ -62,7 +59,7 @@ jobs:
             exit 1
           fi
           
-          echo "âœ… Plantilla encontrada:"
+          echo "Plantilla encontrada:"
           ls -lh data/Cambios_morfologicos.pptx
 
       - name: Generar PPT
@@ -74,13 +71,12 @@ jobs:
           git config --global user.name "PPTBot"
           git config --global user.email "ppt@sentinel2.com"
           
-          # Agregar PPTs generados
           git add docs/sentinel2/**/reportes/*.pptx
           
           if ! git diff --quiet --staged; then
-            git commit -m "ðŸ“Š PPT EvaluaciÃ³n Mensual generado - $(date +'%Y-%m')"
+            git commit -m "PPT Evaluacion Mensual generado - $(date +'%Y-%m')"
             git pull origin main --rebase -X ours
             git push origin main
           else
-            echo "â„¹ï¸ No hay nuevos PPTs para guardar"
+            echo "No hay nuevos PPTs para guardar"
           fi
