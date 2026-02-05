@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🛰️ Sentinel-2 Volcanic Monitor</title>
+    <title>ðŸ›°ï¸ Sentinel-2 Volcanic Monitor</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         
@@ -99,7 +99,7 @@
             gap: 10px;
         }
 
-        /* SELECTOR DE VOLCÁN + CALENDARIO */
+        /* SELECTOR DE VOLCÃN + CALENDARIO */
         #volcano-selector {
             background: #161b22;
             padding: 15px 20px;
@@ -207,7 +207,7 @@
             transition: all 0.2s;
         }
 
-        /* CAMBIO QUIRÚRGICO 2: CALENDARIO 3 ESTADOS */
+        /* CAMBIO QUIRÃšRGICO 2: CALENDARIO 3 ESTADOS */
         .calendar-day.downloaded {
             background: #2ea043;
             color: #fff;
@@ -259,7 +259,7 @@
             border-radius: 2px;
         }
 
-        /* TIMELAPSES AUTOMÁTICOS */
+        /* TIMELAPSES AUTOMÃTICOS */
         #timelapse-automatico {
             background: #161b22;
             padding: 20px;
@@ -366,7 +366,7 @@
             border-color: #58a6ff;
         }
 
-        /* COMPARACIÓN DE IMÁGENES */
+        /* COMPARACIÃ“N DE IMÃGENES */
         #image-comparison {
             background: #0d1117;
             padding: 20px;
@@ -577,7 +577,7 @@
             padding: 20px;
         }
 
-        /* CAMBIO QUIRÚRGICO 1: ESCALAS TIMELAPSES */
+        /* CAMBIO QUIRÃšRGICO 1: ESCALAS TIMELAPSES */
         #timelapse-gif {
             max-width: 90%;
             max-height: 80vh;
@@ -602,8 +602,8 @@
 </head>
 <body>
     <header>
-        <h1>🛰️ Sentinel-2 Volcanic Monitor</h1>
-        <p>Sistema de Monitoreo Automático - Volcanes de Chile</p>
+        <h1>ðŸ›°ï¸ Sentinel-2 Volcanic Monitor</h1>
+        <p>Sistema de Monitoreo AutomÃ¡tico - Volcanes de Chile</p>
     </header>
 
     <div id="status-bar">
@@ -613,19 +613,19 @@
         </div>
         
         <div class="action-buttons">
-            <button class="btn-ui" onclick="toggleTimelapseMode()">🎬 Modo Comparación Multi-Volcán</button>
-            <button class="btn-ui" style="background: #238636;" onclick="generarPPT()">📊 PPT Evaluación Mensual</button>
-            <button class="btn-ui" style="background: #0969da;" onclick="abrirCopernicusBrowser()">🌐 Copernicus Browser</button>
+            <button class="btn-ui" onclick="toggleTimelapseMode()">ðŸŽ¬ Modo ComparaciÃ³n Multi-VolcÃ¡n</button>
+            <button class="btn-ui" style="background: #238636;" onclick="generarPPT()">ðŸ“Š PPT EvaluaciÃ³n Mensual</button>
+            <button class="btn-ui" style="background: #0969da;" onclick="abrirCopernicusBrowser()">ðŸŒ Copernicus Browser</button>
         </div>
 
         <div class="status-item">
-            <strong>Última actualización:</strong>
+            <strong>Ãšltima actualizaciÃ³n:</strong>
             <span id="last-update">Cargando...</span>
         </div>
     </div>
 
     <div id="volcano-selector">
-        <label for="zona-select">🗺️ ZONA:</label>
+        <label for="zona-select">ðŸ—ºï¸ ZONA:</label>
         <select id="zona-select" onchange="cambiarZona()">
             <option value="Sur">Zona Sur</option>
             <option value="Norte">Zona Norte</option>
@@ -633,21 +633,21 @@
             <option value="Austral">Zona Austral</option>
         </select>
         
-        <label for="volcano-select" style="margin-left: 15px;">🌋 VOLCÁN:</label>
+        <label for="volcano-select" style="margin-left: 15px;">ðŸŒ‹ VOLCÃN:</label>
         <select id="volcano-select" onchange="loadVolcano()">
-            <!-- Se llena dinámicamente según zona -->
+            <!-- Se llena dinÃ¡micamente segÃºn zona -->
         </select>
         
-        <button onclick="toggleCalendar()">📅 Ver Imágenes</button>
-        <button onclick="toggleCalendarioCopernicus()" style="background: #0969da; border-color: #0969da;">🌐 Ver en Copernicus</button>
+        <button onclick="toggleCalendar()">ðŸ“… Ver ImÃ¡genes</button>
+        <button onclick="toggleCalendarioCopernicus()" style="background: #0969da; border-color: #0969da;">ðŸŒ Ver en Copernicus</button>
     </div>
 
     <!-- CALENDARIO MODAL -->
     <div id="calendar-modal" onclick="closeModalOutside(event)">
         <div class="calendar-content" onclick="event.stopPropagation()">
             <div class="calendar-header">
-                <h3>📅 Calendario de Imágenes</h3>
-                <button class="close-btn" onclick="toggleCalendar()">✕</button>
+                <h3>ðŸ“… Calendario de ImÃ¡genes</h3>
+                <button class="close-btn" onclick="toggleCalendar()">âœ•</button>
             </div>
             
             <div class="calendar-selectors">
@@ -676,13 +676,13 @@
                 <div class="calendar-day-header">Dom</div>
                 <div class="calendar-day-header">Lun</div>
                 <div class="calendar-day-header">Mar</div>
-                <div class="calendar-day-header">Mié</div>
+                <div class="calendar-day-header">MiÃ©</div>
                 <div class="calendar-day-header">Jue</div>
                 <div class="calendar-day-header">Vie</div>
-                <div class="calendar-day-header">Sáb</div>
+                <div class="calendar-day-header">SÃ¡b</div>
             </div>
             
-            <!-- CAMBIO QUIRÚRGICO 3: LEYENDA 3 ESTADOS -->
+            <!-- CAMBIO QUIRÃšRGICO 3: LEYENDA 3 ESTADOS -->
             <div class="calendar-legend">
                 <div class="legend-item">
                     <div class="legend-box" style="background: #2ea043;"></div>
@@ -704,8 +704,8 @@
     <div id="calendar-copernicus-modal" onclick="closeModalCopernicusOutside(event)" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center;">
         <div class="calendar-content" onclick="event.stopPropagation()">
             <div class="calendar-header">
-                <h3>🌐 Copernicus Browser - Calendario</h3>
-                <button class="close-btn" onclick="toggleCalendarioCopernicus()">✕</button>
+                <h3>ðŸŒ Copernicus Browser - Calendario</h3>
+                <button class="close-btn" onclick="toggleCalendarioCopernicus()">âœ•</button>
             </div>
             
             <p style="text-align: center; color: #8b949e; margin-bottom: 15px; font-size: 0.85em;">
@@ -738,10 +738,10 @@
                 <div class="calendar-day-header">Dom</div>
                 <div class="calendar-day-header">Lun</div>
                 <div class="calendar-day-header">Mar</div>
-                <div class="calendar-day-header">Mié</div>
+                <div class="calendar-day-header">MiÃ©</div>
                 <div class="calendar-day-header">Jue</div>
                 <div class="calendar-day-header">Vie</div>
-                <div class="calendar-day-header">Sáb</div>
+                <div class="calendar-day-header">SÃ¡b</div>
             </div>
             
             <div class="calendar-legend">
@@ -759,61 +759,61 @@
 
     <!-- CONTENIDO PRINCIPAL -->
     <div id="main-content">
-        <!-- TIMELAPSES AUTOMÁTICOS (ÚLTIMOS 30 DÍAS) -->
+        <!-- TIMELAPSES AUTOMÃTICOS (ÃšLTIMOS 30 DÃAS) -->
         <div id="timelapse-automatico">
-            <h2>🎬 Timelapses Automáticos (Últimos 30 días)</h2>
+            <h2>ðŸŽ¬ Timelapses AutomÃ¡ticos (Ãšltimos 30 dÃ­as)</h2>
             <p style="text-align: center; color: #8b949e; margin-bottom: 15px;">
-                Se actualizan automáticamente cada día a las 06:00 UTC
+                Se actualizan automÃ¡ticamente cada dÃ­a a las 06:00 UTC
             </p>
             
             <div class="timelapse-grid">
                 <div class="timelapse-card">
-                    <h3>🖼️ RGB Color Real</h3>
+                    <h3>ðŸ–¼ï¸ RGB Color Real</h3>
                     <img id="timelapse-rgb-auto" 
                          src="" 
                          alt="Timelapse RGB"
                          onclick="verTimelapseFullscreen('RGB')">
                     <div class="timelapse-info">
-                        📷 Sentinel-2 L2A RGB (B04-B03-B02)<br>
-                        📅 Últimos 30 días<br>
-                        🔄 Actualizado: <span id="update-date-rgb">--</span>
+                        ðŸ“· Sentinel-2 L2A RGB (B04-B03-B02)<br>
+                        ðŸ“… Ãšltimos 30 dÃ­as<br>
+                        ðŸ”„ Actualizado: <span id="update-date-rgb">--</span>
                     </div>
                 </div>
 
                 <div class="timelapse-card">
-                    <h3>🔥 SWIR Falso Color</h3>
+                    <h3>ðŸ”¥ SWIR Falso Color</h3>
                     <img id="timelapse-thermal-auto" 
                          src="" 
                          alt="Timelapse Thermal"
                          onclick="verTimelapseFullscreen('Thermal')">
                     <div class="timelapse-info">
-                        🌡️ Sentinel-2 L2A SWIR (B12-B11-B04)<br>
-                        📅 Últimos 30 días<br>
-                        🔄 Actualizado: <span id="update-date-thermal">--</span>
+                        ðŸŒ¡ï¸ Sentinel-2 L2A SWIR (B12-B11-B04)<br>
+                        ðŸ“… Ãšltimos 30 dÃ­as<br>
+                        ðŸ”„ Actualizado: <span id="update-date-thermal">--</span>
                     </div>
                 </div>
             </div>
         </div>
 
         <div id="timeline">
-            <h3>📅 Fechas Disponibles (últimos 30 días)</h3>
+            <h3>ðŸ“… Fechas Disponibles (Ãºltimos 30 dÃ­as)</h3>
             <div id="timeline-dates">
                 <div class="loading-spinner"></div>
             </div>
         </div>
 
         <div id="image-comparison">
-            <h3 style="color: #58a6ff; margin-bottom: 15px;">📷 Comparación de Composiciones</h3>
+            <h3 style="color: #58a6ff; margin-bottom: 15px;">ðŸ“· ComparaciÃ³n de Composiciones</h3>
             <div class="image-grid">
                 <div class="image-panel">
-                    <h4>🌈 RGB (Color Real)</h4>
+                    <h4>ðŸŒˆ RGB (Color Real)</h4>
                     <div class="image-container" id="rgb-container">
                         <div class="loading-spinner"></div>
                     </div>
                 </div>
                 
                 <div class="image-panel">
-                    <h4>🔥 SWIR False Color (Thermal)</h4>
+                    <h4>ðŸ”¥ SWIR False Color (Thermal)</h4>
                     <div class="image-container" id="thermal-container">
                         <div class="loading-spinner"></div>
                     </div>
@@ -822,36 +822,36 @@
         </div>
 
         <div id="timelapse-container">
-            <h3 style="color: #58a6ff; margin-bottom: 10px;">🎬 Timelapses del Mes</h3>
+            <h3 style="color: #58a6ff; margin-bottom: 10px;">ðŸŽ¬ Timelapses del Mes</h3>
             <div class="gif-grid">
                 <div class="gif-panel">
-                    <h4>🌈 RGB</h4>
+                    <h4>ðŸŒˆ RGB</h4>
                     <div class="gif-container" id="gif-rgb-container">
                         <div class="loading-spinner"></div>
                     </div>
                 </div>
                 
                 <div class="gif-panel">
-                    <h4>🔥 Thermal</h4>
+                    <h4>ðŸ”¥ Thermal</h4>
                     <div class="gif-container" id="gif-thermal-container">
                         <div class="loading-spinner"></div>
                     </div>
                 </div>
             </div>
             <div style="margin-top: 15px; color: #8b949e; font-size: 0.85em; text-align: center;">
-                ℹ️ Los timelapses se generan automáticamente el primer día de cada mes con todas las imágenes disponibles.
+                â„¹ï¸ Los timelapses se generan automÃ¡ticamente el primer dÃ­a de cada mes con todas las imÃ¡genes disponibles.
             </div>
         </div>
 
         <div id="metadata">
-            <h3>📊 Metadatos de la Imagen</h3>
+            <h3>ðŸ“Š Metadatos de la Imagen</h3>
             <div class="metadata-grid">
                 <div class="metadata-item">
-                    <div class="metadata-label">Fecha de Adquisición</div>
+                    <div class="metadata-label">Fecha de AdquisiciÃ³n</div>
                     <div class="metadata-value" id="meta-date">--</div>
                 </div>
                 <div class="metadata-item">
-                    <div class="metadata-label">Satélite</div>
+                    <div class="metadata-label">SatÃ©lite</div>
                     <div class="metadata-value" id="meta-sensor">--</div>
                 </div>
                 <div class="metadata-item">
@@ -859,20 +859,20 @@
                     <div class="metadata-value" id="meta-clouds">--</div>
                 </div>
                 <div class="metadata-item">
-                    <div class="metadata-label">Tamaño RGB</div>
+                    <div class="metadata-label">TamaÃ±o RGB</div>
                     <div class="metadata-value" id="meta-size-rgb">--</div>
                 </div>
                 <div class="metadata-item">
-                    <div class="metadata-label">Tamaño Thermal</div>
+                    <div class="metadata-label">TamaÃ±o Thermal</div>
                     <div class="metadata-value" id="meta-size-thermal">--</div>
                 </div>
                 <div class="metadata-item">
-                    <div class="metadata-label">Resolución RGB</div>
-                    <div class="metadata-value">10m/píxel</div>
+                    <div class="metadata-label">ResoluciÃ³n RGB</div>
+                    <div class="metadata-value">10m/pÃ­xel</div>
                 </div>
                 <div class="metadata-item">
-                    <div class="metadata-label">Resolución Thermal</div>
-                    <div class="metadata-value">20m/píxel</div>
+                    <div class="metadata-label">ResoluciÃ³n Thermal</div>
+                    <div class="metadata-value">20m/pÃ­xel</div>
                 </div>
             </div>
         </div>
@@ -882,7 +882,7 @@
     <div id="timelapse-fullscreen">
         <div class="timelapse-header">
             <div style="display: flex; align-items: center; gap: 20px;">
-                <h2 style="color: #58a6ff; margin: 0;">🎬 Comparación Multi-Volcán - Últimas Imágenes</h2>
+                <h2 style="color: #58a6ff; margin: 0;">ðŸŽ¬ ComparaciÃ³n Multi-VolcÃ¡n - Ãšltimas ImÃ¡genes</h2>
                 <select id="zona-multi-select" onchange="loadMultiVolcanoViewZona()" style="padding: 8px 12px; background: #161b22; color: white; border: 1px solid #30363d; border-radius: 6px;">
                     <option value="Sur">Zona Sur</option>
                     <option value="Norte">Zona Norte</option>
@@ -890,31 +890,31 @@
                     <option value="Austral">Zona Austral</option>
                 </select>
             </div>
-            <button class="btn-ui" onclick="toggleTimelapseMode()">← Volver al Dashboard</button>
+            <button class="btn-ui" onclick="toggleTimelapseMode()">â† Volver al Dashboard</button>
         </div>
         <div class="timelapse-content">
             <div id="volcanes-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(500px, 1fr)); gap: 20px; padding: 20px;">
-                <!-- Se llena dinámicamente con JavaScript -->
+                <!-- Se llena dinÃ¡micamente con JavaScript -->
             </div>
         </div>
     </div>
 
-    <!-- CAMBIO QUIRÚRGICO 7: CRÉDITOS -->
+    <!-- CAMBIO QUIRÃšRGICO 7: CRÃ‰DITOS -->
     <footer style="background: #0d1117; padding: 20px; text-align: center; color: #8b949e; border-top: 1px solid #30363d; font-size: 0.85em; line-height: 1.8; margin-top: 40px;">
-        <p><strong style="color: #58a6ff;">📡 Fuente de Datos:</strong></p>
+        <p><strong style="color: #58a6ff;">ðŸ“¡ Fuente de Datos:</strong></p>
         <p>
             Sentinel-2 L2A (ESA/Copernicus) | 
             Sentinel Hub API (Copernicus Data Space) | 
             NASA FIRMS
         </p>
         
-        <p style="margin-top: 15px;"><strong style="color: #58a6ff;">🛠️ Desarrollo:</strong></p>
+        <p style="margin-top: 15px;"><strong style="color: #58a6ff;">ðŸ› ï¸ Desarrollo:</strong></p>
         <p>
-            Sistema: Nicolás Mendoza (Mendoza Volcanic) | 
-            Asistencia Técnica: Claude AI (Anthropic)
+            Sistema: NicolÃ¡s Mendoza (Mendoza Volcanic) | 
+            Asistencia TÃ©cnica: Claude AI (Anthropic)
         </p>
         
-        <p style="margin-top: 15px;"><strong style="color: #58a6ff;">🔗 Enlaces:</strong></p>
+        <p style="margin-top: 15px;"><strong style="color: #58a6ff;">ðŸ”— Enlaces:</strong></p>
         <p>
             <a href="https://github.com/MendozaVolcanic/Copernicus-v1" target="_blank" style="color: #58a6ff; text-decoration: none;">GitHub Repository</a> | 
             <a href="https://browser.dataspace.copernicus.eu" target="_blank" style="color: #58a6ff; text-decoration: none;">Copernicus Browser</a> | 
@@ -922,7 +922,7 @@
         </p>
         
         <p style="margin-top: 15px; font-size: 0.75em; color: #6e7681;">
-            © 2025 Sistema de Monitoreo Volcánico Automatizado - Chile
+            Â© 2025 Sistema de Monitoreo VolcÃ¡nico Automatizado - Chile
         </p>
     </footer>
 
@@ -936,20 +936,20 @@
             'Guallatiri': { lat: -18.42, lon: -69.09, zona: 'Norte' },
             'Isluga': { lat: -19.15, lon: -68.83, zona: 'Norte' },
             'Irruputuncu': { lat: -20.73, lon: -68.55, zona: 'Norte' },
-            'Ollagüe': { lat: -21.30, lon: -68.18, zona: 'Norte' },
+            'OllagÃ¼e': { lat: -21.30, lon: -68.18, zona: 'Norte' },
             'San Pedro': { lat: -21.88, lon: -68.40, zona: 'Norte' },
-            'Láscar': { lat: -23.37, lon: -67.73, zona: 'Norte' },
+            'LÃ¡scar': { lat: -23.37, lon: -67.73, zona: 'Norte' },
             
             // ZONA CENTRO (10 volcanes)
             'Tupungatito': { lat: -33.40, lon: -69.80, zona: 'Centro' },
-            'San José': { lat: -33.78, lon: -69.90, zona: 'Centro' },
+            'San JosÃ©': { lat: -33.78, lon: -69.90, zona: 'Centro' },
             'Tinguiririca': { lat: -34.81, lon: -70.35, zona: 'Centro' },
-            'Planchón-Peteroa': { lat: -35.24, lon: -70.57, zona: 'Centro' },
+            'PlanchÃ³n-Peteroa': { lat: -35.24, lon: -70.57, zona: 'Centro' },
             'Descabezado Grande': { lat: -35.58, lon: -70.75, zona: 'Centro' },
             'Tatara-San Pedro': { lat: -36.00, lon: -70.80, zona: 'Centro' },
             'Laguna del Maule': { lat: -36.02, lon: -70.60, zona: 'Centro' },
-            'Nevado de Longaví': { lat: -36.19, lon: -71.16, zona: 'Centro' },
-            'Nevados de Chillán': { lat: -36.86, lon: -71.38, zona: 'Centro' },
+            'Nevado de LongavÃ­': { lat: -36.19, lon: -71.16, zona: 'Centro' },
+            'Nevados de ChillÃ¡n': { lat: -36.86, lon: -71.38, zona: 'Centro' },
             
             // ZONA SUR (14 volcanes)
             'Antuco': { lat: -37.41, lon: -71.35, zona: 'Sur' },
@@ -959,26 +959,26 @@
             'Llaima': { lat: -38.69, lon: -71.73, zona: 'Sur' },
             'Sollipulli': { lat: -38.97, lon: -71.52, zona: 'Sur' },
             'Villarrica': { lat: -39.42, lon: -71.93, zona: 'Sur' },
-            'Quetrupillán': { lat: -39.50, lon: -71.70, zona: 'Sur' },
-            'Lanín': { lat: -39.64, lon: -71.50, zona: 'Sur' },
+            'QuetrupillÃ¡n': { lat: -39.50, lon: -71.70, zona: 'Sur' },
+            'LanÃ­n': { lat: -39.64, lon: -71.50, zona: 'Sur' },
             'Mocho-Choshuenco': { lat: -39.93, lon: -72.03, zona: 'Sur' },
-            'Carrán - Los Venados': { lat: -40.35, lon: -72.07, zona: 'Sur' },
-            'Puyehue - Cordón Caulle': { lat: -40.59, lon: -72.12, zona: 'Sur' },
-            'Antillanca – Casablanca': { lat: -40.77, lon: -72.15, zona: 'Sur' },
+            'CarrÃ¡n - Los Venados': { lat: -40.35, lon: -72.07, zona: 'Sur' },
+            'Puyehue - CordÃ³n Caulle': { lat: -40.59, lon: -72.12, zona: 'Sur' },
+            'Antillanca â€“ Casablanca': { lat: -40.77, lon: -72.15, zona: 'Sur' },
             
             // ZONA AUSTRAL (12 volcanes)
             'Osorno': { lat: -41.10, lon: -72.49, zona: 'Austral' },
             'Calbuco': { lat: -41.33, lon: -72.61, zona: 'Austral' },
             'Yate': { lat: -41.76, lon: -72.40, zona: 'Austral' },
-            'Hornopirén': { lat: -41.87, lon: -72.43, zona: 'Austral' },
+            'HornopirÃ©n': { lat: -41.87, lon: -72.43, zona: 'Austral' },
             'Huequi': { lat: -42.38, lon: -72.58, zona: 'Austral' },
             'Michinmahuida': { lat: -42.79, lon: -72.44, zona: 'Austral' },
-            'Chaitén': { lat: -42.83, lon: -72.65, zona: 'Austral' },
+            'ChaitÃ©n': { lat: -42.83, lon: -72.65, zona: 'Austral' },
             'Corcovado': { lat: -43.18, lon: -72.80, zona: 'Austral' },
             'Melimoyu': { lat: -44.08, lon: -72.88, zona: 'Austral' },
             'Mentolat': { lat: -44.70, lon: -73.08, zona: 'Austral' },
             'Cay': { lat: -45.07, lon: -73.00, zona: 'Austral' },
-            'Macá': { lat: -45.10, lon: -73.17, zona: 'Austral' },
+            'MacÃ¡': { lat: -45.10, lon: -73.17, zona: 'Austral' },
             'Hudson': { lat: -45.90, lon: -72.97, zona: 'Austral' }
         };
         
@@ -994,7 +994,7 @@
         let calendarCopernicusMonth = new Date().getMonth();
         let calendarCopernicusYear = 2026;
         
-        // CAMBIO QUIRÚRGICO 6: VARIABLE COPERNICUS
+        // CAMBIO QUIRÃšRGICO 6: VARIABLE COPERNICUS
         let fechasDisponiblesCopernicus = {};
 
         async function init() {
@@ -1023,7 +1023,7 @@
                 volcanoSelect.appendChild(option);
             });
             
-            // Cargar primer volcán de la zona
+            // Cargar primer volcÃ¡n de la zona
             if (volcanesZona.length > 0) {
                 loadVolcano();
             }
@@ -1037,13 +1037,13 @@
             
             await loadTimeline();
             
-            // CAMBIO QUIRÚRGICO 6: CARGAR FECHAS COPERNICUS
+            // CAMBIO QUIRÃšRGICO 6: CARGAR FECHAS COPERNICUS
             await cargarFechasDisponiblesCopernicus(currentVolcano);
             
-            // CARGAR TIMELAPSES AUTOMÁTICOS
+            // CARGAR TIMELAPSES AUTOMÃTICOS
             await cargarTimelapesAutomaticos(currentVolcano);
             
-            // FIX: Resetear timelapse si está visible
+            // FIX: Resetear timelapse si estÃ¡ visible
             const timelapseContainer = document.getElementById('timelapse-container');
             if (timelapseContainer && timelapseContainer.style.display === 'block') {
                 timelapseContainer.style.display = 'none';
@@ -1064,14 +1064,14 @@
             });
         }
 
-        // CAMBIO QUIRÚRGICO 6: FUNCIÓN CARGAR FECHAS COPERNICUS
+        // CAMBIO QUIRÃšRGICO 6: FUNCIÃ“N CARGAR FECHAS COPERNICUS
         async function cargarFechasDisponiblesCopernicus(volcano) {
             try {
                 const response = await fetch(`${REPO_BASE}/docs/fechas_disponibles_copernicus.json?t=${Date.now()}`);
                 if (response.ok) {
                     const data = await response.json();
                     fechasDisponiblesCopernicus = data;
-                    console.log('✅ Fechas Copernicus cargadas:', fechasDisponiblesCopernicus);
+                    console.log('âœ… Fechas Copernicus cargadas:', fechasDisponiblesCopernicus);
                 }
             } catch (error) {
                 console.error('Error cargando fechas Copernicus:', error);
@@ -1080,7 +1080,7 @@
         }
 
         async function loadMetadata(volcano) {
-            const metadataUrl = `${REPO_BASE}/data/sentinel2/${volcano}/metadata.csv?t=${Date.now()}`;
+            const metadataUrl = `${REPO_BASE}/docs/sentinel2/${volcano}/metadata.csv?t=${Date.now()}`;
             
             try {
                 const response = await fetch(metadataUrl);
@@ -1154,8 +1154,8 @@
         }
 
         async function loadImages(volcano, date) {
-            const rgbUrl = `${REPO_BASE}/data/sentinel2/${volcano}/RGB/${date}_RGB.png?t=${Date.now()}`;
-            const thermalUrl = `${REPO_BASE}/data/sentinel2/${volcano}/ThermalFalseColor/${date}_ThermalFalseColor.png?t=${Date.now()}`;
+            const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcano}/RGB/${date}_RGB.png?t=${Date.now()}`;
+            const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcano}/ThermalFalseColor/${date}_ThermalFalseColor.png?t=${Date.now()}`;
             
             const rgbContainer = document.getElementById('rgb-container');
             const thermalContainer = document.getElementById('thermal-container');
@@ -1166,8 +1166,8 @@
             const rgbImg = new Image();
             rgbImg.onload = () => {
                 rgbContainer.innerHTML = `
-                    <div class="image-date-overlay">📅 ${date}</div>
-                    <div class="image-scale-indicator">🔍 3 km</div>
+                    <div class="image-date-overlay">ðŸ“… ${date}</div>
+                    <div class="image-scale-indicator">ðŸ” 3 km</div>
                 `;
                 rgbContainer.appendChild(rgbImg);
             };
@@ -1179,8 +1179,8 @@
             const thermalImg = new Image();
             thermalImg.onload = () => {
                 thermalContainer.innerHTML = `
-                    <div class="image-date-overlay">📅 ${date}</div>
-                    <div class="image-scale-indicator">🔍 3 km</div>
+                    <div class="image-date-overlay">ðŸ“… ${date}</div>
+                    <div class="image-scale-indicator">ðŸ” 3 km</div>
                 `;
                 thermalContainer.appendChild(thermalImg);
             };
@@ -1226,10 +1226,10 @@
                 const panel = document.createElement('div');
                 panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px;';
                 
-                // Obtener última fecha
+                // Obtener Ãºltima fecha
                 let ultimaFecha = '';
                 try {
-                    const metadataUrl = `${REPO_BASE}/data/sentinel2/${volcan}/metadata.csv?t=${Date.now()}`;
+                    const metadataUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/metadata.csv?t=${Date.now()}`;
                     const response = await fetch(metadataUrl);
                     const csvText = await response.text();
                     const lines = csvText.trim().split('\n');
@@ -1244,7 +1244,7 @@
                 
                 panel.innerHTML = `
                     <h2 style="color: #58a6ff; margin-bottom: 5px;">${volcan}</h2>
-                    ${ultimaFecha ? `<p style="color: #8b949e; font-size: 0.85em; margin-bottom: 15px;">📅 ${ultimaFecha}</p>` : ''}
+                    ${ultimaFecha ? `<p style="color: #8b949e; font-size: 0.85em; margin-bottom: 15px;">ðŸ“… ${ultimaFecha}</p>` : ''}
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div style="background: #0d1117; border-radius: 6px; padding: 10px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">RGB</h4>
@@ -1265,8 +1265,8 @@
                 
                 try {
                     if (ultimaFecha) {
-                        const rgbUrl = `${REPO_BASE}/data/sentinel2/${volcan}/RGB/${ultimaFecha}_RGB.png?t=${Date.now()}`;
-                        const thermalUrl = `${REPO_BASE}/data/sentinel2/${volcan}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
+                        const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/RGB/${ultimaFecha}_RGB.png?t=${Date.now()}`;
+                        const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
                         
                         document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
                         document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
@@ -1288,10 +1288,10 @@
                 const panel = document.createElement('div');
                 panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 20px;';
                 
-                // Obtener última fecha
+                // Obtener Ãºltima fecha
                 let ultimaFecha = '';
                 try {
-                    const metadataUrl = `${REPO_BASE}/data/sentinel2/${volcan}/metadata.csv?t=${Date.now()}`;
+                    const metadataUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/metadata.csv?t=${Date.now()}`;
                     const response = await fetch(metadataUrl);
                     const csvText = await response.text();
                     const lines = csvText.trim().split('\n');
@@ -1306,7 +1306,7 @@
                 
                 panel.innerHTML = `
                     <h2 style="color: #58a6ff; margin-bottom: 5px;">${volcan}</h2>
-                    ${ultimaFecha ? `<p style="color: #8b949e; font-size: 0.85em; margin-bottom: 15px;">📅 ${ultimaFecha}</p>` : ''}
+                    ${ultimaFecha ? `<p style="color: #8b949e; font-size: 0.85em; margin-bottom: 15px;">ðŸ“… ${ultimaFecha}</p>` : ''}
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                         <div style="background: #0d1117; border-radius: 6px; padding: 10px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">RGB</h4>
@@ -1327,8 +1327,8 @@
                 
                 try {
                     if (ultimaFecha) {
-                        const rgbUrl = `${REPO_BASE}/data/sentinel2/${volcan}/RGB/${ultimaFecha}_RGB.png?t=${Date.now()}`;
-                        const thermalUrl = `${REPO_BASE}/data/sentinel2/${volcan}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
+                        const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/RGB/${ultimaFecha}_RGB.png?t=${Date.now()}`;
+                        const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
                         
                         document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
                         document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
@@ -1346,17 +1346,17 @@
             lastMonth.setMonth(today.getMonth() - 1);
             const monthStr = lastMonth.toISOString().slice(0, 7);
             
-            const pptUrl = `${REPO_BASE}/data/sentinel2/${currentVolcano}/reportes/${currentVolcano}_Evaluacion_Mensual_${monthStr}.pptx?t=${Date.now()}`;
+            const pptUrl = `${REPO_BASE}/docs/sentinel2/${currentVolcano}/reportes/${currentVolcano}_Evaluacion_Mensual_${monthStr}.pptx?t=${Date.now()}`;
             
             try {
                 const response = await fetch(pptUrl, { method: 'HEAD' });
                 
                 if (response.ok) {
-                    if (confirm(`📊 PPT EVALUACIÓN MENSUAL\n\n` +
-                               `Volcán: ${currentVolcano}\n` +
+                    if (confirm(`ðŸ“Š PPT EVALUACIÃ“N MENSUAL\n\n` +
+                               `VolcÃ¡n: ${currentVolcano}\n` +
                                `Mes: ${monthStr}\n\n` +
-                               `✅ El PPT ya está generado.\n\n` +
-                               `¿Descargar ahora?`)) {
+                               `âœ… El PPT ya estÃ¡ generado.\n\n` +
+                               `Â¿Descargar ahora?`)) {
                         
                         const a = document.createElement('a');
                         a.href = pptUrl;
@@ -1369,15 +1369,15 @@
                 console.log('PPT no existe, necesita generarse');
             }
             
-            if (confirm('📊 GENERAR PPT EVALUACIÓN MENSUAL\n\n' +
-                       `Volcán: ${currentVolcano}\n` +
+            if (confirm('ðŸ“Š GENERAR PPT EVALUACIÃ“N MENSUAL\n\n' +
+                       `VolcÃ¡n: ${currentVolcano}\n` +
                        `Mes: ${monthStr}\n\n` +
-                       `⚠️ El PPT aún no se ha generado.\n\n` +
+                       `âš ï¸ El PPT aÃºn no se ha generado.\n\n` +
                        `Para generar el PPT:\n` +
                        `1. Ejecutar selector_fechas_timelapse.py\n` +
                        `2. Ejecutar timelapse_generator.py\n` +
                        `3. Ejecutar ppt_generator.py\n\n` +
-                       `¿Abrir instrucciones en GitHub?`)) {
+                       `Â¿Abrir instrucciones en GitHub?`)) {
                 
                 window.open('https://github.com/MendozaVolcanic/Copernicus-v1#readme', '_blank');
             }
@@ -1400,7 +1400,7 @@
             }
         }
 
-        // CAMBIO QUIRÚRGICO 4: LÓGICA CALENDARIO 3 ESTADOS
+        // CAMBIO QUIRÃšRGICO 4: LÃ“GICA CALENDARIO 3 ESTADOS
         function updateCalendar() {
             calendarMonth = parseInt(document.getElementById('calendar-month').value);
             calendarYear = parseInt(document.getElementById('calendar-year').value);
@@ -1457,14 +1457,14 @@
             }
         }
 
-        // CAMBIO QUIRÚRGICO 5: FUNCIÓN COPERNICUS POR FECHA
+        // CAMBIO QUIRÃšRGICO 5: FUNCIÃ“N COPERNICUS POR FECHA
         function abrirCopernicusBrowserFecha(fecha) {
             const config = VOLCANES_CONFIG[currentVolcano];
             
-            if (confirm(`🔵 FECHA DISPONIBLE EN COPERNICUS\n\n` +
-                       `Volcán: ${currentVolcano}\n` +
+            if (confirm(`ðŸ”µ FECHA DISPONIBLE EN COPERNICUS\n\n` +
+                       `VolcÃ¡n: ${currentVolcano}\n` +
                        `Fecha: ${fecha}\n\n` +
-                       `¿Abrir Copernicus Browser?`)) {
+                       `Â¿Abrir Copernicus Browser?`)) {
                 
                 const url = `https://browser.dataspace.copernicus.eu/?` +
                     `zoom=13&` +
@@ -1481,14 +1481,14 @@
             }
         }
 
-        // BOTÓN COPERNICUS BROWSER (VOLCÁN ACTUAL)
+        // BOTÃ“N COPERNICUS BROWSER (VOLCÃN ACTUAL)
         function abrirCopernicusBrowser() {
             const config = VOLCANES_CONFIG[currentVolcano];
             
-            if (confirm(`🌐 COPERNICUS BROWSER\n\n` +
-                       `Volcán: ${currentVolcano}\n` +
+            if (confirm(`ðŸŒ COPERNICUS BROWSER\n\n` +
+                       `VolcÃ¡n: ${currentVolcano}\n` +
                        `Coordenadas: ${config.lat}, ${config.lon}\n\n` +
-                       `¿Abrir navegador Copernicus?`)) {
+                       `Â¿Abrir navegador Copernicus?`)) {
                 
                 // Fecha actual
                 const hoy = new Date().toISOString().split('T')[0];
@@ -1538,7 +1538,7 @@
             const lastDay = new Date(calendarCopernicusYear, calendarCopernicusMonth + 1, 0);
             const startDay = firstDay.getDay();
             
-            // Cargar fechas Copernicus para este volcán
+            // Cargar fechas Copernicus para este volcÃ¡n
             const fechasCopernicus = fechasDisponiblesCopernicus[currentVolcano] || [];
             
             for (let i = 0; i < startDay; i++) {
@@ -1554,7 +1554,7 @@
                 dayDiv.textContent = day;
                 dayDiv.className = 'calendar-day';
                 
-                // Verificar si está en fechas disponibles de Copernicus
+                // Verificar si estÃ¡ en fechas disponibles de Copernicus
                 const disponible = fechasCopernicus.includes(dateStr);
                 
                 if (disponible) {
@@ -1570,16 +1570,16 @@
             }
         }
 
-        // TIMELAPSES AUTOMÁTICOS (30 DÍAS)
+        // TIMELAPSES AUTOMÃTICOS (30 DÃAS)
         async function cargarTimelapesAutomaticos(volcano) {
             const timestamp = new Date().getTime();
             
             const imgRGB = document.getElementById('timelapse-rgb-auto');
             const imgThermal = document.getElementById('timelapse-thermal-auto');
             
-            // Rutas a GIFs en docs/timelapses/
-            imgRGB.src = `${REPO_BASE}/docs/timelapses/${volcano}_RGB.gif?t=${timestamp}`;
-            imgThermal.src = `${REPO_BASE}/docs/timelapses/${volcano}_ThermalFalseColor.gif?t=${timestamp}`;
+            // Rutas a GIFs en docs/sentinel2/{volcano}/timelapses/
+            imgRGB.src = `${REPO_BASE}/docs/sentinel2/${volcano}/timelapses/${volcano}_RGB.gif?t=${timestamp}`;
+            imgThermal.src = `${REPO_BASE}/docs/sentinel2/${volcano}/timelapses/${volcano}_ThermalFalseColor.gif?t=${timestamp}`;
             
             // Placeholder si no existe
             imgRGB.onerror = () => {
@@ -1591,7 +1591,7 @@
                 imgThermal.style.cursor = 'not-allowed';
             };
             
-            // Fecha de actualización
+            // Fecha de actualizaciÃ³n
             const ahora = new Date().toLocaleDateString('es-CL');
             document.getElementById('update-date-rgb').textContent = ahora;
             document.getElementById('update-date-thermal').textContent = ahora;
@@ -1631,11 +1631,11 @@
             `;
             
             const title = document.createElement('h2');
-            title.textContent = `🎬 ${currentVolcano} - ${tipo === 'RGB' ? 'Color Real' : 'SWIR Falso Color'} (30 días)`;
+            title.textContent = `ðŸŽ¬ ${currentVolcano} - ${tipo === 'RGB' ? 'Color Real' : 'SWIR Falso Color'} (30 dÃ­as)`;
             title.style.cssText = 'color: #58a6ff; margin: 0;';
             
             const closeBtn = document.createElement('button');
-            closeBtn.textContent = '✕ Cerrar';
+            closeBtn.textContent = 'âœ• Cerrar';
             closeBtn.className = 'btn-ui';
             closeBtn.onclick = () => document.body.removeChild(modal);
             
@@ -1643,7 +1643,7 @@
             header.appendChild(closeBtn);
             
             const img = document.createElement('img');
-            img.src = `${REPO_BASE}/docs/timelapses/${currentVolcano}_${tipoArchivo}.gif?t=${timestamp}`;
+            img.src = `${REPO_BASE}/docs/sentinel2/${currentVolcano}/timelapses/${currentVolcano}_${tipoArchivo}.gif?t=${timestamp}`;
             img.style.cssText = 'max-width: 90%; max-height: 80vh; border-radius: 10px; margin-top: 80px;';
             img.onerror = () => {
                 img.src = 'https://via.placeholder.com/800x600/0d1117/8b949e?text=Timelapse+no+disponible';
