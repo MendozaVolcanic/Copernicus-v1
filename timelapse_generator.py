@@ -1,7 +1,7 @@
 """
 TIMELAPSE_GENERATOR.PY V3.0 - ESCALAS CORREGIDAS
 Genera GIF animado con escala CORRECTA y PROPORCIONAL
-Buffer real: 3 km → Escala mostrada: 3 km
+Buffer real: 3 km â†’ Escala mostrada: 3 km
 """
 
 import os
@@ -13,22 +13,22 @@ from io import BytesIO
 import json
 
 # =========================
-# CONFIGURACIÓN
+# CONFIGURACIÃ“N
 # =========================
 
 VOLCANES_ACTIVOS = [
     # ZONA NORTE
-    "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", "Ollagüe", "San Pedro", "Láscar",
+    "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", "OllagÃ¼e", "San Pedro", "LÃ¡scar",
     # ZONA CENTRO
-    "Tupungatito", "San José", "Tinguiririca", "Planchón-Peteroa", "Descabezado Grande", 
-    "Tatara-San Pedro", "Laguna del Maule", "Nevado de Longaví", "Nevados de Chillán",
+    "Tupungatito", "San JosÃ©", "Tinguiririca", "PlanchÃ³n-Peteroa", "Descabezado Grande", 
+    "Tatara-San Pedro", "Laguna del Maule", "Nevado de LongavÃ­", "Nevados de ChillÃ¡n",
     # ZONA SUR
     "Antuco", "Copahue", "Callaqui", "Lonquimay", "Llaima", "Sollipulli", "Villarrica", 
-    "Quetrupillán", "Lanín", "Mocho-Choshuenco", "Carrán - Los Venados", "Puyehue - Cordón Caulle", 
-    "Antillanca – Casablanca",
+    "QuetrupillÃ¡n", "LanÃ­n", "Mocho-Choshuenco", "CarrÃ¡n - Los Venados", "Puyehue - CordÃ³n Caulle", 
+    "Antillanca â€“ Casablanca",
     # ZONA AUSTRAL
-    "Osorno", "Calbuco", "Yate", "Hornopirén", "Huequi", "Michinmahuida", "Chaitén", 
-    "Corcovado", "Melimoyu", "Mentolat", "Cay", "Macá", "Hudson"
+    "Osorno", "Calbuco", "Yate", "HornopirÃ©n", "Huequi", "Michinmahuida", "ChaitÃ©n", 
+    "Corcovado", "Melimoyu", "Mentolat", "Cay", "MacÃ¡", "Hudson"
 ]
 
 FPS = 1
@@ -52,7 +52,7 @@ def descargar_logo_copernicus():
         response = requests.get(logo_url, timeout=10)
         if response.status_code == 200:
             logo = Image.open(BytesIO(response.content))
-            # Redimensionar a tamaño apropiado (ancho 150px)
+            # Redimensionar a tamaÃ±o apropiado (ancho 150px)
             aspect = logo.height / logo.width
             new_width = 150
             new_height = int(new_width * aspect)
@@ -62,10 +62,10 @@ def descargar_logo_copernicus():
                 logo = logo.convert('RGBA')
             return logo
         else:
-            print(f"   ⚠️ No se pudo descargar logo (status {response.status_code})")
+            print(f"   âš ï¸ No se pudo descargar logo (status {response.status_code})")
             return None
     except Exception as e:
-        print(f"   ⚠️ Error descargando logo: {e}")
+        print(f"   âš ï¸ Error descargando logo: {e}")
         return None
 
 
@@ -92,16 +92,16 @@ def crear_logo_copernicus_texto():
 
 def agregar_escala_kilometros(img, escala_km=3, tipo='RGB'):
     """
-    Agrega escala de kilómetros CORRECTA y PROPORCIONAL
+    Agrega escala de kilÃ³metros CORRECTA y PROPORCIONAL
     
-    FIX CRÍTICO:
+    FIX CRÃTICO:
     - Buffer usado en descarga: 3 km
-    - Área total de imagen: 6 km × 6 km (2 × buffer)
-    - Escala mostrada: 3 km (mitad del área)
+    - Ãrea total de imagen: 6 km Ã— 6 km (2 Ã— buffer)
+    - Escala mostrada: 3 km (mitad del Ã¡rea)
     
     Args:
         img: PIL Image
-        escala_km: Kilómetros a representar (3 km = buffer real)
+        escala_km: KilÃ³metros a representar (3 km = buffer real)
         tipo: 'RGB' o 'ThermalFalseColor'
     """
     draw = ImageDraw.Draw(img)
@@ -109,20 +109,20 @@ def agregar_escala_kilometros(img, escala_km=3, tipo='RGB'):
     img_width, img_height = img.size
     
     # ========================================
-    # FIX CRÍTICO: CÁLCULO CORRECTO DE ESCALA
+    # FIX CRÃTICO: CÃLCULO CORRECTO DE ESCALA
     # ========================================
-    # Área física total: 6 km × 6 km (buffer 3 km en config)
+    # Ãrea fÃ­sica total: 6 km Ã— 6 km (buffer 3 km en config)
     # Ancho de imagen: 1024px (tanto RGB como Thermal)
-    # Proporción: 1024px / 6 km = 170.67 px/km
-    # Escala de 3 km: 3 km × 170.67 px/km = 512px
+    # ProporciÃ³n: 1024px / 6 km = 170.67 px/km
+    # Escala de 3 km: 3 km Ã— 170.67 px/km = 512px
     
-    area_fisica_km = 6.0  # Buffer 3km → área total 6km
+    area_fisica_km = 6.0  # Buffer 3km â†’ Ã¡rea total 6km
     pixels_por_km = img_width / area_fisica_km
     ancho_barra_px = int(pixels_por_km * escala_km)
     
-    print(f"   📏 Escala {tipo}: {escala_km} km = {ancho_barra_px} px (imagen {img_width}px = {area_fisica_km} km)")
+    print(f"   ðŸ“ Escala {tipo}: {escala_km} km = {ancho_barra_px} px (imagen {img_width}px = {area_fisica_km} km)")
     
-    # Posición (abajo a la derecha)
+    # PosiciÃ³n (abajo a la derecha)
     x_start = img_width - ancho_barra_px - 30
     y_pos = img_height - 50
     
@@ -151,7 +151,7 @@ def agregar_escala_kilometros(img, escala_km=3, tipo='RGB'):
         fill=(255, 255, 255, 255)
     )
     
-    # Marcas cada kilómetro
+    # Marcas cada kilÃ³metro
     for i in range(int(escala_km) + 1):
         x_marca = x_start + int((ancho_barra_px / escala_km) * i)
         draw.line([(x_marca, y_pos), (x_marca, y_pos + altura_barra + 5)], fill=(255, 255, 255), width=2)
@@ -231,7 +231,7 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
     # Combinar overlay con imagen original
     img_final = Image.alpha_composite(img_copy, overlay)
     
-    # 4. ESCALA (abajo derecha) - DESPUÉS del composite
+    # 4. ESCALA (abajo derecha) - DESPUÃ‰S del composite
     img_final = agregar_escala_kilometros(img_final, escala_km=3, tipo=tipo)
     
     # Convertir de vuelta a RGB
@@ -245,15 +245,15 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
 
 def cargar_config_fechas(volcan_nombre):
     """
-    Carga configuración de fechas desde JSON
+    Carga configuraciÃ³n de fechas desde JSON
     Si no existe, usa todas las fechas disponibles
     """
-    config_path = f'data/sentinel2/configs/timelapse_{volcan_nombre}.json'
+    config_path = f'docs/sentinel2/configs/timelapse_{volcan_nombre}.json'
     
     if os.path.exists(config_path):
         with open(config_path, 'r') as f:
             config = json.load(f)
-            print(f"   📅 Usando rango: {config['fecha_inicio']} → {config['fecha_fin']}")
+            print(f"   ðŸ“… Usando rango: {config['fecha_inicio']} â†’ {config['fecha_fin']}")
             return config['fecha_inicio'], config['fecha_fin']
     
     return None, None
@@ -264,18 +264,18 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
     Genera GIF timelapse con rango de fechas configurable
     """
     
-    print(f"\n🎬 Generando GIF: {volcan_nombre} - {tipo}")
+    print(f"\nðŸŽ¬ Generando GIF: {volcan_nombre} - {tipo}")
     
-    carpeta_imagenes = f"data/sentinel2/{volcan_nombre}/{tipo}"
+    carpeta_imagenes = f"docs/sentinel2/{volcan_nombre}/{tipo}"
     
     if not os.path.exists(carpeta_imagenes):
-        print(f"   ❌ Carpeta no existe: {carpeta_imagenes}")
+        print(f"   âŒ Carpeta no existe: {carpeta_imagenes}")
         return None
     
     imagenes_paths = sorted(glob.glob(f"{carpeta_imagenes}/*.png"))
     
     if len(imagenes_paths) == 0:
-        print(f"   ⚠️ No hay imágenes en {carpeta_imagenes}")
+        print(f"   âš ï¸ No hay imÃ¡genes en {carpeta_imagenes}")
         return None
     
     # Filtrar por rango de fechas si se especifica
@@ -289,13 +289,13 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
                 imagenes_filtradas.append(img_path)
         
         imagenes_paths = imagenes_filtradas
-        print(f"   📅 Filtrado por fechas: {len(imagenes_paths)} imágenes")
+        print(f"   ðŸ“… Filtrado por fechas: {len(imagenes_paths)} imÃ¡genes")
     
     if len(imagenes_paths) == 0:
-        print(f"   ⚠️ No hay imágenes en el rango {fecha_inicio} - {fecha_fin}")
+        print(f"   âš ï¸ No hay imÃ¡genes en el rango {fecha_inicio} - {fecha_fin}")
         return None
     
-    print(f"   📷 Procesando {len(imagenes_paths)} imágenes")
+    print(f"   ðŸ“· Procesando {len(imagenes_paths)} imÃ¡genes")
     
     imagenes = []
     fechas = []
@@ -312,16 +312,16 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
             img_con_overlay = agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus)
             imagenes.append(img_con_overlay)
             
-            print(f"   ✅ {fecha}")
+            print(f"   âœ… {fecha}")
         except Exception as e:
-            print(f"   ❌ Error cargando {img_path}: {e}")
+            print(f"   âŒ Error cargando {img_path}: {e}")
             continue
     
     if len(imagenes) == 0:
-        print(f"   ❌ No se pudieron cargar imágenes")
+        print(f"   âŒ No se pudieron cargar imÃ¡genes")
         return None
     
-    carpeta_gif = f"data/sentinel2/{volcan_nombre}/timelapses"
+    carpeta_gif = f"docs/sentinel2/{volcan_nombre}/timelapses"
     os.makedirs(carpeta_gif, exist_ok=True)
     
     fecha_inicio_real = fechas[0]
@@ -340,20 +340,20 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
             append_images=imagenes[1:],
             duration=DURACION_FRAME,
             loop=0,
-            optimize=True,  # PIL optimiza automáticamente
-            quality=85      # NUEVO: Reducir calidad para comprimir más
+            optimize=True,  # PIL optimiza automÃ¡ticamente
+            quality=85      # NUEVO: Reducir calidad para comprimir mÃ¡s
         )
         
         size_mb = os.path.getsize(output_path) / (1024 * 1024)
         
-        # Si aún es muy grande, reducir más
+        # Si aÃºn es muy grande, reducir mÃ¡s
         if size_mb > 1.5:
-            print(f"   ⚠️ GIF muy grande ({size_mb:.2f} MB), recomprimiendo...")
+            print(f"   âš ï¸ GIF muy grande ({size_mb:.2f} MB), recomprimiendo...")
             
-            # Reducir tamaño de frames
+            # Reducir tamaÃ±o de frames
             imagenes_reducidas = []
             for img in imagenes:
-                # Reducir a 85% del tamaño
+                # Reducir a 85% del tamaÃ±o
                 new_size = (int(img.width * 0.85), int(img.height * 0.85))
                 img_reducida = img.resize(new_size, Image.Resampling.LANCZOS)
                 imagenes_reducidas.append(img_reducida)
@@ -370,37 +370,37 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
             
             size_mb = os.path.getsize(output_path) / (1024 * 1024)
         
-        print(f"   ✅ GIF generado: {size_mb:.2f} MB")
-        print(f"   📅 Período: {fecha_inicio_real} → {fecha_fin_real}")
+        print(f"   âœ… GIF generado: {size_mb:.2f} MB")
+        print(f"   ðŸ“… PerÃ­odo: {fecha_inicio_real} â†’ {fecha_fin_real}")
         
         return output_path, fecha_inicio_real, fecha_fin_real
     except Exception as e:
-        print(f"   ❌ Error generando GIF: {e}")
+        print(f"   âŒ Error generando GIF: {e}")
         return None
 
 
 def main():
     print("="*80)
-    print("🎬 GENERADOR DE TIMELAPSES V3.0")
+    print("ðŸŽ¬ GENERADOR DE TIMELAPSES V3.0")
     print("   Escalas CORREGIDAS - Buffer real: 3 km")
     print("="*80)
     
     # Descargar logo de Copernicus
-    print("\n📥 Descargando logo de Copernicus...")
+    print("\nðŸ“¥ Descargando logo de Copernicus...")
     logo_copernicus = descargar_logo_copernicus()
     
     if logo_copernicus is None:
-        print("   ⚠️ Usando logo de texto alternativo")
+        print("   âš ï¸ Usando logo de texto alternativo")
         logo_copernicus = crear_logo_copernicus_texto()
     else:
-        print("   ✅ Logo descargado")
+        print("   âœ… Logo descargado")
     
     gifs_generados = []
     
     for volcan in VOLCANES_ACTIVOS:
-        print(f"\n🌋 Procesando: {volcan}")
+        print(f"\nðŸŒ‹ Procesando: {volcan}")
         
-        # Cargar configuración de fechas (si existe)
+        # Cargar configuraciÃ³n de fechas (si existe)
         fecha_inicio, fecha_fin = cargar_config_fechas(volcan)
         
         for tipo in ['RGB', 'ThermalFalseColor']:
@@ -409,14 +409,14 @@ def main():
                 gifs_generados.append(resultado)
     
     print("\n" + "="*80)
-    print(f"✅ PROCESO COMPLETADO - {len(gifs_generados)} GIFs generados")
+    print(f"âœ… PROCESO COMPLETADO - {len(gifs_generados)} GIFs generados")
     print("="*80)
     
     for gif_info in gifs_generados:
         if len(gif_info) == 3:
             gif_path, fecha_i, fecha_f = gif_info
             size_mb = os.path.getsize(gif_path) / (1024 * 1024)
-            print(f"   📁 {os.path.basename(gif_path)}: {size_mb:.2f} MB ({fecha_i} → {fecha_f})")
+            print(f"   ðŸ“ {os.path.basename(gif_path)}: {size_mb:.2f} MB ({fecha_i} â†’ {fecha_f})")
 
 
 if __name__ == "__main__":
