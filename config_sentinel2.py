@@ -41,7 +41,7 @@ EVALSCRIPT_RGB = """
 function setup() {
   return {
     input: [{
-      bands: ["B04", "B03", "B02"]
+      bands: ["B04", "B03", "B02", "dataMask"]
     }],
     output: {
       bands: 3,
@@ -51,6 +51,8 @@ function setup() {
 }
 
 function evaluatePixel(sample) {
+  // IMPORTANTE: Retornar datos AUNQUE dataMask sea 0 (nube/sombra)
+  // Esto permite ver las nubes en lugar de píxeles negros
   return [2.5 * sample.B04, 2.5 * sample.B03, 2.5 * sample.B02];
 }
 """
@@ -60,7 +62,7 @@ EVALSCRIPT_THERMAL = """
 function setup() {
   return {
     input: [{
-      bands: ["B12", "B11", "B04"]
+      bands: ["B12", "B11", "B04", "dataMask"]
     }],
     output: {
       bands: 3,
@@ -70,6 +72,7 @@ function setup() {
 }
 
 function evaluatePixel(sample) {
+  // IMPORTANTE: Retornar datos AUNQUE dataMask sea 0
   return [2.5 * sample.B12, 2.5 * sample.B11, 2.5 * sample.B04];
 }
 """
