@@ -1,11 +1,11 @@
-name: Monitoreo Copernicus Automático
+name: Monitoreo Copernicus Automtico
 
 on:
   schedule:
     # Ejecutar diariamente a las 06:00 UTC (03:00 Chile)
     - cron: '0 6 * * *'
   
-  # Permitir ejecución manual
+  # Permitir ejecucin manual
   workflow_dispatch:
 
 # PERMISOS NECESARIOS PARA PUSH
@@ -30,32 +30,32 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests pandas pytz Pillow python-pptx
       
-      - name: 📥 Descargar imágenes Sentinel-2
+      - name:  Descargar imgenes Sentinel-2
         env:
           SH_CLIENT_ID: ${{ secrets.SH_CLIENT_ID }}
           SH_CLIENT_SECRET: ${{ secrets.SH_CLIENT_SECRET }}
         run: |
-          echo "🛰️ Descargando imágenes últimos 60 días..."
+          echo " Descargando imgenes ltimos 60 das..."
           python sentinel2_downloader.py
       
-      - name: 🎬 Generar timelapses automáticos
+      - name:  Generar timelapses automticos
         run: |
-          echo "🎬 Generando timelapses últimos 30 días para dashboard..."
+          echo " Generando timelapses ltimos 30 das para dashboard..."
           python timelapse_generator_auto.py
       
-      - name: 📊 Generar PPT mensuales (día 1 del mes)
+      - name:  Generar PPT mensuales (da 1 del mes)
         run: |
-          echo "📊 Verificando si es día 1 del mes..."
+          echo " Verificando si es da 1 del mes..."
           DIA=$(date +%d)
           
           if [ "$DIA" = "01" ]; then
-            echo "✅ Es día 1, generando PPT mensual..."
+            echo " Es da 1, generando PPT mensual..."
             python ppt_generator.py
           else
-            echo "⏭️ No es día 1 (día actual: $DIA), omitiendo PPT"
+            echo " No es da 1 (da actual: $DIA), omitiendo PPT"
           fi
       
-      - name: 💾 Guardar cambios en GitHub
+      - name:  Guardar cambios en GitHub
         run: |
           git config --global user.name "Copernicus Bot"
           git config --global user.email "bot@copernicus.local"
@@ -64,23 +64,23 @@ jobs:
           
           if ! git diff --quiet --staged; then
             FECHA=$(date +'%Y-%m-%d %H:%M')
-            git commit -m "🤖 Actualización automática: $FECHA"
+            git commit -m " Actualizacin automtica: $FECHA"
             
             # Push con reintentos
             max_retries=5
             retry_count=0
             
             while [ $retry_count -lt $max_retries ]; do
-              echo "📤 Intento $((retry_count + 1)) de push..."
+              echo " Intento $((retry_count + 1)) de push..."
               
               if git pull origin main --rebase -X ours; then
-                echo "✅ Pull exitoso"
+                echo " Pull exitoso"
               else
-                echo "⚠️ Pull falló, continuando..."
+                echo " Pull fall, continuando..."
               fi
               
               if git push origin main; then
-                echo "✅ Push exitoso"
+                echo " Push exitoso"
                 exit 0
               else
                 retry_count=$((retry_count + 1))
@@ -90,8 +90,8 @@ jobs:
               fi
             done
             
-            echo "❌ Push falló después de $max_retries intentos"
+            echo " Push fall despus de $max_retries intentos"
             exit 1
           else
-            echo "ℹ️ No hay cambios para guardar"
+            echo " No hay cambios para guardar"
           fi
