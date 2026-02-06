@@ -180,7 +180,9 @@ def generar_gif_ultimos_30_dias(volcan_nombre, tipo='RGB', logo_copernicus=None)
     
     print(f"\n Generando GIF automtico: {volcan_nombre} - {tipo}")
     
-    carpeta_imagenes = f"docs/sentinel2/{volcan_nombre}/{tipo}"
+    # CORRECCION: Las imagenes estan directamente en docs/sentinel2/{volcan}/
+    # NO en subdirectorios RGB/ o ThermalFalseColor/
+    carpeta_imagenes = f"docs/sentinel2/{volcan_nombre}"
     
     if not os.path.exists(carpeta_imagenes):
         print(f"    Carpeta no existe")
@@ -193,9 +195,9 @@ def generar_gif_ultimos_30_dias(volcan_nombre, tipo='RGB', logo_copernicus=None)
     
     print(f"    Rango: {fecha_limite}  {ahora.strftime('%Y-%m-%d')}")
     
-    # Filtrar imgenes de ltimos 30 das
+    # Filtrar imgenes de ltimos 30 das POR TIPO
     imagenes_paths = []
-    for img_path in sorted(glob.glob(f"{carpeta_imagenes}/*.png")):
+    for img_path in sorted(glob.glob(f"{carpeta_imagenes}/*_{tipo}.png")):
         nombre = os.path.basename(img_path)
         fecha = nombre.split('_')[0]
         
