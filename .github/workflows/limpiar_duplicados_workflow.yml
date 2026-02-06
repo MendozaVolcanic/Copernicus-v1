@@ -20,7 +20,7 @@ jobs:
           
           # Eliminar carpetas con tildes (versiones antiguas)
           rm -rf "Chaitén" 2>/dev/null || true
-          rm -rf "Ollague" 2>/dev/null || true  # Por si acaso
+          rm -rf "Ollague" 2>/dev/null || true
           rm -rf "Láscar" 2>/dev/null || true
           rm -rf "San José" 2>/dev/null || true
           rm -rf "Planchón-Peteroa" 2>/dev/null || true
@@ -32,6 +32,9 @@ jobs:
           rm -rf "Puyehue - Cordón Caulle" 2>/dev/null || true
           rm -rf "Hornopirén" 2>/dev/null || true
           rm -rf "Macá" 2>/dev/null || true
+          
+          # Eliminar Antillanca con guion largo (–) en lugar de guion corto (-)
+          rm -rf "Antillanca – Casablanca" 2>/dev/null || true
           
           echo "Carpetas con tildes eliminadas"
           
