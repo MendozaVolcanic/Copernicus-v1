@@ -1,7 +1,7 @@
 """
 TIMELAPSE_GENERATOR_AUTO.PY
-Genera timelapses AUTOMÃTICOS de Ãºltimos 30 dÃ­as para dashboard
-Se ejecuta despuÃ©s de cada descarga
+Genera timelapses AUTOMTICOS de ltimos 30 das para dashboard
+Se ejecuta despus de cada descarga
 """
 
 import os
@@ -13,24 +13,24 @@ from io import BytesIO
 import pytz
 
 # =========================
-# CONFIGURACIÃ“N
+# CONFIGURACIN
 # =========================
 
 VOLCANES_ACTIVOS = [
     # ZONA NORTE
-    "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", "OllagÃ¼e", "San Pedro", "LÃ¡scar",
+    "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", "Ollage", "San Pedro", "Lscar",
     # ZONA CENTRO
-    "Tupungatito", "San JosÃ©", "Tinguiririca", "PlanchÃ³n-Peteroa", "Descabezado Grande", 
-    "Tatara-San Pedro", "Laguna del Maule", "Nevado de LongavÃ­", "Nevados de ChillÃ¡n",
+    "Tupungatito", "San Jos", "Tinguiririca", "Planchn-Peteroa", "Descabezado Grande", 
+    "Tatara-San Pedro", "Laguna del Maule", "Nevado de Longav", "Nevados de Chilln",
     # ZONA SUR
     "Antuco", "Copahue", "Callaqui", "Lonquimay", "Llaima", "Sollipulli", "Villarrica", 
-    "QuetrupillÃ¡n", "LanÃ­n", "Mocho-Choshuenco", "CarrÃ¡n - Los Venados", "Puyehue - CordÃ³n Caulle", 
-    "Antillanca â€“ Casablanca",
+    "Quetrupilln", "Lann", "Mocho-Choshuenco", "Carrn - Los Venados", "Puyehue - Cordn Caulle", 
+    "Antillanca  Casablanca",
     # ZONA AUSTRAL
-    "Osorno", "Calbuco", "Yate", "HornopirÃ©n", "Huequi", "Michinmahuida", "ChaitÃ©n", 
-    "Corcovado", "Melimoyu", "Mentolat", "Cay", "MacÃ¡", "Hudson"
+    "Osorno", "Calbuco", "Yate", "Hornopirn", "Huequi", "Michinmahuida", "Chaitn", 
+    "Corcovado", "Melimoyu", "Mentolat", "Cay", "Mac", "Hudson"
 ]
-DIAS_TIMELAPSE = 30  # Ãšltimos 30 dÃ­as para dashboard
+DIAS_TIMELAPSE = 30  # ltimos 30 das para dashboard
 DURACION_FRAME = 1000  # ms
 
 # =========================
@@ -174,26 +174,26 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
 
 def generar_gif_ultimos_30_dias(volcan_nombre, tipo='RGB', logo_copernicus=None):
     """
-    Genera GIF con ÃšLTIMOS 30 DÃAS para dashboard
-    AutomÃ¡tico - no requiere configuraciÃ³n manual
+    Genera GIF con LTIMOS 30 DAS para dashboard
+    Automtico - no requiere configuracin manual
     """
     
-    print(f"\nðŸŽ¬ Generando GIF automÃ¡tico: {volcan_nombre} - {tipo}")
+    print(f"\n Generando GIF automtico: {volcan_nombre} - {tipo}")
     
     carpeta_imagenes = f"docs/sentinel2/{volcan_nombre}/{tipo}"
     
     if not os.path.exists(carpeta_imagenes):
-        print(f"   âŒ Carpeta no existe")
+        print(f"    Carpeta no existe")
         return None
     
-    # Calcular fecha lÃ­mite (hace 30 dÃ­as)
+    # Calcular fecha lmite (hace 30 das)
     ahora = datetime.now(pytz.utc)
     hace_30_dias = ahora - timedelta(days=DIAS_TIMELAPSE)
     fecha_limite = hace_30_dias.strftime('%Y-%m-%d')
     
-    print(f"   ðŸ“… Rango: {fecha_limite} â†’ {ahora.strftime('%Y-%m-%d')}")
+    print(f"    Rango: {fecha_limite}  {ahora.strftime('%Y-%m-%d')}")
     
-    # Filtrar imÃ¡genes de Ãºltimos 30 dÃ­as
+    # Filtrar imgenes de ltimos 30 das
     imagenes_paths = []
     for img_path in sorted(glob.glob(f"{carpeta_imagenes}/*.png")):
         nombre = os.path.basename(img_path)
@@ -203,10 +203,10 @@ def generar_gif_ultimos_30_dias(volcan_nombre, tipo='RGB', logo_copernicus=None)
             imagenes_paths.append(img_path)
     
     if len(imagenes_paths) == 0:
-        print(f"   âš ï¸ No hay imÃ¡genes de Ãºltimos {DIAS_TIMELAPSE} dÃ­as")
+        print(f"    No hay imgenes de ltimos {DIAS_TIMELAPSE} das")
         return None
     
-    print(f"   ðŸ“· Procesando {len(imagenes_paths)} imÃ¡genes")
+    print(f"    Procesando {len(imagenes_paths)} imgenes")
     
     imagenes = []
     fechas = []
@@ -221,16 +221,16 @@ def generar_gif_ultimos_30_dias(volcan_nombre, tipo='RGB', logo_copernicus=None)
             img_con_overlay = agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus)
             imagenes.append(img_con_overlay)
             
-            print(f"   âœ… {fecha}")
+            print(f"    {fecha}")
         except Exception as e:
-            print(f"   âŒ Error: {e}")
+            print(f"    Error: {e}")
             continue
     
     if len(imagenes) == 0:
-        print(f"   âŒ No se pudieron cargar imÃ¡genes")
+        print(f"    No se pudieron cargar imgenes")
         return None
     
-    # Guardar en carpeta del volcán para coherencia con estructura
+    # Guardar en carpeta del volcn para coherencia con estructura
     carpeta_gif = f"docs/sentinel2/{volcan_nombre}/timelapses"
     os.makedirs(carpeta_gif, exist_ok=True)
     
@@ -254,42 +254,42 @@ def generar_gif_ultimos_30_dias(volcan_nombre, tipo='RGB', logo_copernicus=None)
         
         size_mb = os.path.getsize(output_path) / (1024 * 1024)
         
-        # Si muy grande, reducir tamaÃ±o
+        # Si muy grande, reducir tamao
         if size_mb > 1.5:
-            print(f"   âš ï¸ Reduciendo tamaÃ±o ({size_mb:.2f} MB)...")
+            print(f"    Reduciendo tamao ({size_mb:.2f} MB)...")
             imagenes_reducidas = [img.resize((int(img.width * 0.85), int(img.height * 0.85)), Image.Resampling.LANCZOS) for img in imagenes]
             imagenes_reducidas[0].save(output_path, save_all=True, append_images=imagenes_reducidas[1:], duration=DURACION_FRAME, loop=0, optimize=True, quality=80)
             size_mb = os.path.getsize(output_path) / (1024 * 1024)
         
-        print(f"   âœ… GIF: {size_mb:.2f} MB")
-        print(f"   ðŸ“… {fecha_inicio} â†’ {fecha_fin}")
+        print(f"    GIF: {size_mb:.2f} MB")
+        print(f"    {fecha_inicio}  {fecha_fin}")
         
         return output_path
     
     except Exception as e:
-        print(f"   âŒ Error: {e}")
+        print(f"    Error: {e}")
         return None
 
 def main():
-    """Proceso automÃ¡tico para dashboard"""
+    """Proceso automtico para dashboard"""
     
     print("="*80)
-    print("ðŸŽ¬ GENERADOR DE TIMELAPSES AUTOMÃTICO")
-    print(f"   Ãšltimos {DIAS_TIMELAPSE} dÃ­as para dashboard")
+    print(" GENERADOR DE TIMELAPSES AUTOMTICO")
+    print(f"   ltimos {DIAS_TIMELAPSE} das para dashboard")
     print("="*80)
     
-    print("\nðŸ“¥ Descargando logo...")
+    print("\n Descargando logo...")
     logo = descargar_logo_copernicus()
     if logo is None:
-        print("   âš ï¸ Usando logo alternativo")
+        print("    Usando logo alternativo")
         logo = crear_logo_copernicus_texto()
     else:
-        print("   âœ… Logo descargado")
+        print("    Logo descargado")
     
     gifs_generados = []
     
     for volcan in VOLCANES_ACTIVOS:
-        print(f"\nðŸŒ‹ {volcan}")
+        print(f"\n {volcan}")
         
         for tipo in ['RGB', 'ThermalFalseColor']:
             gif_path = generar_gif_ultimos_30_dias(volcan, tipo, logo)
@@ -297,12 +297,12 @@ def main():
                 gifs_generados.append(gif_path)
     
     print("\n" + "="*80)
-    print(f"âœ… COMPLETADO - {len(gifs_generados)} GIFs")
+    print(f" COMPLETADO - {len(gifs_generados)} GIFs")
     print("="*80)
     
     for gif in gifs_generados:
         size_mb = os.path.getsize(gif) / (1024 * 1024)
-        print(f"   ðŸ“ {os.path.basename(gif)}: {size_mb:.2f} MB")
+        print(f"    {os.path.basename(gif)}: {size_mb:.2f} MB")
 
 if __name__ == "__main__":
     main()
