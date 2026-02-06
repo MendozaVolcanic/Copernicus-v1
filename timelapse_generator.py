@@ -18,17 +18,17 @@ import json
 
 VOLCANES_ACTIVOS = [
     # ZONA NORTE
-    "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", "Ollage", "San Pedro", "Lscar",
+    "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", "Ollague", "San Pedro", "Lascar",
     # ZONA CENTRO
-    "Tupungatito", "San Jos", "Tinguiririca", "Planchn-Peteroa", "Descabezado Grande", 
-    "Tatara-San Pedro", "Laguna del Maule", "Nevado de Longav", "Nevados de Chilln",
+    "Tupungatito", "San Jose", "Tinguiririca", "Planchon-Peteroa", "Descabezado Grande", 
+    "Tatara-San Pedro", "Laguna del Maule", "Nevado de Longavi", "Nevados de Chillan",
     # ZONA SUR
     "Antuco", "Copahue", "Callaqui", "Lonquimay", "Llaima", "Sollipulli", "Villarrica", 
-    "Quetrupilln", "Lann", "Mocho-Choshuenco", "Carrn - Los Venados", "Puyehue - Cordn Caulle", 
-    "Antillanca  Casablanca",
+    "Quetrupillan", "Lanin", "Mocho-Choshuenco", "Carran - Los Venados", "Puyehue - Cordon Caulle", 
+    "Antillanca - Casablanca",
     # ZONA AUSTRAL
-    "Osorno", "Calbuco", "Yate", "Hornopirn", "Huequi", "Michinmahuida", "Chaitn", 
-    "Corcovado", "Melimoyu", "Mentolat", "Cay", "Mac", "Hudson"
+    "Osorno", "Calbuco", "Yate", "Hornopiren", "Huequi", "Michinmahuida", "Chaiten", 
+    "Corcovado", "Melimoyu", "Mentolat", "Cay", "Maca", "Hudson"
 ]
 
 FPS = 1
