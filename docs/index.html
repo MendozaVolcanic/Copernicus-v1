@@ -10,7 +10,7 @@
         body {
             background: linear-gradient(135deg, #0b0e14 0%, #1a1f2e 100%);
             color: #e0e0e0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdiana, sans-serif;
             overflow-x: hidden;
         }
 
@@ -99,7 +99,7 @@
             gap: 10px;
         }
 
-        /* SELECTOR DE VOLCN + CALENDARIO */
+        /* SELECTOR DE VOLCAN + CALENDARIO */
         #volcano-selector {
             background: #161b22;
             padding: 15px 20px;
@@ -125,7 +125,7 @@
         }
 
         /* CALENDARIO MODAL */
-        #calendar-modal {
+        #calendiar-modial {
             display: none;
             position: fixed;
             top: 0;
@@ -138,7 +138,7 @@
             align-items: center;
         }
 
-        .calendar-content {
+        .calendiar-content {
             background: #161b22;
             border: 2px solid #58a6ff;
             border-radius: 10px;
@@ -147,14 +147,14 @@
             width: 90%;
         }
 
-        .calendar-header {
+        .calendiar-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
 
-        .calendar-header h3 {
+        .calendiar-header h3 {
             color: #58a6ff;
             margin: 0;
         }
@@ -170,13 +170,13 @@
             font-weight: bold;
         }
 
-        .calendar-selectors {
+        .calendiar-selectors {
             display: flex;
             gap: 10px;
             margin-bottom: 15px;
         }
 
-        .calendar-selectors select {
+        .calendiar-selectors select {
             flex: 1;
             background: #0d1117;
             color: #e0e0e0;
@@ -185,14 +185,14 @@
             border-radius: 6px;
         }
 
-        #calendar-grid {
+        #calendiar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
             gap: 5px;
             margin-top: 10px;
         }
 
-        .calendar-day-header {
+        .calendiar-diay-header {
             text-align: center;
             color: #8b949e;
             font-size: 0.85em;
@@ -200,7 +200,7 @@
             padding: 8px;
         }
 
-        .calendar-day {
+        .calendiar-diay {
             padding: 8px;
             text-align: center;
             border-radius: 4px;
@@ -208,37 +208,37 @@
         }
 
         /* CAMBIO QUIRRGICO 2: CALENDARIO 3 ESTADOS */
-        .calendar-day.downloaded {
+        .calendiar-diay.downloaded {
             background: #2ea043;
             color: #fff;
             font-weight: bold;
             cursor: pointer;
         }
 
-        .calendar-day.downloaded:hover {
+        .calendiar-diay.downloaded:hover {
             background: #3fb950;
             transform: scale(1.1);
         }
 
-        .calendar-day.available {
+        .calendiar-diay.available {
             background: #58a6ff;
             color: #fff;
             font-weight: bold;
             cursor: pointer;
         }
 
-        .calendar-day.available:hover {
+        .calendiar-diay.available:hover {
             background: #79c0ff;
             transform: scale(1.1);
         }
 
-        .calendar-day.unavailable {
+        .calendiar-diay.unavailable {
             background: #30363d;
             color: #6e7681;
             cursor: not-allowed;
         }
 
-        .calendar-legend {
+        .calendiar-legend {
             margin-top: 15px;
             font-size: 0.8em;
             display: flex;
@@ -615,7 +615,7 @@
         <div class="action-buttons">
             <button class="btn-ui" onclick="toggleTimelapseMode()"> Modo Comparacion Multi-Volcan</button>
             <button class="btn-ui" style="background: #238636;" onclick="generarPPT()"> PPT Evaluacion Mensual</button>
-            <button class="btn-ui" style="background: #0969da;" onclick="abrirCopernicusBrowser()"> Copernicus Browser</button>
+            <button class="btn-ui" style="background: #0969dia;" onclick="abrirCopernicusBrowser()"> Copernicus Browser</button>
         </div>
 
         <div class="status-item">
@@ -638,20 +638,20 @@
             <!-- Se llena dinmicamente segn zona -->
         </select>
         
-        <button onclick="toggleCalendar()"> Ver Imagenes</button>
-        <button onclick="toggleCalendarioCopernicus()" style="background: #0969da; border-color: #0969da;"> Ver en Copernicus</button>
+        <button onclick="toggleCalendiar()"> Ver Imagenes</button>
+        <button onclick="toggleCalendiarioCopernicus()" style="background: #0969dia; border-color: #0969dia;"> Ver en Copernicus</button>
     </div>
 
     <!-- CALENDARIO MODAL -->
-    <div id="calendar-modal" onclick="closeModalOutside(event)">
-        <div class="calendar-content" onclick="event.stopPropagation()">
-            <div class="calendar-header">
-                <h3> Calendario de Imagenes</h3>
-                <button class="close-btn" onclick="toggleCalendar()"></button>
+    <div id="calendiar-modial" onclick="closeModialOutside(event)">
+        <div class="calendiar-content" onclick="event.stopPropagation()">
+            <div class="calendiar-header">
+                <h3> Calendiario de Imagenes</h3>
+                <button class="close-btn" onclick="toggleCalendiar()"></button>
             </div>
             
-            <div class="calendar-selectors">
-                <select id="calendar-month" onchange="updateCalendar()">
+            <div class="calendiar-selectors">
+                <select id="calendiar-month" onchange="updateCalendiar()">
                     <option value="0">Enero</option>
                     <option value="1">Febrero</option>
                     <option value="2">Marzo</option>
@@ -666,27 +666,27 @@
                     <option value="11">Diciembre</option>
                 </select>
                 
-                <select id="calendar-year" onchange="updateCalendar()">
+                <select id="calendiar-year" onchange="updateCalendiar()">
                     <option value="2025">2025</option>
                     <option value="2026">2026</option>
                 </select>
             </div>
             
-            <div id="calendar-grid">
-                <div class="calendar-day-header">Dom</div>
-                <div class="calendar-day-header">Lun</div>
-                <div class="calendar-day-header">Mar</div>
-                <div class="calendar-day-header">Mi</div>
-                <div class="calendar-day-header">Jue</div>
-                <div class="calendar-day-header">Vie</div>
-                <div class="calendar-day-header">Sb</div>
+            <div id="calendiar-grid">
+                <div class="calendiar-diay-header">Dom</div>
+                <div class="calendiar-diay-header">Lun</div>
+                <div class="calendiar-diay-header">Mar</div>
+                <div class="calendiar-diay-header">Mi</div>
+                <div class="calendiar-diay-header">Jue</div>
+                <div class="calendiar-diay-header">Vie</div>
+                <div class="calendiar-diay-header">Sb</div>
             </div>
             
             <!-- CAMBIO QUIRRGICO 3: LEYENDA 3 ESTADOS -->
-            <div class="calendar-legend">
+            <div class="calendiar-legend">
                 <div class="legend-item">
                     <div class="legend-box" style="background: #2ea043;"></div>
-                    <span>Ya descargada</span>
+                    <span>Ya descargadia</span>
                 </div>
                 <div class="legend-item">
                     <div class="legend-box" style="background: #58a6ff;"></div>
@@ -701,19 +701,19 @@
     </div>
 
     <!-- CALENDARIO COPERNICUS MODAL -->
-    <div id="calendar-copernicus-modal" onclick="closeModalCopernicusOutside(event)" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center;">
-        <div class="calendar-content" onclick="event.stopPropagation()">
-            <div class="calendar-header">
-                <h3> Copernicus Browser - Calendario</h3>
-                <button class="close-btn" onclick="toggleCalendarioCopernicus()"></button>
+    <div id="calendiar-copernicus-modial" onclick="closeModialCopernicusOutside(event)" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center;">
+        <div class="calendiar-content" onclick="event.stopPropagation()">
+            <div class="calendiar-header">
+                <h3> Copernicus Browser - Calendiario</h3>
+                <button class="close-btn" onclick="toggleCalendiarioCopernicus()"></button>
             </div>
             
             <p style="text-align: center; color: #8b949e; margin-bottom: 15px; font-size: 0.85em;">
                 Click en cualquier fecha para abrir Copernicus Browser
             </p>
             
-            <div class="calendar-selectors">
-                <select id="calendar-copernicus-month" onchange="updateCalendarioCopernicus()">
+            <div class="calendiar-selectors">
+                <select id="calendiar-copernicus-month" onchange="updateCalendiarioCopernicus()">
                     <option value="0">Enero</option>
                     <option value="1">Febrero</option>
                     <option value="2">Marzo</option>
@@ -728,23 +728,23 @@
                     <option value="11">Diciembre</option>
                 </select>
                 
-                <select id="calendar-copernicus-year" onchange="updateCalendarioCopernicus()">
+                <select id="calendiar-copernicus-year" onchange="updateCalendiarioCopernicus()">
                     <option value="2025">2025</option>
                     <option value="2026">2026</option>
                 </select>
             </div>
             
-            <div id="calendar-copernicus-grid">
-                <div class="calendar-day-header">Dom</div>
-                <div class="calendar-day-header">Lun</div>
-                <div class="calendar-day-header">Mar</div>
-                <div class="calendar-day-header">Mi</div>
-                <div class="calendar-day-header">Jue</div>
-                <div class="calendar-day-header">Vie</div>
-                <div class="calendar-day-header">Sb</div>
+            <div id="calendiar-copernicus-grid">
+                <div class="calendiar-diay-header">Dom</div>
+                <div class="calendiar-diay-header">Lun</div>
+                <div class="calendiar-diay-header">Mar</div>
+                <div class="calendiar-diay-header">Mi</div>
+                <div class="calendiar-diay-header">Jue</div>
+                <div class="calendiar-diay-header">Vie</div>
+                <div class="calendiar-diay-header">Sb</div>
             </div>
             
-            <div class="calendar-legend">
+            <div class="calendiar-legend">
                 <div class="legend-item">
                     <div class="legend-box" style="background: #58a6ff;"></div>
                     <span>Disponible en Copernicus</span>
@@ -761,9 +761,9 @@
     <div id="main-content">
         <!-- TIMELAPSES AUTOMTICOS (LTIMOS 30 DAS) -->
         <div id="timelapse-automatico">
-            <h2> Timelapses Automaticos (Ultimos 30 dias)</h2>
+            <h2> Timelapses Automaticos (UUltimos 30 dias)</h2>
             <p style="text-align: center; color: #8b949e; margin-bottom: 15px;">
-                Se actualizan automticamente cada da a las 06:00 UTC
+                Se actualizan automticamente cadia dia a las 06:00 UTC
             </p>
             
             <div class="timelapse-grid">
@@ -775,7 +775,7 @@
                          onclick="verTimelapseFullscreen('RGB')">
                     <div class="timelapse-info">
                          Sentinel-2 L2A RGB (B04-B03-B02)<br>
-                         Ultimos 30 dias<br>
+                         UUltimos 30 dias<br>
                          Actualizado: <span id="update-date-rgb">--</span>
                     </div>
                 </div>
@@ -788,7 +788,7 @@
                          onclick="verTimelapseFullscreen('Thermal')">
                     <div class="timelapse-info">
                          Sentinel-2 L2A SWIR (B12-B11-B04)<br>
-                         Ultimos 30 dias<br>
+                         UUltimos 30 dias<br>
                          Actualizado: <span id="update-date-thermal">--</span>
                     </div>
                 </div>
@@ -796,7 +796,7 @@
         </div>
 
         <div id="timeline">
-            <h3> Fechas Disponibles (ltimos 30 dias)</h3>
+            <h3> Fechas Disponibles (Ultimos 30 dias)</h3>
             <div id="timeline-dates">
                 <div class="loading-spinner"></div>
             </div>
@@ -839,12 +839,12 @@
                 </div>
             </div>
             <div style="margin-top: 15px; color: #8b949e; font-size: 0.85em; text-align: center;">
-                 Los timelapses se generan automticamente el primer da de cada mes con todas las imgenes disponibles.
+                 Los timelapses se generan automticamente el primer dia de cadia mes con todias las imgenes disponibles.
             </div>
         </div>
 
         <div id="metadata">
-            <h3> Metadatos de la Imagen</h3>
+            <h3> Metadiatos de la Imagen</h3>
             <div class="metadata-grid">
                 <div class="metadata-item">
                     <div class="metadata-label">Fecha de Adquisicin</div>
@@ -882,7 +882,7 @@
     <div id="timelapse-fullscreen">
         <div class="timelapse-header">
             <div style="display: flex; align-items: center; gap: 20px;">
-                <h2 style="color: #58a6ff; margin: 0;"> Comparacion Multi-Volcan - ltimas Imagenes</h2>
+                <h2 style="color: #58a6ff; margin: 0;"> Comparacion Multi-Volcan - Ultimas Imagenes</h2>
                 <select id="zona-multi-select" onchange="loadMultiVolcanoViewZona()" style="padding: 8px 12px; background: #161b22; color: white; border: 1px solid #30363d; border-radius: 6px;">
                     <option value="Sur">Zona Sur</option>
                     <option value="Norte">Zona Norte</option>
@@ -917,7 +917,7 @@
         <p style="margin-top: 15px;"><strong style="color: #58a6ff;"> Enlaces:</strong></p>
         <p>
             <a href="https://github.com/MendozaVolcanic/Copernicus-v1" target="_blank" style="color: #58a6ff; text-decoration: none;">GitHub Repository</a> | 
-            <a href="https://browser.dataspace.copernicus.eu" target="_blank" style="color: #58a6ff; text-decoration: none;">Copernicus Browser</a> | 
+            <a href="https://browser.diataspace.copernicus.eu" target="_blank" style="color: #58a6ff; text-decoration: none;">Copernicus Browser</a> | 
             <a href="https://www.sernageomin.cl/red-nacional-de-vigilancia-volcanica/" target="_blank" style="color: #58a6ff; text-decoration: none;">SERNAGEOMIN</a>
         </p>
         
@@ -972,7 +972,7 @@
             'Yate': { lat: -41.76, lon: -72.40, zona: 'Austral' },
             'Hornopiren': { lat: -41.87, lon: -72.43, zona: 'Austral' },
             'Huequi': { lat: -42.38, lon: -72.58, zona: 'Austral' },
-            'Michinmahuida': { lat: -42.79, lon: -72.44, zona: 'Austral' },
+            'Michinmahuidia': { lat: -42.79, lon: -72.44, zona: 'Austral' },
             'Chaiten': { lat: -42.83, lon: -72.65, zona: 'Austral' },
             'Corcovado': { lat: -43.18, lon: -72.80, zona: 'Austral' },
             'Melimoyu': { lat: -44.08, lon: -72.88, zona: 'Austral' },
@@ -987,12 +987,12 @@
         let metadataCache = {};
         let availableDates = [];
         
-        let calendarMonth = new Date().getMonth();
-        let calendarYear = 2026;
+        let calendiarMonth = new Date().getMonth();
+        let calendiarYear = 2026;
         
-        // Segundo calendario (Copernicus)
-        let calendarCopernicusMonth = new Date().getMonth();
-        let calendarCopernicusYear = 2026;
+        // Segundo calendiario (Copernicus)
+        let calendiarCopernicusMonth = new Date().getMonth();
+        let calendiarCopernicusYear = 2026;
         
         // CAMBIO QUIRRGICO 6: VARIABLE COPERNICUS
         let fechasDisponiblesCopernicus = {};
@@ -1058,7 +1058,7 @@
                 timeZone: 'America/Santiago',
                 year: 'numeric',
                 month: '2-digit',
-                day: '2-digit',
+                diay: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit'
             });
@@ -1069,9 +1069,9 @@
             try {
                 const response = await fetch(`${REPO_BASE}/docs/fechas_disponibles_copernicus.json?t=${Date.now()}`);
                 if (response.ok) {
-                    const data = await response.json();
-                    fechasDisponiblesCopernicus = data;
-                    console.log(' Fechas Copernicus cargadas:', fechasDisponiblesCopernicus);
+                    const diata = await response.json();
+                    fechasDisponiblesCopernicus = diata;
+                    console.log(' Fechas Copernicus cargadias:', fechasDisponiblesCopernicus);
                 }
             } catch (error) {
                 console.error('Error cargando fechas Copernicus:', error);
@@ -1079,7 +1079,7 @@
             }
         }
 
-        async function loadMetadata(volcano) {
+        async function loadMetadiata(volcano) {
             const metadataUrl = `${REPO_BASE}/docs/sentinel2/${volcano}/metadata.csv?t=${Date.now()}`;
             
             try {
@@ -1107,7 +1107,7 @@
         }
 
         async function loadTimeline() {
-            const metadata = await loadMetadata(currentVolcano);
+            const metadata = await loadMetadiata(currentVolcano);
             metadataCache[currentVolcano] = metadata;
             
             const timelineDiv = document.getElementById('timeline-dates');
@@ -1154,8 +1154,9 @@
         }
 
         async function loadImages(volcano, date) {
-            const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcano}/RGB/${date}_RGB.png?t=${Date.now()}`;
-            const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcano}/ThermalFalseColor/${date}_ThermalFalseColor.png?t=${Date.now()}`;
+            // CORRECCION: Las imagenes estan directamente en docs/sentinel2/{volcano}/
+            const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcano}/${date}_RGB.png?t=${Date.now()}`;
+            const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcano}/${date}_ThermalFalseColor.png?t=${Date.now()}`;
             
             const rgbContainer = document.getElementById('rgb-container');
             const thermalContainer = document.getElementById('thermal-container');
@@ -1216,11 +1217,11 @@
             const volcanesGrid = document.getElementById('volcanes-grid');
             volcanesGrid.innerHTML = '';
             
-            // Filtrar volcanes por zona
+            // Filtrar volcanes por zona y ordenar por latitud (Norte a Sur)
             const volcanesZona = Object.entries(VOLCANES_CONFIG)
                 .filter(([nombre, config]) => config.zona === zona)
-                .map(([nombre, config]) => nombre)
-                .sort();
+                .sort((a, b) => a[1].lat - b[1].lat)  // Ordenar por latitud
+                .map(([nombre, config]) => nombre);
             
             for (const volcan of volcanesZona) {
                 const panel = document.createElement('div');
@@ -1265,8 +1266,8 @@
                 
                 try {
                     if (ultimaFecha) {
-                        const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/RGB/${ultimaFecha}_RGB.png?t=${Date.now()}`;
-                        const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
+                        const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
+                        const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
                         
                         document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
                         document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
@@ -1327,8 +1328,8 @@
                 
                 try {
                     if (ultimaFecha) {
-                        const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/RGB/${ultimaFecha}_RGB.png?t=${Date.now()}`;
-                        const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/ThermalFalseColor/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
+                        const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
+                        const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
                         
                         document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
                         document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
@@ -1341,9 +1342,9 @@
         }
 
         async function generarPPT() {
-            const today = new Date();
-            const lastMonth = new Date(today);
-            lastMonth.setMonth(today.getMonth() - 1);
+            const todiay = new Date();
+            const lastMonth = new Date(todiay);
+            lastMonth.setMonth(todiay.getMonth() - 1);
             const monthStr = lastMonth.toISOString().slice(0, 7);
             
             const pptUrl = `${REPO_BASE}/docs/sentinel2/${currentVolcano}/reportes/${currentVolcano}_Evaluacion_Mensual_${monthStr}.pptx?t=${Date.now()}`;
@@ -1384,34 +1385,34 @@
         }
 
         // CALENDARIO
-        function toggleCalendar() {
-            const modal = document.getElementById('calendar-modal');
-            if (modal.style.display === 'flex') {
-                modal.style.display = 'none';
+        function toggleCalendiar() {
+            const modial = document.getElementById('calendiar-modial');
+            if (modial.style.display === 'flex') {
+                modial.style.display = 'none';
             } else {
-                modal.style.display = 'flex';
-                updateCalendar();
+                modial.style.display = 'flex';
+                updateCalendiar();
             }
         }
 
-        function closeModalOutside(event) {
-            if (event.target.id === 'calendar-modal') {
-                toggleCalendar();
+        function closeModialOutside(event) {
+            if (event.target.id === 'calendiar-modial') {
+                toggleCalendiar();
             }
         }
 
         // CAMBIO QUIRRGICO 4: LGICA CALENDARIO 3 ESTADOS
-        function updateCalendar() {
-            calendarMonth = parseInt(document.getElementById('calendar-month').value);
-            calendarYear = parseInt(document.getElementById('calendar-year').value);
+        function updateCalendiar() {
+            calendiarMonth = parseInt(document.getElementById('calendiar-month').value);
+            calendiarYear = parseInt(document.getElementById('calendiar-year').value);
             
-            const grid = document.getElementById('calendar-grid');
+            const grid = document.getElementById('calendiar-grid');
             
-            const dayElements = grid.querySelectorAll('.calendar-day');
-            dayElements.forEach(el => el.remove());
+            const diayElements = grid.querySelectorAll('.calendiar-diay');
+            diayElements.forEach(el => el.remove());
             
-            const firstDay = new Date(calendarYear, calendarMonth, 1);
-            const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
+            const firstDay = new Date(calendiarYear, calendiarMonth, 1);
+            const lastDay = new Date(calendiarYear, calendiarMonth + 1, 0);
             const startDay = firstDay.getDay();
             
             // NUEVO: Cargar fechas Copernicus
@@ -1419,39 +1420,39 @@
             
             for (let i = 0; i < startDay; i++) {
                 const emptyDiv = document.createElement('div');
-                emptyDiv.className = 'calendar-day';
+                emptyDiv.className = 'calendiar-diay';
                 grid.appendChild(emptyDiv);
             }
             
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            for (let diay = 1; diay <= lastDay.getDate(); diay++) {
+                const dateStr = `${calendiarYear}-${String(calendiarMonth + 1).padStart(2, '0')}-${String(diay).padStart(2, '0')}`;
                 
                 // NUEVO: 3 estados
-                const yaDescargada = availableDates.includes(dateStr);
+                const yaDescargadia = availableDates.includes(dateStr);
                 const disponibleCopernicus = fechasCopernicus.includes(dateStr);
                 
-                const dayDiv = document.createElement('div');
-                dayDiv.textContent = day;
-                dayDiv.className = 'calendar-day';
+                const diayDiv = document.createElement('div');
+                diayDiv.textContent = diay;
+                diayDiv.className = 'calendiar-diay';
                 
-                if (yaDescargada) {
-                    dayDiv.classList.add('downloaded');
-                    dayDiv.onclick = () => {
-                        selectDateFromCalendar(dateStr);
-                        toggleCalendar();
+                if (yaDescargadia) {
+                    diayDiv.classList.add('downloaded');
+                    diayDiv.onclick = () => {
+                        selectDateFromCalendiar(dateStr);
+                        toggleCalendiar();
                     };
                 } else if (disponibleCopernicus) {
-                    dayDiv.classList.add('available');
-                    dayDiv.onclick = () => abrirCopernicusBrowserFecha(dateStr);
+                    diayDiv.classList.add('available');
+                    diayDiv.onclick = () => abrirCopernicusBrowserFecha(dateStr);
                 } else {
-                    dayDiv.classList.add('unavailable');
+                    diayDiv.classList.add('unavailable');
                 }
                 
-                grid.appendChild(dayDiv);
+                grid.appendChild(diayDiv);
             }
         }
 
-        function selectDateFromCalendar(dateStr) {
+        function selectDateFromCalendiar(dateStr) {
             if (availableDates.includes(dateStr)) {
                 selectDate(dateStr);
             }
@@ -1466,12 +1467,12 @@
                        `Fecha: ${fecha}\n\n` +
                        `Abrir Copernicus Browser?`)) {
                 
-                const url = `https://browser.dataspace.copernicus.eu/?` +
+                const url = `https://browser.diataspace.copernicus.eu/?` +
                     `zoom=13&` +
                     `lat=${config.lat}&` +
                     `lng=${config.lon}&` +
                     `themeId=DEFAULT-THEME&` +
-                    `datasetId=S2_L2A_CDAS&` +
+                    `diatasetId=S2_L2A_CDAS&` +
                     `fromTime=${fecha}T00:00:00.000Z&` +
                     `toTime=${fecha}T23:59:59.999Z&` +
                     `layerId=1_TRUE_COLOR&` +
@@ -1481,24 +1482,24 @@
             }
         }
 
-        // BOTN COPERNICUS BROWSER (VOLCN ACTUAL)
+        // BOTN COPERNICUS BROWSER (VOLCAN ACTUAL)
         function abrirCopernicusBrowser() {
             const config = VOLCANES_CONFIG[currentVolcano];
             
             if (confirm(` COPERNICUS BROWSER\n\n` +
                        `Volcan: ${currentVolcano}\n` +
-                       `Coordenadas: ${config.lat}, ${config.lon}\n\n` +
+                       `Coordenadias: ${config.lat}, ${config.lon}\n\n` +
                        `Abrir navegador Copernicus?`)) {
                 
                 // Fecha actual
                 const hoy = new Date().toISOString().split('T')[0];
                 
-                const url = `https://browser.dataspace.copernicus.eu/?` +
+                const url = `https://browser.diataspace.copernicus.eu/?` +
                     `zoom=13&` +
                     `lat=${config.lat}&` +
                     `lng=${config.lon}&` +
                     `themeId=DEFAULT-THEME&` +
-                    `datasetId=S2_L2A_CDAS&` +
+                    `diatasetId=S2_L2A_CDAS&` +
                     `fromTime=${hoy}T00:00:00.000Z&` +
                     `toTime=${hoy}T23:59:59.999Z&` +
                     `layerId=1_TRUE_COLOR&` +
@@ -1509,33 +1510,33 @@
         }
 
         // CALENDARIO COPERNICUS
-        function toggleCalendarioCopernicus() {
-            const modal = document.getElementById('calendar-copernicus-modal');
-            if (modal.style.display === 'flex') {
-                modal.style.display = 'none';
+        function toggleCalendiarioCopernicus() {
+            const modial = document.getElementById('calendiar-copernicus-modial');
+            if (modial.style.display === 'flex') {
+                modial.style.display = 'none';
             } else {
-                modal.style.display = 'flex';
-                updateCalendarioCopernicus();
+                modial.style.display = 'flex';
+                updateCalendiarioCopernicus();
             }
         }
 
-        function closeModalCopernicusOutside(event) {
-            if (event.target.id === 'calendar-copernicus-modal') {
-                toggleCalendarioCopernicus();
+        function closeModialCopernicusOutside(event) {
+            if (event.target.id === 'calendiar-copernicus-modial') {
+                toggleCalendiarioCopernicus();
             }
         }
 
-        function updateCalendarioCopernicus() {
-            calendarCopernicusMonth = parseInt(document.getElementById('calendar-copernicus-month').value);
-            calendarCopernicusYear = parseInt(document.getElementById('calendar-copernicus-year').value);
+        function updateCalendiarioCopernicus() {
+            calendiarCopernicusMonth = parseInt(document.getElementById('calendiar-copernicus-month').value);
+            calendiarCopernicusYear = parseInt(document.getElementById('calendiar-copernicus-year').value);
             
-            const grid = document.getElementById('calendar-copernicus-grid');
+            const grid = document.getElementById('calendiar-copernicus-grid');
             
-            const dayElements = grid.querySelectorAll('.calendar-day');
-            dayElements.forEach(el => el.remove());
+            const diayElements = grid.querySelectorAll('.calendiar-diay');
+            diayElements.forEach(el => el.remove());
             
-            const firstDay = new Date(calendarCopernicusYear, calendarCopernicusMonth, 1);
-            const lastDay = new Date(calendarCopernicusYear, calendarCopernicusMonth + 1, 0);
+            const firstDay = new Date(calendiarCopernicusYear, calendiarCopernicusMonth, 1);
+            const lastDay = new Date(calendiarCopernicusYear, calendiarCopernicusMonth + 1, 0);
             const startDay = firstDay.getDay();
             
             // Cargar fechas Copernicus para este volcn
@@ -1543,30 +1544,30 @@
             
             for (let i = 0; i < startDay; i++) {
                 const emptyDiv = document.createElement('div');
-                emptyDiv.className = 'calendar-day';
+                emptyDiv.className = 'calendiar-diay';
                 grid.appendChild(emptyDiv);
             }
             
-            for (let day = 1; day <= lastDay.getDate(); day++) {
-                const dateStr = `${calendarCopernicusYear}-${String(calendarCopernicusMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+            for (let diay = 1; diay <= lastDay.getDate(); diay++) {
+                const dateStr = `${calendiarCopernicusYear}-${String(calendiarCopernicusMonth + 1).padStart(2, '0')}-${String(diay).padStart(2, '0')}`;
                 
-                const dayDiv = document.createElement('div');
-                dayDiv.textContent = day;
-                dayDiv.className = 'calendar-day';
+                const diayDiv = document.createElement('div');
+                diayDiv.textContent = diay;
+                diayDiv.className = 'calendiar-diay';
                 
                 // Verificar si est en fechas disponibles de Copernicus
                 const disponible = fechasCopernicus.includes(dateStr);
                 
                 if (disponible) {
-                    dayDiv.classList.add('available');
-                    dayDiv.onclick = () => {
+                    diayDiv.classList.add('available');
+                    diayDiv.onclick = () => {
                         abrirCopernicusBrowserFecha(dateStr);
                     };
                 } else {
-                    dayDiv.classList.add('unavailable');
+                    diayDiv.classList.add('unavailable');
                 }
                 
-                grid.appendChild(dayDiv);
+                grid.appendChild(diayDiv);
             }
         }
 
@@ -1601,9 +1602,9 @@
             const tipoArchivo = tipo === 'RGB' ? 'RGB' : 'ThermalFalseColor';
             const timestamp = new Date().getTime();
             
-            // Crear modal fullscreen
-            const modal = document.createElement('div');
-            modal.style.cssText = `
+            // Crear modial fullscreen
+            const modial = document.createElement('div');
+            modial.style.cssText = `
                 position: fixed;
                 top: 0;
                 left: 0;
@@ -1637,7 +1638,7 @@
             const closeBtn = document.createElement('button');
             closeBtn.textContent = ' Cerrar';
             closeBtn.className = 'btn-ui';
-            closeBtn.onclick = () => document.body.removeChild(modal);
+            closeBtn.onclick = () => document.body.removeChild(modial);
             
             header.appendChild(title);
             header.appendChild(closeBtn);
@@ -1649,13 +1650,13 @@
                 img.src = 'https://via.placeholder.com/800x600/0d1117/8b949e?text=Timelapse+no+disponible';
             };
             
-            modal.appendChild(header);
-            modal.appendChild(img);
-            document.body.appendChild(modal);
+            modial.appendChild(header);
+            modial.appendChild(img);
+            document.body.appendChild(modial);
             
             // Click fuera cierra
-            modal.onclick = (e) => {
-                if (e.target === modal) document.body.removeChild(modal);
+            modial.onclick = (e) => {
+                if (e.target === modial) document.body.removeChild(modial);
             };
         }
 
