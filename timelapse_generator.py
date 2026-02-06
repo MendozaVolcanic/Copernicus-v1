@@ -262,6 +262,7 @@ def cargar_config_fechas(volcan_nombre):
 def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=None, fecha_fin=None):
     """
     Genera GIF timelapse con rango de fechas configurable
+    FILTRA imagenes con cobertura de nubes <= 30% para PPT
     """
     
     print(f"\n Generando GIF: {volcan_nombre} - {tipo}")
@@ -272,6 +273,26 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
     if not os.path.exists(carpeta_imagenes):
         print(f"    Carpeta no existe: {carpeta_imagenes}")
         return None
+    
+    # Cargar metadata para filtrar por cobertura de nubes
+    metadata_path = f"{carpeta_imagenes}/metadata.csv"
+    fechas_validas = set()
+    
+    if os.path.exists(metadata_path):
+        try:
+            import pandas as pd
+            df = pd.read_csv(metadata_path)
+            
+            # Filtrar solo fechas con cobertura <= 30%
+            df_filtrado = df[df['cobertura_nubosa'] <= 30]
+            fechas_validas = set(df_filtrado['fecha'].unique())
+            
+            print(f"    Filtro nubes: {len(fechas_validas)} fechas con <=30% nubes")
+        except Exception as e:
+            print(f"    No se pudo cargar metadata: {e}")
+            print(f"    Continuando sin filtro de nubes...")
+    else:
+        print(f"    metadata.csv no encontrado, sin filtro de nubes")
     
     # Buscar imagenes del tipo especifico
     imagenes_paths = sorted(glob.glob(f"{carpeta_imagenes}/*_{tipo}.png"))
@@ -288,10 +309,12 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
             fecha = nombre.split('_')[0]
             
             if fecha_inicio <= fecha <= fecha_fin:
-                imagenes_filtradas.append(img_path)
+                # FILTRO ADICIONAL: Solo imagenes con nubes <= 30%
+                if not fechas_validas or fecha in fechas_validas:
+                    imagenes_filtradas.append(img_path)
         
         imagenes_paths = imagenes_filtradas
-        print(f"    Filtrado por fechas: {len(imagenes_paths)} imgenes")
+        print(f"    Filtrado por fechas + nubes: {len(imagenes_paths)} imgenes")
     
     if len(imagenes_paths) == 0:
         print(f"    No hay imgenes en el rango {fecha_inicio} - {fecha_fin}")
