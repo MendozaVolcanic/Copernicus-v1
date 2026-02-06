@@ -1,5 +1,5 @@
 """
-Configuración Sentinel-2 - 43 VOLCANES ACTIVOS
+Configuracin Sentinel-2 - 43 VOLCANES ACTIVOS
 COMPATIBLE con sentinel2_downloader.py existente
 """
 
@@ -20,7 +20,7 @@ PROCESS_API_URL = "https://sh.dataspace.copernicus.eu/api/v1/process"
 CATALOG_API_URL = "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search"
 
 # ============================================
-# CONFIGURACIÓN IMÁGENES
+# CONFIGURACIN IMGENES
 # ============================================
 MAX_CLOUD_COVER = 50
 BUFFER_KM = 15
@@ -115,7 +115,7 @@ VOLCANES = {
         "zona": "Norte",
         "activo": True
     },
-    "Ollagüe": {
+    "Ollague": {
         "lat": -21.30,
         "lon": -68.18,
         "id": "355050",
@@ -129,7 +129,7 @@ VOLCANES = {
         "zona": "Norte",
         "activo": True
     },
-    "Láscar": {
+    "Lascar": {
         "lat": -23.37,
         "lon": -67.73,
         "id": "355100",
@@ -145,7 +145,7 @@ VOLCANES = {
         "zona": "Centro",
         "activo": True
     },
-    "San José": {
+    "San Jose": {
         "lat": -33.78,
         "lon": -69.90,
         "id": "357020",
@@ -159,7 +159,7 @@ VOLCANES = {
         "zona": "Centro",
         "activo": True
     },
-    "Planchón-Peteroa": {
+    "Planchon-Peteroa": {
         "lat": -35.24,
         "lon": -70.57,
         "id": "357040",
@@ -187,14 +187,14 @@ VOLCANES = {
         "zona": "Centro",
         "activo": True
     },
-    "Nevado de Longaví": {
+    "Nevado de Longavi": {
         "lat": -36.19,
         "lon": -71.16,
         "id": "357065",
         "zona": "Centro",
         "activo": True
     },
-    "Nevados de Chillán": {
+    "Nevados de Chillan": {
         "lat": -36.86,
         "lon": -71.38,
         "id": "357070",
@@ -252,14 +252,14 @@ VOLCANES = {
         "zona": "Sur",
         "activo": True
     },
-    "Quetrupillán": {
+    "Quetrupillan": {
         "lat": -39.50,
         "lon": -71.70,
         "id": "357125",
         "zona": "Sur",
         "activo": True
     },
-    "Lanín": {
+    "Lanin": {
         "lat": -39.64,
         "lon": -71.50,
         "id": "357130",
@@ -273,21 +273,21 @@ VOLCANES = {
         "zona": "Sur",
         "activo": True
     },
-    "Carrán - Los Venados": {
+    "Carran - Los Venados": {
         "lat": -40.35,
         "lon": -72.07,
         "id": "357143",
         "zona": "Sur",
         "activo": True
     },
-    "Puyehue - Cordón Caulle": {
+    "Puyehue - Cordon Caulle": {
         "lat": -40.59,
         "lon": -72.12,
         "id": "357150",
         "zona": "Sur",
         "activo": True
     },
-    "Antillanca – Casablanca": {
+    "Antillanca - Casablanca": {
         "lat": -40.77,
         "lon": -72.15,
         "id": "357155",
@@ -317,7 +317,7 @@ VOLCANES = {
         "zona": "Austral",
         "activo": True
     },
-    "Hornopirén": {
+    "Hornopiren": {
         "lat": -41.87,
         "lon": -72.43,
         "id": "358085",
@@ -338,7 +338,7 @@ VOLCANES = {
         "zona": "Austral",
         "activo": True
     },
-    "Chaitén": {
+    "Chaiten": {
         "lat": -42.83,
         "lon": -72.65,
         "id": "358041",
@@ -373,7 +373,7 @@ VOLCANES = {
         "zona": "Austral",
         "activo": True
     },
-    "Macá": {
+    "Maca": {
         "lat": -45.10,
         "lon": -73.17,
         "id": "358140",
@@ -416,7 +416,7 @@ def get_metadata_path(volcano_name):
 def validate_credentials():
     """Valida que las credenciales existan"""
     if not CLIENT_ID or not CLIENT_SECRET:
-        raise ValueError("❌ ERROR: SH_CLIENT_ID y SH_CLIENT_SECRET deben estar configurados en GitHub Secrets")
+        raise ValueError(" ERROR: SH_CLIENT_ID y SH_CLIENT_SECRET deben estar configurados en GitHub Secrets")
     return True
 
 def count_by_zone():
