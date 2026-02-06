@@ -162,8 +162,9 @@ def generar_ppt(volcan_nombre):
             textos_ok += 1
         
         # NUEVO: Reemplazar nombre del volcan en texto final
-        elif "volcan" in texto.lower() and "durante el mes" in texto.lower():
+        elif ("volcan" in texto.lower() or "volcano" in texto.lower()) and len(texto) > 50:
             # Buscar cualquier nombre de volcan en el texto
+            texto_modificado = False
             for volcan_antiguo in VOLCANES_ACTIVOS:
                 if volcan_antiguo in texto:
                     # Reemplazar con el volcan actual
@@ -182,9 +183,13 @@ def generar_ppt(volcan_nombre):
                         if fmt['size']: run.font.size = fmt['size']
                         if fmt['bold'] is not None: run.font.bold = fmt['bold']
                         if fmt['italic'] is not None: run.font.italic = fmt['italic']
-                    print(f"       Nombre volcan")
+                    print(f"       Nombre volcan: {volcan_antiguo} -> {volcan_nombre}")
                     textos_ok += 1
+                    texto_modificado = True
                     break
+            
+            if not texto_modificado:
+                print(f"       Texto con 'volcan' pero sin nombre reconocido")
     
     if textos_ok < 2:
         print(f"    Textos: {textos_ok} (esperados 2-3)")
