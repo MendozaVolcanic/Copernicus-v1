@@ -1,8 +1,8 @@
 """
 SENTINEL-2 DOWNLOADER V3.0 COMPLETO
-+ CompresiÃ³n automÃ¡tica
-+ Limpieza de imÃ¡genes >60 dÃ­as
-+ GeneraciÃ³n de JSON para calendario
++ Compresin automtica
++ Limpieza de imgenes >60 das
++ Generacin de JSON para calendario
 """
 
 import requests
@@ -26,15 +26,15 @@ from config_sentinel2 import (
     validate_credentials
 )
 
-# Importar compresiÃ³n
+# Importar compresin
 from image_compression import save_compressed
 
 # =========================
-# AUTENTICACIÃ“N OAUTH2
+# AUTENTICACIN OAUTH2
 # =========================
 
 class SentinelHubAuth:
-    """Manejo de autenticaciÃ³n OAuth2 con Copernicus"""
+    """Manejo de autenticacin OAuth2 con Copernicus"""
     
     def __init__(self):
         validate_credentials()
@@ -48,7 +48,7 @@ class SentinelHubAuth:
         if self.access_token:
             return self.access_token
         
-        print("ðŸ” Autenticando con Copernicus OAuth...")
+        print(" Autenticando con Copernicus OAuth...")
         
         data = {
             'grant_type': 'client_credentials',
@@ -63,11 +63,11 @@ class SentinelHubAuth:
             token_data = response.json()
             self.access_token = token_data['access_token']
             
-            print("âœ… AutenticaciÃ³n exitosa")
+            print(" Autenticacin exitosa")
             return self.access_token
             
         except requests.exceptions.RequestException as e:
-            print(f"âŒ Error en autenticaciÃ³n: {e}")
+            print(f" Error en autenticacin: {e}")
             raise
     
     def get_headers(self):
@@ -79,18 +79,18 @@ class SentinelHubAuth:
         }
 
 # =========================
-# BÃšSQUEDA DE IMÃGENES
+# BSQUEDA DE IMGENES
 # =========================
 
 class SentinelHubSearcher:
-    """BÃºsqueda de productos Sentinel-2 disponibles"""
+    """Bsqueda de productos Sentinel-2 disponibles"""
     
     def __init__(self, auth):
         self.auth = auth
         self.catalog_url = CATALOG_API_URL
     
     def create_bbox(self, lat, lon, buffer_km=BUFFER_KM):
-        """Crea bounding box alrededor del volcÃ¡n"""
+        """Crea bounding box alrededor del volcn"""
         delta = buffer_km / 111.0
         
         return {
@@ -102,7 +102,7 @@ class SentinelHubSearcher:
         }
     
     def search_images(self, lat, lon, start_date, end_date, max_cloud=MAX_CLOUD_COVER):
-        """Busca imÃ¡genes Sentinel-2 en rango de fechas"""
+        """Busca imgenes Sentinel-2 en rango de fechas"""
         
         bbox_data = self.create_bbox(lat, lon)
         
@@ -140,11 +140,11 @@ class SentinelHubSearcher:
             for feature in features:
                 props = feature['properties']
                 
-                # VALIDACIÃ“N: Asegurar que fecha no estÃ© vacÃ­a
+                # VALIDACIN: Asegurar que fecha no est vaca
                 fecha = props.get('startDate', props.get('published', props.get('datetime', '')))[:10]
                 
                 if not fecha or len(fecha) != 10:
-                    print(f"   âš ï¸ Imagen sin fecha vÃ¡lida, saltando...")
+                    print(f"    Imagen sin fecha vlida, saltando...")
                     continue
                 
                 results.append({
@@ -156,17 +156,17 @@ class SentinelHubSearcher:
             return results
             
         except requests.exceptions.RequestException as e:
-            print(f"âŒ Error en bÃºsqueda: {e}")
+            print(f" Error en bsqueda: {e}")
             if hasattr(e.response, 'text'):
                 print(f"   Detalle: {e.response.text[:200]}")
             return []
 
 # =========================
-# DESCARGA DE IMÃGENES
+# DESCARGA DE IMGENES
 # =========================
 
 class SentinelHubDownloader:
-    """Descarga de imÃ¡genes procesadas con compresiÃ³n"""
+    """Descarga de imgenes procesadas con compresin"""
     
     def __init__(self, auth):
         self.auth = auth
@@ -178,7 +178,7 @@ class SentinelHubDownloader:
         return [lon - delta, lat - delta, lon + delta, lat + delta]
     
     def download_image(self, lat, lon, fecha, tipo='RGB', output_path=None):
-        """Descarga imagen procesada con compresiÃ³n automÃ¡tica"""
+        """Descarga imagen procesada con compresin automtica"""
         
         bbox = self.create_bbox(lat, lon)
         evalscript = EVALSCRIPT_RGB if tipo == 'RGB' else EVALSCRIPT_THERMAL
@@ -234,37 +234,37 @@ class SentinelHubDownloader:
                 size_original_mb = len(response.content) / (1024 * 1024)
                 reduccion = ((size_original_mb - size_mb) / size_original_mb) * 100
                 
-                print(f"   âœ… {tipo}: {size_mb:.2f} MB (â†“{reduccion:.0f}%)")
+                print(f"    {tipo}: {size_mb:.2f} MB ({reduccion:.0f}%)")
                 return True
             
             return False
             
         except requests.exceptions.RequestException as e:
-            print(f"   âŒ Error descarga {tipo}: {e}")
+            print(f"    Error descarga {tipo}: {e}")
             
             # Logging detallado del error
             if hasattr(e, 'response') and e.response is not None:
                 try:
                     error_detail = e.response.json()
-                    print(f"      ðŸ” Detalle JSON: {error_detail}")
+                    print(f"       Detalle JSON: {error_detail}")
                 except:
-                    print(f"      ðŸ” Detalle texto: {e.response.text[:500]}")
+                    print(f"       Detalle texto: {e.response.text[:500]}")
             
             return False
 
 # =========================
-# LIMPIEZA DE IMÃGENES ANTIGUAS
+# LIMPIEZA DE IMGENES ANTIGUAS
 # =========================
 
 def limpiar_imagenes_antiguas(volcan_nombre):
-    """Borra imÃ¡genes >60 dÃ­as"""
+    """Borra imgenes >60 das"""
     import glob
     
     ahora = datetime.now(pytz.utc)
     cutoff = ahora - timedelta(days=60)
     cutoff_str = cutoff.strftime('%Y-%m-%d')
     
-    print(f"\nðŸ—‘ï¸ Limpiando imÃ¡genes anteriores a: {cutoff_str}")
+    print(f"\n Limpiando imgenes anteriores a: {cutoff_str}")
     
     borrados = 0
     
@@ -283,17 +283,17 @@ def limpiar_imagenes_antiguas(volcan_nombre):
                     os.remove(img_path)
                     borrados += 1
                 except Exception as e:
-                    print(f"   âš ï¸ Error: {e}")
+                    print(f"    Error: {e}")
     
     if borrados > 0:
-        print(f"   âœ… Borrados: {borrados} archivos")
+        print(f"    Borrados: {borrados} archivos")
     else:
-        print(f"   âœ… No hay archivos antiguos")
+        print(f"    No hay archivos antiguos")
     
     return borrados
 
 # =========================
-# GENERACIÃ“N DE JSON FECHAS
+# GENERACIN DE JSON FECHAS
 # =========================
 
 def generar_json_fechas_disponibles():
@@ -325,7 +325,7 @@ def generar_json_fechas_disponibles():
         json.dump(fechas_por_volcan, f, indent=2)
     
     total = sum(len(f) for f in fechas_por_volcan.values())
-    print(f"\nðŸ“… JSON fechas generado: {output_path}")
+    print(f"\n JSON fechas generado: {output_path}")
     print(f"   Total fechas: {total}")
     
     return output_path
@@ -335,14 +335,14 @@ def generar_json_fechas_disponibles():
 # =========================
 
 def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
-    """Procesa descarga de un volcÃ¡n"""
+    """Procesa descarga de un volcn"""
     
-    print(f"\nðŸŒ‹ Procesando: {nombre_volcan}")
+    print(f"\n Procesando: {nombre_volcan}")
     
     lat = config['lat']
     lon = config['lon']
     
-    # Buscar imÃ¡genes (Ãºltimos 60 dÃ­as)
+    # Buscar imgenes (ltimos 60 das)
     hoy = datetime.now(pytz.utc)
     hace_60_dias = hoy - timedelta(days=60)
     
@@ -353,10 +353,10 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
     )
     
     if not resultados:
-        print("   âš ï¸ No hay imÃ¡genes disponibles")
+        print("    No hay imgenes disponibles")
         return None
     
-    print(f"   ðŸ“… Encontradas {len(resultados)} imÃ¡genes")
+    print(f"    Encontradas {len(resultados)} imgenes")
     
     todos_resultados = []
     
@@ -365,12 +365,12 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
         cloud_cover = resultado['cloud_cover']
         sensor = resultado['sensor']
         
-        # VALIDACIÃ“N: Saltar si fecha vacÃ­a o invÃ¡lida
+        # VALIDACIN: Saltar si fecha vaca o invlida
         if not fecha or len(fecha) != 10:
-            print(f"\n   âš ï¸ Saltando resultado con fecha invÃ¡lida")
+            print(f"\n    Saltando resultado con fecha invlida")
             continue
         
-        print(f"\n   ðŸ“… {fecha} | â˜ï¸ {cloud_cover:.1f}% | ðŸ›°ï¸ {sensor}")
+        print(f"\n    {fecha} |  {cloud_cover:.1f}% |  {sensor}")
         
         for tipo in ['RGB', 'ThermalFalseColor']:
             output_path = get_image_path(nombre_volcan, fecha, tipo)
@@ -379,7 +379,7 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
             MODO_SOBRESCRITURA = False
             
             if os.path.exists(output_path) and not MODO_SOBRESCRITURA:
-                print(f"   â­ï¸ {tipo}: Ya existe")
+                print(f"    {tipo}: Ya existe")
                 size_mb = os.path.getsize(output_path) / (1024 * 1024)
             else:
                 exito = downloader.download_image(lat, lon, fecha, tipo, output_path)
@@ -416,13 +416,13 @@ def actualizar_metadata(nombre_volcan, nuevos_datos):
     Path(metadata_path).parent.mkdir(parents=True, exist_ok=True)
     df_final.to_csv(metadata_path, index=False)
     
-    print(f"   ðŸ’¾ Metadata: {len(df_final)} registros")
+    print(f"    Metadata: {len(df_final)} registros")
 
 def main():
     """Proceso principal"""
     
     print("="*80)
-    print("ðŸ›°ï¸ SENTINEL-2 DOWNLOADER V3.0 AUTOMÃTICO")
+    print(" SENTINEL-2 DOWNLOADER V3.0 AUTOMTICO")
     print("="*80)
     
     auth = SentinelHubAuth()
@@ -432,12 +432,12 @@ def main():
     volcanes_activos = get_active_volcanoes()
     
     if not volcanes_activos:
-        print("âš ï¸ No hay volcanes activos")
+        print(" No hay volcanes activos")
         return
     
-    print(f"\nðŸ“‹ Volcanes activos: {len(volcanes_activos)}")
-    print(f"ðŸ“¦ CompresiÃ³n: lossless")
-    print(f"ðŸ—‘ï¸ RetenciÃ³n: 60 dÃ­as")
+    print(f"\n Volcanes activos: {len(volcanes_activos)}")
+    print(f" Compresin: lossless")
+    print(f" Retencin: 60 das")
     
     for nombre, config in volcanes_activos.items():
         try:
@@ -446,18 +446,18 @@ def main():
             if resultados:
                 actualizar_metadata(nombre, resultados)
                 
-                # LIMPIEZA AUTOMÃTICA
+                # LIMPIEZA AUTOMTICA
                 limpiar_imagenes_antiguas(nombre)
         
         except Exception as e:
-            print(f"âŒ Error: {e}")
+            print(f" Error: {e}")
             continue
     
     # GENERAR JSON PARA CALENDARIO
     generar_json_fechas_disponibles()
     
     print("\n" + "="*80)
-    print("âœ… PROCESO COMPLETADO")
+    print(" PROCESO COMPLETADO")
     print("="*80)
 
 if __name__ == "__main__":
