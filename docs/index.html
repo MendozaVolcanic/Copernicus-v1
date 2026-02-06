@@ -615,7 +615,7 @@
         <div class="action-buttons">
             <button class="btn-ui" onclick="toggleTimelapseMode()"> Modo Comparacion Multi-Volcan</button>
             <button class="btn-ui" style="background: #238636;" onclick="generarPPT()"> PPT Evaluacion Mensual</button>
-            <button class="btn-ui" style="background: #0969dia;" onclick="abrirCopernicusBrowser()"> Copernicus Browser</button>
+            <button class="btn-ui" style="background: #0969da;" onclick="abrirCopernicusBrowser()"> Copernicus Browser</button>
         </div>
 
         <div class="status-item">
@@ -627,15 +627,15 @@
     <div id="volcano-selector">
         <label for="zona-select"> ZONA:</label>
         <select id="zona-select" onchange="cambiarZona()">
-            <option value="Norte">Zona Norte</option>
+            <option value="Norte" selected>Zona Norte</option>
             <option value="Centro">Zona Centro</option>
-            <option value="Sur" selected>Zona Sur</option>
+            <option value="Sur">Zona Sur</option>
             <option value="Austral">Zona Austral</option>
         </select>
         
         <label for="volcano-select" style="margin-left: 15px;"> VOLCAN:</label>
         <select id="volcano-select" onchange="loadVolcano()">
-            <!-- Se llena dinmicamente segn zona -->
+            <!-- Se llena dinamicamente segun zona -->
         </select>
         
         <button onclick="toggleCalendiar()"> Ver Imagenes</button>
@@ -884,9 +884,9 @@
             <div style="display: flex; align-items: center; gap: 20px;">
                 <h2 style="color: #58a6ff; margin: 0;"> Comparacion Multi-Volcan - Ultimas Imagenes</h2>
                 <select id="zona-multi-select" onchange="loadMultiVolcanoViewZona()" style="padding: 8px 12px; background: #161b22; color: white; border: 1px solid #30363d; border-radius: 6px;">
-                    <option value="Sur">Zona Sur</option>
-                    <option value="Norte">Zona Norte</option>
+                    <option value="Norte" selected>Zona Norte</option>
                     <option value="Centro">Zona Centro</option>
+                    <option value="Sur">Zona Sur</option>
                     <option value="Austral">Zona Austral</option>
                 </select>
             </div>
@@ -1204,8 +1204,8 @@
             document.body.classList.toggle('timelapse-mode');
             
             if (document.body.classList.contains('timelapse-mode')) {
-                // Seleccionar Zona Sur por defecto
-                document.getElementById('zona-multi-select').value = 'Sur';
+                // Seleccionar Zona Norte por defecto
+                document.getElementById('zona-multi-select').value = 'Norte';
                 loadMultiVolcanoViewZona();
             }
         }
