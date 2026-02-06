@@ -266,16 +266,18 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
     
     print(f"\n Generando GIF: {volcan_nombre} - {tipo}")
     
-    carpeta_imagenes = f"docs/sentinel2/{volcan_nombre}/{tipo}"
+    # CORRECCION: Las imagenes estan directamente en docs/sentinel2/{volcan}/
+    carpeta_imagenes = f"docs/sentinel2/{volcan_nombre}"
     
     if not os.path.exists(carpeta_imagenes):
         print(f"    Carpeta no existe: {carpeta_imagenes}")
         return None
     
-    imagenes_paths = sorted(glob.glob(f"{carpeta_imagenes}/*.png"))
+    # Buscar imagenes del tipo especifico
+    imagenes_paths = sorted(glob.glob(f"{carpeta_imagenes}/*_{tipo}.png"))
     
     if len(imagenes_paths) == 0:
-        print(f"    No hay imgenes en {carpeta_imagenes}")
+        print(f"    No hay imgenes {tipo} en {carpeta_imagenes}")
         return None
     
     # Filtrar por rango de fechas si se especifica
