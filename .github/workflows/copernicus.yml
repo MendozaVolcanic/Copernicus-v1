@@ -1,16 +1,14 @@
-name: Monitoreo Copernicus Automtico
+name: Monitoreo Copernicus Automatico
 
 on:
   schedule:
-    # Ejecutar diariamente a las 06:00 UTC (03:00 Chile)
     - cron: '0 6 * * *'
-  
-  # Permitir ejecucin manual
   workflow_dispatch:
 
-# PERMISOS NECESARIOS PARA PUSH
 permissions:
   contents: write
+  pages: write
+  id-token: write
 
 jobs:
   monitoreo-completo:
@@ -30,32 +28,32 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests pandas pytz Pillow python-pptx
       
-      - name:  Descargar imgenes Sentinel-2
+      - name: Descargar imagenes Sentinel-2
         env:
           SH_CLIENT_ID: ${{ secrets.SH_CLIENT_ID }}
           SH_CLIENT_SECRET: ${{ secrets.SH_CLIENT_SECRET }}
         run: |
-          echo " Descargando imgenes ltimos 60 das..."
+          echo "Descargando imagenes ultimos 60 dias..."
           python sentinel2_downloader.py
       
-      - name:  Generar timelapses automticos
+      - name: Generar timelapses automaticos
         run: |
-          echo " Generando timelapses ltimos 30 das para dashboard..."
+          echo "Generando timelapses ultimos 30 dias para dashboard..."
           python timelapse_generator_auto.py
       
-      - name:  Generar PPT mensuales (da 1 del mes)
+      - name: Generar PPT mensuales (dia 1 del mes)
         run: |
-          echo " Verificando si es da 1 del mes..."
+          echo "Verificando si es dia 1 del mes..."
           DIA=$(date +%d)
           
           if [ "$DIA" = "01" ]; then
-            echo " Es da 1, generando PPT mensual..."
+            echo "Es dia 1, generando PPT mensual..."
             python ppt_generator.py
           else
-            echo " No es da 1 (da actual: $DIA), omitiendo PPT"
+            echo "No es dia 1 (dia actual: $DIA), omitiendo PPT"
           fi
       
-      - name:  Guardar cambios en GitHub
+      - name: Guardar cambios en GitHub
         run: |
           git config --global user.name "Copernicus Bot"
           git config --global user.email "bot@copernicus.local"
@@ -64,24 +62,23 @@ jobs:
           
           if ! git diff --quiet --staged; then
             FECHA=$(date +'%Y-%m-%d %H:%M')
-            git commit -m " Actualizacin automtica: $FECHA"
+            git commit -m "Actualizacion automatica: $FECHA"
             
-            # Push con reintentos
             max_retries=5
             retry_count=0
             
             while [ $retry_count -lt $max_retries ]; do
-              echo " Intento $((retry_count + 1)) de push..."
+              echo "Intento $((retry_count + 1)) de push..."
               
               if git pull origin main --rebase -X ours; then
-                echo " Pull exitoso"
+                echo "Pull exitoso"
               else
-                echo " Pull fall, continuando..."
+                echo "Pull fallo, continuando..."
               fi
               
               if git push origin main; then
-                echo " Push exitoso"
-                exit 0
+                echo "Push exitoso"
+                break
               else
                 retry_count=$((retry_count + 1))
                 if [ $retry_count -lt $max_retries ]; then
@@ -90,8 +87,22 @@ jobs:
               fi
             done
             
-            echo " Push fall despus de $max_retries intentos"
-            exit 1
+            if [ $retry_count -eq $max_retries ]; then
+              echo "Push fallo despues de $max_retries intentos"
+              exit 1
+            fi
           else
-            echo " No hay cambios para guardar"
+            echo "No hay cambios para guardar"
           fi
+      
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Subir artefacto a Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: 'docs'
+      
+      - name: Deploy a GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
