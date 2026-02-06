@@ -37,6 +37,12 @@ jobs:
           rm -rf "Antillanca – Casablanca" 2>/dev/null || true
           
           echo "Carpetas con tildes eliminadas"
+      
+      - name: Limpiar carpeta docs/timelapses obsoleta
+        run: |
+          cd docs
+          rm -rf timelapses 2>/dev/null || true
+          echo "Carpeta docs/timelapses eliminada"
           
       - name: Verificar carpetas restantes
         run: |
