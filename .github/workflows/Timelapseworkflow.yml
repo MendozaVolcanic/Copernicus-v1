@@ -5,7 +5,6 @@ on:
     workflows: ["Sentinel-2 Auto Download"]
     types:
       - completed
-  
   workflow_dispatch:
 
 concurrency:
@@ -49,12 +48,12 @@ jobs:
         if: steps.check-date.outputs.should_run == 'true'
         run: |
           python -m pip install --upgrade pip
-          pip install Pillow requests pytz
+          pip install Pillow requests pandas
 
       - name: Generar GIFs
         if: steps.check-date.outputs.should_run == 'true'
         run: |
-          python timelapse_generator_auto.py
+          python timelapse_generator.py
 
       - name: Guardar cambios en GitHub
         if: steps.check-date.outputs.should_run == 'true'
@@ -62,10 +61,9 @@ jobs:
           git config --global user.name "TimelapseBot"
           git config --global user.email "timelapse@sentinel2.com"
           
-          # Agregar GIFs si existen
-          git add docs/sentinel2/**/timelapses/*.gif 2>/dev/null || true
+          git add data/sentinel2/**/timelapses/*.gif
           
-          if ! git diff --quiet --staged 2>/dev/null; then
+          if ! git diff --quiet --staged; then
             git commit -m "Timelapse GIF generado - $(date +'%Y-%m')"
             git pull origin main --rebase -X ours
             git push origin main
