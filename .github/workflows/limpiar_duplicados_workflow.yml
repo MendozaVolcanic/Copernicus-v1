@@ -1,0 +1,56 @@
+name: Limpiar Carpetas Duplicadas
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  limpiar:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Limpiar carpetas con tildes
+        run: |
+          cd docs/sentinel2
+          
+          # Eliminar carpetas con tildes (versiones antiguas)
+          rm -rf "Chaitén" 2>/dev/null || true
+          rm -rf "Ollague" 2>/dev/null || true  # Por si acaso
+          rm -rf "Láscar" 2>/dev/null || true
+          rm -rf "San José" 2>/dev/null || true
+          rm -rf "Planchón-Peteroa" 2>/dev/null || true
+          rm -rf "Nevado de Longaví" 2>/dev/null || true
+          rm -rf "Nevados de Chillán" 2>/dev/null || true
+          rm -rf "Quetrupillán" 2>/dev/null || true
+          rm -rf "Lanín" 2>/dev/null || true
+          rm -rf "Carrán - Los Venados" 2>/dev/null || true
+          rm -rf "Puyehue - Cordón Caulle" 2>/dev/null || true
+          rm -rf "Hornopirén" 2>/dev/null || true
+          rm -rf "Macá" 2>/dev/null || true
+          
+          echo "Carpetas con tildes eliminadas"
+          
+      - name: Verificar carpetas restantes
+        run: |
+          echo "Carpetas en docs/sentinel2:"
+          ls -la docs/sentinel2/ | grep "^d" | awk '{print $9}'
+      
+      - name: Commit cambios
+        run: |
+          git config user.name "CleanupBot"
+          git config user.email "cleanup@copernicus.com"
+          
+          git add docs/sentinel2/
+          
+          if ! git diff --quiet --staged; then
+            git commit -m "Limpieza: Eliminar carpetas duplicadas con tildes"
+            git push origin main
+            echo "Carpetas duplicadas eliminadas"
+          else
+            echo "No hay carpetas para eliminar"
+          fi
