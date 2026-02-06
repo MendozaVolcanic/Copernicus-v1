@@ -627,13 +627,13 @@
     <div id="volcano-selector">
         <label for="zona-select"> ZONA:</label>
         <select id="zona-select" onchange="cambiarZona()">
-            <option value="Sur">Zona Sur</option>
             <option value="Norte">Zona Norte</option>
             <option value="Centro">Zona Centro</option>
+            <option value="Sur" selected>Zona Sur</option>
             <option value="Austral">Zona Austral</option>
         </select>
         
-        <label for="volcano-select" style="margin-left: 15px;"> VOLCN:</label>
+        <label for="volcano-select" style="margin-left: 15px;"> VOLCAN:</label>
         <select id="volcano-select" onchange="loadVolcano()">
             <!-- Se llena dinmicamente segn zona -->
         </select>
@@ -936,20 +936,20 @@
             'Guallatiri': { lat: -18.42, lon: -69.09, zona: 'Norte' },
             'Isluga': { lat: -19.15, lon: -68.83, zona: 'Norte' },
             'Irruputuncu': { lat: -20.73, lon: -68.55, zona: 'Norte' },
-            'Ollage': { lat: -21.30, lon: -68.18, zona: 'Norte' },
+            'Ollague': { lat: -21.30, lon: -68.18, zona: 'Norte' },
             'San Pedro': { lat: -21.88, lon: -68.40, zona: 'Norte' },
-            'Lscar': { lat: -23.37, lon: -67.73, zona: 'Norte' },
+            'Lascar': { lat: -23.37, lon: -67.73, zona: 'Norte' },
             
             // ZONA CENTRO (10 volcanes)
             'Tupungatito': { lat: -33.40, lon: -69.80, zona: 'Centro' },
-            'San Jos': { lat: -33.78, lon: -69.90, zona: 'Centro' },
+            'San Jose': { lat: -33.78, lon: -69.90, zona: 'Centro' },
             'Tinguiririca': { lat: -34.81, lon: -70.35, zona: 'Centro' },
-            'Planchn-Peteroa': { lat: -35.24, lon: -70.57, zona: 'Centro' },
+            'Planchon-Peteroa': { lat: -35.24, lon: -70.57, zona: 'Centro' },
             'Descabezado Grande': { lat: -35.58, lon: -70.75, zona: 'Centro' },
             'Tatara-San Pedro': { lat: -36.00, lon: -70.80, zona: 'Centro' },
             'Laguna del Maule': { lat: -36.02, lon: -70.60, zona: 'Centro' },
-            'Nevado de Longav': { lat: -36.19, lon: -71.16, zona: 'Centro' },
-            'Nevados de Chilln': { lat: -36.86, lon: -71.38, zona: 'Centro' },
+            'Nevado de Longavi': { lat: -36.19, lon: -71.16, zona: 'Centro' },
+            'Nevados de Chillan': { lat: -36.86, lon: -71.38, zona: 'Centro' },
             
             // ZONA SUR (14 volcanes)
             'Antuco': { lat: -37.41, lon: -71.35, zona: 'Sur' },
@@ -959,26 +959,26 @@
             'Llaima': { lat: -38.69, lon: -71.73, zona: 'Sur' },
             'Sollipulli': { lat: -38.97, lon: -71.52, zona: 'Sur' },
             'Villarrica': { lat: -39.42, lon: -71.93, zona: 'Sur' },
-            'Quetrupilln': { lat: -39.50, lon: -71.70, zona: 'Sur' },
-            'Lann': { lat: -39.64, lon: -71.50, zona: 'Sur' },
+            'Quetrupillan': { lat: -39.50, lon: -71.70, zona: 'Sur' },
+            'Lanin': { lat: -39.64, lon: -71.50, zona: 'Sur' },
             'Mocho-Choshuenco': { lat: -39.93, lon: -72.03, zona: 'Sur' },
-            'Carrn - Los Venados': { lat: -40.35, lon: -72.07, zona: 'Sur' },
-            'Puyehue - Cordn Caulle': { lat: -40.59, lon: -72.12, zona: 'Sur' },
-            'Antillanca  Casablanca': { lat: -40.77, lon: -72.15, zona: 'Sur' },
+            'Carran - Los Venados': { lat: -40.35, lon: -72.07, zona: 'Sur' },
+            'Puyehue - Cordon Caulle': { lat: -40.59, lon: -72.12, zona: 'Sur' },
+            'Antillanca - Casablanca': { lat: -40.77, lon: -72.15, zona: 'Sur' },
             
             // ZONA AUSTRAL (12 volcanes)
             'Osorno': { lat: -41.10, lon: -72.49, zona: 'Austral' },
             'Calbuco': { lat: -41.33, lon: -72.61, zona: 'Austral' },
             'Yate': { lat: -41.76, lon: -72.40, zona: 'Austral' },
-            'Hornopirn': { lat: -41.87, lon: -72.43, zona: 'Austral' },
+            'Hornopiren': { lat: -41.87, lon: -72.43, zona: 'Austral' },
             'Huequi': { lat: -42.38, lon: -72.58, zona: 'Austral' },
             'Michinmahuida': { lat: -42.79, lon: -72.44, zona: 'Austral' },
-            'Chaitn': { lat: -42.83, lon: -72.65, zona: 'Austral' },
+            'Chaiten': { lat: -42.83, lon: -72.65, zona: 'Austral' },
             'Corcovado': { lat: -43.18, lon: -72.80, zona: 'Austral' },
             'Melimoyu': { lat: -44.08, lon: -72.88, zona: 'Austral' },
             'Mentolat': { lat: -44.70, lon: -73.08, zona: 'Austral' },
             'Cay': { lat: -45.07, lon: -73.00, zona: 'Austral' },
-            'Mac': { lat: -45.10, lon: -73.17, zona: 'Austral' },
+            'Maca': { lat: -45.10, lon: -73.17, zona: 'Austral' },
             'Hudson': { lat: -45.90, lon: -72.97, zona: 'Austral' }
         };
         
@@ -1009,11 +1009,11 @@
             // Limpiar opciones actuales
             volcanoSelect.innerHTML = '';
             
-            // Filtrar volcanes por zona
+            // Filtrar volcanes por zona y ordenar por latitud (Norte a Sur)
             const volcanesZona = Object.entries(VOLCANES_CONFIG)
                 .filter(([nombre, config]) => config.zona === zona)
-                .map(([nombre, config]) => nombre)
-                .sort();
+                .sort((a, b) => a[1].lat - b[1].lat)  // Ordenar por latitud (menor = mas al norte)
+                .map(([nombre, config]) => nombre);
             
             // Agregar opciones
             volcanesZona.forEach(nombre => {
