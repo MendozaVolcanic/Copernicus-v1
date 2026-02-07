@@ -1,0 +1,163 @@
+name: Re-descargar Imagenes Negras
+
+on:
+  workflow_dispatch:
+    inputs:
+      modo:
+        description: 'Modo de ejecucion'
+        required: true
+        type: choice
+        options:
+          - detectar
+          - reparar
+        default: 'detectar'
+
+permissions:
+  contents: write
+
+jobs:
+  redescargar:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Instalar dependencias
+        run: |
+          pip install requests pandas pytz Pillow numpy
+      
+      - name: Detectar imagenes negras
+        if: github.event.inputs.modo == 'detectar'
+        run: |
+          python3 << 'EOF'
+          import os
+          import glob
+          from PIL import Image
+          import numpy as np
+          
+          VOLCANES = [
+              'Taapaca', 'Parinacota', 'Guallatiri', 'Isluga', 'Irruputuncu', 'Ollague',
+              'San Pedro', 'Lascar', 'Tupungatito', 'San Jose', 'Tinguiririca',
+              'Planchon-Peteroa', 'Descabezado Grande', 'Tatara-San Pedro',
+              'Laguna del Maule', 'Nevado de Longavi', 'Nevados de Chillan',
+              'Antuco', 'Copahue', 'Callaqui', 'Lonquimay', 'Llaima', 'Sollipulli',
+              'Villarrica', 'Quetrupillan', 'Lanin', 'Mocho-Choshuenco',
+              'Carran - Los Venados', 'Puyehue - Cordon Caulle',
+              'Antillanca - Casablanca', 'Osorno', 'Calbuco', 'Yate', 'Hornopiren',
+              'Huequi', 'Michinmahuida', 'Chaiten', 'Corcovado', 'Melimoyu',
+              'Mentolat', 'Cay', 'Maca', 'Hudson'
+          ]
+          
+          print("="*80)
+          print("DETECTANDO IMAGENES NEGRAS")
+          print("="*80)
+          
+          todas_negras = []
+          
+          for volcan in VOLCANES:
+              carpeta = f"docs/sentinel2/{volcan}"
+              if not os.path.exists(carpeta):
+                  continue
+              
+              negras_volcan = []
+              for img_path in glob.glob(f"{carpeta}/*.png"):
+                  try:
+                      img = Image.open(img_path)
+                      arr = np.array(img)
+                      mean_brightness = arr.mean()
+                      
+                      if mean_brightness < 5:
+                          negras_volcan.append(img_path)
+                  except:
+                      pass
+              
+              if negras_volcan:
+                  print(f"\n{volcan}: {len(negras_volcan)} imagenes negras")
+                  for img in negras_volcan:
+                      nombre = os.path.basename(img)
+                      print(f"   - {nombre}")
+                      todas_negras.append(img)
+          
+          print(f"\n{'='*80}")
+          print(f"TOTAL: {len(todas_negras)} imagenes negras")
+          print(f"{'='*80}")
+          
+          with open('imagenes_negras.txt', 'w') as f:
+              for img in todas_negras:
+                  f.write(img + '\n')
+          
+          print("\nLista guardada en: imagenes_negras.txt")
+          EOF
+          
+          cat imagenes_negras.txt
+      
+      - name: Borrar y re-descargar
+        if: github.event.inputs.modo == 'reparar'
+        env:
+          SH_CLIENT_ID: ${{ secrets.SH_CLIENT_ID }}
+          SH_CLIENT_SECRET: ${{ secrets.SH_CLIENT_SECRET }}
+        run: |
+          echo "Borrando imagenes negras detectadas..."
+          
+          # Ejecutar deteccion primero
+          python3 << 'EOF'
+          import os
+          import glob
+          from PIL import Image
+          import numpy as np
+          
+          VOLCANES = [
+              'Taapaca', 'Parinacota', 'Guallatiri', 'Isluga', 'Irruputuncu', 'Ollague',
+              'San Pedro', 'Lascar', 'Tupungatito', 'San Jose', 'Tinguiririca',
+              'Planchon-Peteroa', 'Descabezado Grande', 'Tatara-San Pedro',
+              'Laguna del Maule', 'Nevado de Longavi', 'Nevados de Chillan',
+              'Antuco', 'Copahue', 'Callaqui', 'Lonquimay', 'Llaima', 'Sollipulli',
+              'Villarrica', 'Quetrupillan', 'Lanin', 'Mocho-Choshuenco',
+              'Carran - Los Venados', 'Puyehue - Cordon Caulle',
+              'Antillanca - Casablanca', 'Osorno', 'Calbuco', 'Yate', 'Hornopiren',
+              'Huequi', 'Michinmahuida', 'Chaiten', 'Corcovado', 'Melimoyu',
+              'Mentolat', 'Cay', 'Maca', 'Hudson'
+          ]
+          
+          borradas = 0
+          for volcan in VOLCANES:
+              carpeta = f"docs/sentinel2/{volcan}"
+              if not os.path.exists(carpeta):
+                  continue
+              
+              for img_path in glob.glob(f"{carpeta}/*.png"):
+                  try:
+                      img = Image.open(img_path)
+                      arr = np.array(img)
+                      if arr.mean() < 5:
+                          os.remove(img_path)
+                          borradas += 1
+                          print(f"Borrada: {img_path}")
+                  except:
+                      pass
+          
+          print(f"\nTotal borradas: {borradas} imagenes")
+          EOF
+          
+          echo ""
+          echo "Re-descargando con evalscript corregido..."
+          python sentinel2_downloader.py
+      
+      - name: Commit cambios
+        if: github.event.inputs.modo == 'reparar'
+        run: |
+          git config user.name "RepairBot"
+          git config user.email "repair@copernicus.com"
+          
+          git add docs/sentinel2/
+          
+          if ! git diff --quiet --staged; then
+            git commit -m "Reparacion: Re-descarga imagenes negras con evalscript corregido"
+            git push origin main
+          fi
