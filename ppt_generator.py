@@ -163,33 +163,33 @@ def generar_ppt(volcan_nombre):
         
         # NUEVO: Reemplazar nombre del volcan en texto final
         elif ("volcan" in texto.lower() or "volcano" in texto.lower()) and len(texto) > 50:
-            # Buscar cualquier nombre de volcan en el texto
-            texto_modificado = False
+            # Reemplazar TODOS los nombres de volcanes con el actual
+            texto_nuevo = texto
             for volcan_antiguo in VOLCANES_ACTIVOS:
-                if volcan_antiguo in texto:
-                    # Reemplazar con el volcan actual
-                    texto_nuevo = texto.replace(volcan_antiguo, volcan_nombre)
-                    
-                    p = shape.text_frame.paragraphs[0]
-                    fmt = None
-                    if p.runs:
-                        fmt = {'name': p.runs[0].font.name, 'size': p.runs[0].font.size,
-                              'bold': p.runs[0].font.bold, 'italic': p.runs[0].font.italic}
-                    p.clear()
-                    run = p.add_run()
-                    run.text = texto_nuevo
-                    if fmt:
-                        if fmt['name']: run.font.name = fmt['name']
-                        if fmt['size']: run.font.size = fmt['size']
-                        if fmt['bold'] is not None: run.font.bold = fmt['bold']
-                        if fmt['italic'] is not None: run.font.italic = fmt['italic']
-                    print(f"       Nombre volcan: {volcan_antiguo} -> {volcan_nombre}")
-                    textos_ok += 1
-                    texto_modificado = True
-                    break
+                # Reemplazo case-insensitive
+                if volcan_antiguo.lower() in texto.lower():
+                    # Buscar posición exacta
+                    import re
+                    patron = re.compile(re.escape(volcan_antiguo), re.IGNORECASE)
+                    texto_nuevo = patron.sub(volcan_nombre, texto_nuevo)
             
-            if not texto_modificado:
-                print(f"       Texto con 'volcan' pero sin nombre reconocido")
+            # Si el texto cambió, actualizar
+            if texto_nuevo != texto:
+                p = shape.text_frame.paragraphs[0]
+                fmt = None
+                if p.runs:
+                    fmt = {'name': p.runs[0].font.name, 'size': p.runs[0].font.size,
+                          'bold': p.runs[0].font.bold, 'italic': p.runs[0].font.italic}
+                p.clear()
+                run = p.add_run()
+                run.text = texto_nuevo
+                if fmt:
+                    if fmt['name']: run.font.name = fmt['name']
+                    if fmt['size']: run.font.size = fmt['size']
+                    if fmt['bold'] is not None: run.font.bold = fmt['bold']
+                    if fmt['italic'] is not None: run.font.italic = fmt['italic']
+                print(f"       Nombre volcan actualizado")
+                textos_ok += 1
     
     if textos_ok < 2:
         print(f"    Textos: {textos_ok} (esperados 2-3)")
