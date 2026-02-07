@@ -1,0 +1,79 @@
+name: Mover Plantilla PPT a docs/plantillas/
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  mover-plantilla:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+      
+      - name: Descargar archivos LFS
+        run: git lfs pull
+      
+      - name: Verificar plantilla actual
+        run: |
+          if [ -f "data/Cambios_morfologicos.pptx" ]; then
+            echo "✅ Plantilla encontrada en data/"
+            ls -lh data/Cambios_morfologicos.pptx
+          else
+            echo "❌ Plantilla NO encontrada en data/"
+            exit 1
+          fi
+      
+      - name: Crear carpeta docs/plantillas/
+        run: |
+          mkdir -p docs/plantillas
+          echo "✅ Carpeta docs/plantillas/ creada"
+      
+      - name: Mover plantilla
+        run: |
+          mv data/Cambios_morfologicos.pptx docs/plantillas/Cambios_morfologicos.pptx
+          echo "✅ Plantilla movida a docs/plantillas/"
+      
+      - name: Verificar plantilla nueva ubicacion
+        run: |
+          if [ -f "docs/plantillas/Cambios_morfologicos.pptx" ]; then
+            echo "✅ Plantilla en nueva ubicación"
+            ls -lh docs/plantillas/Cambios_morfologicos.pptx
+          else
+            echo "❌ Error en movimiento"
+            exit 1
+          fi
+      
+      - name: Borrar carpeta data/ si esta vacia
+        run: |
+          if [ -d "data" ]; then
+            # Verificar si está vacía
+            if [ -z "$(ls -A data)" ]; then
+              rm -rf data/
+              echo "✅ Carpeta data/ eliminada (estaba vacía)"
+            else
+              echo "⚠️  Carpeta data/ NO está vacía, no se elimina"
+              ls -la data/
+            fi
+          fi
+      
+      - name: Commit cambios
+        run: |
+          git config user.name "MoveBot"
+          git config user.email "move@copernicus.com"
+          
+          git add docs/plantillas/
+          git add -u data/ 2>/dev/null || true
+          
+          if ! git diff --quiet --staged; then
+            git commit -m "Move: Plantilla PPT a docs/plantillas/"
+            git push origin main
+            echo "✅ Cambios guardados"
+          else
+            echo "⚠️  No hay cambios"
+          fi
