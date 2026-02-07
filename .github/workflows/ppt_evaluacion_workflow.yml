@@ -8,16 +8,53 @@ on:
         required: true
         type: choice
         options:
-          - Villarrica
-          - Llaima
-          - Nevados de Chillan
-          - Copahue
-          - Puyehue-Cordon Caulle
-          - Chaiten
-          - Lascar
-          - Lastarria
+          # ZONA NORTE (8)
+          - Taapaca
+          - Parinacota
+          - Guallatiri
           - Isluga
+          - Irruputuncu
+          - Ollague
+          - San Pedro
+          - Lascar
+          # ZONA CENTRO (9)
+          - Tupungatito
+          - San Jose
+          - Tinguiririca
           - Planchon-Peteroa
+          - Descabezado Grande
+          - Tatara-San Pedro
+          - Laguna del Maule
+          - Nevado de Longavi
+          - Nevados de Chillan
+          # ZONA SUR (13)
+          - Antuco
+          - Copahue
+          - Callaqui
+          - Lonquimay
+          - Llaima
+          - Sollipulli
+          - Villarrica
+          - Quetrupillan
+          - Lanin
+          - Mocho-Choshuenco
+          - Carran - Los Venados
+          - Puyehue - Cordon Caulle
+          - Antillanca - Casablanca
+          # ZONA AUSTRAL (13)
+          - Osorno
+          - Calbuco
+          - Yate
+          - Hornopiren
+          - Huequi
+          - Michinmahuida
+          - Chaiten
+          - Corcovado
+          - Melimoyu
+          - Mentolat
+          - Cay
+          - Maca
+          - Hudson
       
       fecha_inicio:
         description: 'Fecha inicio (YYYY-MM-DD)'
@@ -44,11 +81,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
-          lfs: true
       
-      - name: Descargar archivos LFS
-        run: git lfs pull
-
       - name: Configurar Python
         uses: actions/setup-python@v4
         with:
@@ -61,12 +94,12 @@ jobs:
 
       - name: Verificar plantilla PPT
         run: |
-          if [ ! -f "data/Cambios_morfologicos.pptx" ]; then
-            echo "ERROR: Plantilla NO encontrada en data/Cambios_morfologicos.pptx"
+          if [ ! -f "docs/plantillas/Cambios_morfologicos.pptx" ]; then
+            echo "ERROR: Plantilla NO encontrada en docs/plantillas/Cambios_morfologicos.pptx"
             exit 1
           fi
           echo "Plantilla encontrada"
-          ls -lh data/Cambios_morfologicos.pptx
+          ls -lh docs/plantillas/Cambios_morfologicos.pptx
 
       - name: Generar timelapse para el rango seleccionado
         env:
@@ -91,13 +124,13 @@ jobs:
           
           # Agregar PPTs y GIFs generados
           git add docs/sentinel2/**/reportes/*.pptx 2>/dev/null || true
-          git add docs/sentinel2/**/timelapses/*.gif 2>/dev/null || true
+          git add docs/sentinel2/**/timelapses_ppt/*.gif 2>/dev/null || true
           
           if ! git diff --quiet --staged 2>/dev/null; then
-            git commit -m "PPT Evaluacion generado - ${{ github.event.inputs.volcan }} (${{ github.event.inputs.fecha_inicio }} a ${{ github.event.inputs.fecha_fin }})"
+            git commit -m "PPT Evaluacion: ${{ github.event.inputs.volcan }} (${{ github.event.inputs.fecha_inicio }} - ${{ github.event.inputs.fecha_fin }})"
             git pull origin main --rebase -X ours
             git push origin main
-            echo "PPT y timelapses guardados exitosamente"
+            echo "PPT y timelapses guardados"
           else
-            echo "No hay archivos nuevos para guardar"
+            echo "No hay archivos nuevos"
           fi
