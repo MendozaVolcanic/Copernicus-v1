@@ -346,7 +346,7 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
         print(f"    No se pudieron cargar imgenes")
         return None
     
-    carpeta_gif = f"docs/sentinel2/{volcan_nombre}/timelapses"
+    carpeta_gif = f"docs/sentinel2/{volcan_nombre}/timelapses_ppt"
     os.makedirs(carpeta_gif, exist_ok=True)
     
     fecha_inicio_real = fechas[0]
