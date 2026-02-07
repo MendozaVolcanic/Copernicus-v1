@@ -23,7 +23,7 @@ VOLCANES_ACTIVOS = [
     "Osorno", "Calbuco", "Yate", "Hornopiren", "Huequi", "Michinmahuida", "Chaiten", 
     "Corcovado", "Melimoyu", "Mentolat", "Cay", "Maca", "Hudson"
 ]
-PLANTILLA_PATH = "data/Cambios_morfologicos.pptx"
+PLANTILLA_PATH = "docs/plantillas/Cambios_morfologicos.pptx"
 OUTPUT_DIR = "docs/sentinel2"
 
 MESES_ES = {
@@ -72,7 +72,7 @@ def comprimir_gif(input_path, output_path, max_size_mb=1.2):
 def generar_ppt(volcan_nombre):
     print(f"\n {volcan_nombre}")
     
-    carpeta_timelapses = f"docs/sentinel2/{volcan_nombre}/timelapses"
+    carpeta_timelapses = f"docs/sentinel2/{volcan_nombre}/timelapses_ppt"
     if not os.path.exists(carpeta_timelapses):
         print(f"    No existe: {carpeta_timelapses}")
         return None
@@ -163,32 +163,42 @@ def generar_ppt(volcan_nombre):
         
         # NUEVO: Reemplazar nombre del volcan en texto final
         elif ("volcan" in texto.lower() or "volcano" in texto.lower()) and len(texto) > 50:
-            # Reemplazar TODOS los nombres de volcanes con el actual
-            texto_nuevo = texto
+            import re
+            # Reemplazar TODOS los nombres de volcanes en TODOS los párrafos
+            cambio_realizado = False
             for volcan_antiguo in VOLCANES_ACTIVOS:
-                # Reemplazo case-insensitive
                 if volcan_antiguo.lower() in texto.lower():
-                    # Buscar posición exacta
-                    import re
-                    patron = re.compile(re.escape(volcan_antiguo), re.IGNORECASE)
-                    texto_nuevo = patron.sub(volcan_nombre, texto_nuevo)
+                    # Iterar sobre TODOS los párrafos (no solo el primero)
+                    for p in shape.text_frame.paragraphs:
+                        texto_parrafo = p.text
+                        if volcan_antiguo.lower() in texto_parrafo.lower():
+                            # Reemplazo case-insensitive
+                            patron = re.compile(re.escape(volcan_antiguo), re.IGNORECASE)
+                            texto_nuevo_p = patron.sub(volcan_nombre, texto_parrafo)
+                            
+                            if texto_nuevo_p != texto_parrafo:
+                                # Guardar formato
+                                fmt = None
+                                if p.runs:
+                                    fmt = {'name': p.runs[0].font.name, 'size': p.runs[0].font.size,
+                                          'bold': p.runs[0].font.bold, 'italic': p.runs[0].font.italic}
+                                
+                                # Reemplazar texto
+                                p.clear()
+                                run = p.add_run()
+                                run.text = texto_nuevo_p
+                                
+                                # Restaurar formato
+                                if fmt:
+                                    if fmt['name']: run.font.name = fmt['name']
+                                    if fmt['size']: run.font.size = fmt['size']
+                                    if fmt['bold'] is not None: run.font.bold = fmt['bold']
+                                    if fmt['italic'] is not None: run.font.italic = fmt['italic']
+                                
+                                cambio_realizado = True
             
-            # Si el texto cambió, actualizar
-            if texto_nuevo != texto:
-                p = shape.text_frame.paragraphs[0]
-                fmt = None
-                if p.runs:
-                    fmt = {'name': p.runs[0].font.name, 'size': p.runs[0].font.size,
-                          'bold': p.runs[0].font.bold, 'italic': p.runs[0].font.italic}
-                p.clear()
-                run = p.add_run()
-                run.text = texto_nuevo
-                if fmt:
-                    if fmt['name']: run.font.name = fmt['name']
-                    if fmt['size']: run.font.size = fmt['size']
-                    if fmt['bold'] is not None: run.font.bold = fmt['bold']
-                    if fmt['italic'] is not None: run.font.italic = fmt['italic']
-                print(f"       Nombre volcan actualizado")
+            if cambio_realizado:
+                print(f"       Nombre volcan actualizado en multiples parrafos")
                 textos_ok += 1
     
     if textos_ok < 2:
