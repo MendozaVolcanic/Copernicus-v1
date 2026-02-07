@@ -40,6 +40,9 @@ jobs:
         run: |
           echo "Generando timelapses ultimos 30 dias para dashboard..."
           python timelapse_generator_auto.py
+          
+          # Agregar GIFs generados al commit
+          git add docs/timelapses/*.gif || true
       
       - name: Generar PPT mensuales (dia 1 del mes)
         run: |
