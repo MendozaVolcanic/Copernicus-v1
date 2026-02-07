@@ -38,11 +38,19 @@ jobs:
           
           echo "Carpetas con tildes eliminadas"
       
-      - name: Limpiar carpeta docs/timelapses obsoleta
+      - name: Limpiar subcarpetas timelapses obsoletas
         run: |
-          cd docs
-          rm -rf timelapses 2>/dev/null || true
-          echo "Carpeta docs/timelapses eliminada"
+          cd docs/sentinel2
+          
+          # Eliminar carpetas timelapses dentro de cada volcán (obsoletas)
+          find . -type d -name "timelapses" -exec rm -rf {} + 2>/dev/null || true
+          
+          echo "Subcarpetas timelapses/ obsoletas eliminadas"
+      
+      - name: Crear carpeta docs/timelapses centralizada
+        run: |
+          mkdir -p docs/timelapses
+          echo "Carpeta docs/timelapses creada (aquí van GIFs de dashboard)"
           
       - name: Verificar carpetas restantes
         run: |
