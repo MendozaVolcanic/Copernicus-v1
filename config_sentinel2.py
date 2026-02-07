@@ -23,7 +23,7 @@ CATALOG_API_URL = "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/searc
 # CONFIGURACIN IMGENES
 # ============================================
 MAX_CLOUD_COVER = 50
-BUFFER_KM = 15
+BUFFER_KM = 3  # Radio alrededor del volcan (antes 15)
 
 # RGB
 IMAGE_WIDTH_RGB = 800
