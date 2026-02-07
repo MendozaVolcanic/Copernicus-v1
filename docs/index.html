@@ -192,7 +192,7 @@
             margin-top: 10px;
         }
 
-        .calendar-diay-header {
+        .calendar-day-header {
             text-align: center;
             color: #8b949e;
             font-size: 0.85em;
@@ -200,7 +200,7 @@
             padding: 8px;
         }
 
-        .calendar-diay {
+        .calendar-day {
             padding: 8px;
             text-align: center;
             border-radius: 4px;
@@ -208,31 +208,31 @@
         }
 
         /* CAMBIO QUIRRGICO 2: CALENDARIO 3 ESTADOS */
-        .calendar-diay.downloaded {
+        .calendar-day.downloaded {
             background: #2ea043;
             color: #fff;
             font-weight: bold;
             cursor: pointer;
         }
 
-        .calendar-diay.downloaded:hover {
+        .calendar-day.downloaded:hover {
             background: #3fb950;
             transform: scale(1.1);
         }
 
-        .calendar-diay.available {
+        .calendar-day.available {
             background: #58a6ff;
             color: #fff;
             font-weight: bold;
             cursor: pointer;
         }
 
-        .calendar-diay.available:hover {
+        .calendar-day.available:hover {
             background: #79c0ff;
             transform: scale(1.1);
         }
 
-        .calendar-diay.unavailable {
+        .calendar-day.unavailable {
             background: #30363d;
             color: #6e7681;
             cursor: not-allowed;
@@ -638,20 +638,20 @@
             <!-- Se llena dinamicamente segun zona -->
         </select>
         
-        <button onclick="toggleCalendiar()"> Ver Imagenes</button>
-        <button onclick="toggleCalendiarioCopernicus()" style="background: #0969dia; border-color: #0969dia;"> Ver en Copernicus</button>
+        <button onclick="toggleCalendar()"> Ver Imagenes</button>
+        <button onclick="toggleCalendarioCopernicus()" style="background: #0969dia; border-color: #0969dia;"> Ver en Copernicus</button>
     </div>
 
     <!-- CALENDARIO MODAL -->
-    <div id="calendar-modal" onclick="closeModialOutside(event)">
+    <div id="calendar-modal" onclick="closeModalOutside(event)">
         <div class="calendar-content" onclick="event.stopPropagation()">
             <div class="calendar-header">
-                <h3> Calendiario de Imagenes</h3>
-                <button class="close-btn" onclick="toggleCalendiar()"></button>
+                <h3> Calendario de Imagenes</h3>
+                <button class="close-btn" onclick="toggleCalendar()"></button>
             </div>
             
             <div class="calendar-selectors">
-                <select id="calendar-month" onchange="updateCalendiar()">
+                <select id="calendar-month" onchange="updateCalendar()">
                     <option value="0">Enero</option>
                     <option value="1">Febrero</option>
                     <option value="2">Marzo</option>
@@ -666,20 +666,20 @@
                     <option value="11">Diciembre</option>
                 </select>
                 
-                <select id="calendar-year" onchange="updateCalendiar()">
+                <select id="calendar-year" onchange="updateCalendar()">
                     <option value="2025">2025</option>
                     <option value="2026">2026</option>
                 </select>
             </div>
             
             <div id="calendar-grid">
-                <div class="calendar-diay-header">Dom</div>
-                <div class="calendar-diay-header">Lun</div>
-                <div class="calendar-diay-header">Mar</div>
-                <div class="calendar-diay-header">Mi</div>
-                <div class="calendar-diay-header">Jue</div>
-                <div class="calendar-diay-header">Vie</div>
-                <div class="calendar-diay-header">Sb</div>
+                <div class="calendar-day-header">Dom</div>
+                <div class="calendar-day-header">Lun</div>
+                <div class="calendar-day-header">Mar</div>
+                <div class="calendar-day-header">Mi</div>
+                <div class="calendar-day-header">Jue</div>
+                <div class="calendar-day-header">Vie</div>
+                <div class="calendar-day-header">Sb</div>
             </div>
             
             <!-- CAMBIO QUIRRGICO 3: LEYENDA 3 ESTADOS -->
@@ -701,11 +701,11 @@
     </div>
 
     <!-- CALENDARIO COPERNICUS MODAL -->
-    <div id="calendar-copernicus-modal" onclick="closeModialCopernicusOutside(event)" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center;">
+    <div id="calendar-copernicus-modal" onclick="closeModalCopernicusOutside(event)" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center;">
         <div class="calendar-content" onclick="event.stopPropagation()">
             <div class="calendar-header">
-                <h3> Copernicus Browser - Calendiario</h3>
-                <button class="close-btn" onclick="toggleCalendiarioCopernicus()"></button>
+                <h3> Copernicus Browser - Calendario</h3>
+                <button class="close-btn" onclick="toggleCalendarioCopernicus()"></button>
             </div>
             
             <p style="text-align: center; color: #8b949e; margin-bottom: 15px; font-size: 0.85em;">
@@ -713,7 +713,7 @@
             </p>
             
             <div class="calendar-selectors">
-                <select id="calendar-copernicus-month" onchange="updateCalendiarioCopernicus()">
+                <select id="calendar-copernicus-month" onchange="updateCalendarioCopernicus()">
                     <option value="0">Enero</option>
                     <option value="1">Febrero</option>
                     <option value="2">Marzo</option>
@@ -728,20 +728,20 @@
                     <option value="11">Diciembre</option>
                 </select>
                 
-                <select id="calendar-copernicus-year" onchange="updateCalendiarioCopernicus()">
+                <select id="calendar-copernicus-year" onchange="updateCalendarioCopernicus()">
                     <option value="2025">2025</option>
                     <option value="2026">2026</option>
                 </select>
             </div>
             
             <div id="calendar-copernicus-grid">
-                <div class="calendar-diay-header">Dom</div>
-                <div class="calendar-diay-header">Lun</div>
-                <div class="calendar-diay-header">Mar</div>
-                <div class="calendar-diay-header">Mi</div>
-                <div class="calendar-diay-header">Jue</div>
-                <div class="calendar-diay-header">Vie</div>
-                <div class="calendar-diay-header">Sb</div>
+                <div class="calendar-day-header">Dom</div>
+                <div class="calendar-day-header">Lun</div>
+                <div class="calendar-day-header">Mar</div>
+                <div class="calendar-day-header">Mi</div>
+                <div class="calendar-day-header">Jue</div>
+                <div class="calendar-day-header">Vie</div>
+                <div class="calendar-day-header">Sb</div>
             </div>
             
             <div class="calendar-legend">
@@ -1060,7 +1060,7 @@
                 timeZone: 'America/Santiago',
                 year: 'numeric',
                 month: '2-digit',
-                diay: '2-digit',
+                day: '2-digit',
                 hour: '2-digit',
                 minute: '2-digit'
             });
@@ -1071,9 +1071,9 @@
             try {
                 const response = await fetch(`${REPO_BASE}/docs/fechas_disponibles_copernicus.json?t=${Date.now()}`);
                 if (response.ok) {
-                    const diata = await response.json();
-                    fechasDisponiblesCopernicus = diata;
-                    console.log(' Fechas Copernicus cargadias:', fechasDisponiblesCopernicus);
+                    const data = await response.json();
+                    fechasDisponiblesCopernicus = data;
+                    console.log(' Fechas Copernicus cargadas:', fechasDisponiblesCopernicus);
                 }
             } catch (error) {
                 console.error('Error cargando fechas Copernicus:', error);
@@ -1081,7 +1081,7 @@
             }
         }
 
-        async function loadMetadiata(volcano) {
+        async function loadMetadata(volcano) {
             const metadataUrl = `${REPO_BASE}/docs/sentinel2/${volcano}/metadata.csv?t=${Date.now()}`;
             
             try {
@@ -1109,7 +1109,7 @@
         }
 
         async function loadTimeline() {
-            const metadata = await loadMetadiata(currentVolcano);
+            const metadata = await loadMetadata(currentVolcano);
             metadataCache[currentVolcano] = metadata;
             
             const timelineDiv = document.getElementById('timeline-dates');
@@ -1272,8 +1272,8 @@
                         const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
                         const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
                         
-                        document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
-                        document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
+                        document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${rgbUrl}', '${volcan} - RGB', '${ultimaFecha}')" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
+                        document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${thermalUrl}', '${volcan} - Thermal', '${ultimaFecha}')" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
                     }
                 } catch (e) {
                     document.getElementById(`rgb-${volcan}`).innerHTML = '<div class="no-image">Error</div>';
@@ -1334,8 +1334,8 @@
                         const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
                         const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
                         
-                        document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
-                        document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px;" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
+                        document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${rgbUrl}', '${volcan} - RGB', '${ultimaFecha}')" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
+                        document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${thermalUrl}', '${volcan} - Thermal', '${ultimaFecha}')" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
                     }
                 } catch (e) {
                     document.getElementById(`rgb-${volcan}`).innerHTML = '<div class="no-image">Error</div>';
@@ -1387,31 +1387,31 @@
         }
 
         // CALENDARIO
-        function toggleCalendiar() {
+        function toggleCalendar() {
             const modal = document.getElementById('calendar-modal');
             if (modal.style.display === 'flex') {
                 modal.style.display = 'none';
             } else {
                 modal.style.display = 'flex';
-                updateCalendiar();
+                updateCalendar();
             }
         }
 
-        function closeModialOutside(event) {
+        function closeModalOutside(event) {
             if (event.target.id === 'calendar-modal') {
-                toggleCalendiar();
+                toggleCalendar();
             }
         }
 
         // CAMBIO QUIRRGICO 4: LGICA CALENDARIO 3 ESTADOS
-        function updateCalendiar() {
+        function updateCalendar() {
             calendarMonth = parseInt(document.getElementById('calendar-month').value);
             calendarYear = parseInt(document.getElementById('calendar-year').value);
             
             const grid = document.getElementById('calendar-grid');
             
-            const diayElements = grid.querySelectorAll('.calendar-diay');
-            diayElements.forEach(el => el.remove());
+            const dayElements = grid.querySelectorAll('.calendar-day');
+            dayElements.forEach(el => el.remove());
             
             const firstDiay = new Date(calendarYear, calendarMonth, 1);
             const lastDiay = new Date(calendarYear, calendarMonth + 1, 0);
@@ -1422,39 +1422,39 @@
             
             for (let i = 0; i < startDiay; i++) {
                 const emptyDiv = document.createElement('div');
-                emptyDiv.className = 'calendar-diay';
+                emptyDiv.className = 'calendar-day';
                 grid.appendChild(emptyDiv);
             }
             
-            for (let diay = 1; diay <= lastDiay.getDate(); diay++) {
-                const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(diay).padStart(2, '0')}`;
+            for (let day = 1; day <= lastDiay.getDate(); day++) {
+                const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
                 // NUEVO: 3 estados
-                const yaDescargadia = availableDates.includes(dateStr);
+                const yaDescargada = availableDates.includes(dateStr);
                 const disponibleCopernicus = fechasCopernicus.includes(dateStr);
                 
-                const diayDiv = document.createElement('div');
-                diayDiv.textContent = diay;
-                diayDiv.className = 'calendar-diay';
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = day;
+                dayDiv.className = 'calendar-day';
                 
-                if (yaDescargadia) {
-                    diayDiv.classList.add('downloaded');
-                    diayDiv.onclick = () => {
-                        selectDateFromCalendiar(dateStr);
-                        toggleCalendiar();
+                if (yaDescargada) {
+                    dayDiv.classList.add('downloaded');
+                    dayDiv.onclick = () => {
+                        selectDateFromCalendar(dateStr);
+                        toggleCalendar();
                     };
                 } else if (disponibleCopernicus) {
-                    diayDiv.classList.add('available');
-                    diayDiv.onclick = () => abrirCopernicusBrowserFecha(dateStr);
+                    dayDiv.classList.add('available');
+                    dayDiv.onclick = () => abrirCopernicusBrowserFecha(dateStr);
                 } else {
-                    diayDiv.classList.add('unavailable');
+                    dayDiv.classList.add('unavailable');
                 }
                 
-                grid.appendChild(diayDiv);
+                grid.appendChild(dayDiv);
             }
         }
 
-        function selectDateFromCalendiar(dateStr) {
+        function selectDateFromCalendar(dateStr) {
             if (availableDates.includes(dateStr)) {
                 selectDate(dateStr);
             }
@@ -1512,30 +1512,30 @@
         }
 
         // CALENDARIO COPERNICUS
-        function toggleCalendiarioCopernicus() {
+        function toggleCalendarioCopernicus() {
             const modal = document.getElementById('calendar-copernicus-modal');
             if (modal.style.display === 'flex') {
                 modal.style.display = 'none';
             } else {
                 modal.style.display = 'flex';
-                updateCalendiarioCopernicus();
+                updateCalendarioCopernicus();
             }
         }
 
-        function closeModialCopernicusOutside(event) {
+        function closeModalCopernicusOutside(event) {
             if (event.target.id === 'calendar-copernicus-modal') {
-                toggleCalendiarioCopernicus();
+                toggleCalendarioCopernicus();
             }
         }
 
-        function updateCalendiarioCopernicus() {
+        function updateCalendarioCopernicus() {
             calendarCopernicusMonth = parseInt(document.getElementById('calendar-copernicus-month').value);
             calendarCopernicusYear = parseInt(document.getElementById('calendar-copernicus-year').value);
             
             const grid = document.getElementById('calendar-copernicus-grid');
             
-            const diayElements = grid.querySelectorAll('.calendar-diay');
-            diayElements.forEach(el => el.remove());
+            const dayElements = grid.querySelectorAll('.calendar-day');
+            dayElements.forEach(el => el.remove());
             
             const firstDiay = new Date(calendarCopernicusYear, calendarCopernicusMonth, 1);
             const lastDiay = new Date(calendarCopernicusYear, calendarCopernicusMonth + 1, 0);
@@ -1546,30 +1546,30 @@
             
             for (let i = 0; i < startDiay; i++) {
                 const emptyDiv = document.createElement('div');
-                emptyDiv.className = 'calendar-diay';
+                emptyDiv.className = 'calendar-day';
                 grid.appendChild(emptyDiv);
             }
             
-            for (let diay = 1; diay <= lastDiay.getDate(); diay++) {
-                const dateStr = `${calendarCopernicusYear}-${String(calendarCopernicusMonth + 1).padStart(2, '0')}-${String(diay).padStart(2, '0')}`;
+            for (let day = 1; day <= lastDiay.getDate(); day++) {
+                const dateStr = `${calendarCopernicusYear}-${String(calendarCopernicusMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
-                const diayDiv = document.createElement('div');
-                diayDiv.textContent = diay;
-                diayDiv.className = 'calendar-diay';
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = day;
+                dayDiv.className = 'calendar-day';
                 
                 // Verificar si est en fechas disponibles de Copernicus
                 const disponible = fechasCopernicus.includes(dateStr);
                 
                 if (disponible) {
-                    diayDiv.classList.add('available');
-                    diayDiv.onclick = () => {
+                    dayDiv.classList.add('available');
+                    dayDiv.onclick = () => {
                         abrirCopernicusBrowserFecha(dateStr);
                     };
                 } else {
-                    diayDiv.classList.add('unavailable');
+                    dayDiv.classList.add('unavailable');
                 }
                 
-                grid.appendChild(diayDiv);
+                grid.appendChild(dayDiv);
             }
         }
 
@@ -1657,6 +1657,62 @@
             document.body.appendChild(modal);
             
             // Click fuera cierra
+            modal.onclick = (e) => {
+                if (e.target === modal) document.body.removeChild(modal);
+            };
+        }
+
+
+        // ZOOM DE IMAGENES
+        function zoomImage(imageUrl, title, fecha) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                background: rgba(0,0,0,0.95);
+                z-index: 4000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+            `;
+            
+            const header = document.createElement('div');
+            header.style.cssText = `
+                position: absolute;
+                top: 0;
+                width: 100%;
+                background: #161b22;
+                padding: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #58a6ff;
+            `;
+            
+            const titleEl = document.createElement('h2');
+            titleEl.textContent = `${title} - ${fecha}`;
+            titleEl.style.cssText = 'color: #58a6ff; margin: 0;';
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'Cerrar';
+            closeBtn.className = 'btn-ui';
+            closeBtn.onclick = () => document.body.removeChild(modal);
+            
+            header.appendChild(titleEl);
+            header.appendChild(closeBtn);
+            
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.style.cssText = 'max-width: 90%; max-height: 85vh; border-radius: 10px; margin-top: 80px;';
+            
+            modal.appendChild(header);
+            modal.appendChild(img);
+            document.body.appendChild(modal);
+            
             modal.onclick = (e) => {
                 if (e.target === modal) document.body.removeChild(modal);
             };
