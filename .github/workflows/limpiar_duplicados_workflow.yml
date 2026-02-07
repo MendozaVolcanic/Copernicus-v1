@@ -1,4 +1,4 @@
-name: Limpiar Carpetas Duplicadas
+name: Limpiar Carpetas Duplicadas y Renombrar
 
 on:
   workflow_dispatch:
@@ -14,60 +14,59 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Limpiar carpetas con tildes
+      - name: Limpiar carpetas con tildes (corruption UTF-8)
         run: |
           cd docs/sentinel2
           
-          # Eliminar carpetas con tildes (versiones antiguas)
-          rm -rf "Chaitén" 2>/dev/null || true
-          rm -rf "Ollague" 2>/dev/null || true
-          rm -rf "Láscar" 2>/dev/null || true
-          rm -rf "San José" 2>/dev/null || true
-          rm -rf "Planchón-Peteroa" 2>/dev/null || true
-          rm -rf "Nevado de Longaví" 2>/dev/null || true
-          rm -rf "Nevados de Chillán" 2>/dev/null || true
-          rm -rf "Quetrupillán" 2>/dev/null || true
-          rm -rf "Lanín" 2>/dev/null || true
-          rm -rf "Carrán - Los Venados" 2>/dev/null || true
-          rm -rf "Puyehue - Cordón Caulle" 2>/dev/null || true
-          rm -rf "Hornopirén" 2>/dev/null || true
-          rm -rf "Macá" 2>/dev/null || true
+          # Solo eliminar carpetas con nombres CORRUPTOS (tildes mal codificadas)
+          # Las carpetas con nombres correctos se mantienen
           
-          # Eliminar Antillanca con guion largo (–) en lugar de guion corto (-)
-          rm -rf "Antillanca – Casablanca" 2>/dev/null || true
+          rm -rf "ChaitÃ©n" "LÃ¡scar" "San JosÃ©" "PlanchÃ³n-Peteroa" 2>/dev/null || true
+          rm -rf "Nevado de LongavÃ­" "Nevados de ChillÃ¡n" "QuetrupillÃ¡n" 2>/dev/null || true
+          rm -rf "LanÃ­n" "CarrÃ¡n - Los Venados" "Puyehue - CordÃ³n Caulle" 2>/dev/null || true
+          rm -rf "HornopirÃ©n" "MacÃ¡" "Antillanca â€" Casablanca" 2>/dev/null || true
           
-          echo "Carpetas con tildes eliminadas"
+          echo "Carpetas con UTF-8 corrupto eliminadas"
       
-      - name: Limpiar subcarpetas timelapses obsoletas
+      - name: Renombrar timelapses/ a timelapses_ppt/
         run: |
           cd docs/sentinel2
           
-          # Eliminar carpetas timelapses dentro de cada volcán (obsoletas)
-          find . -type d -name "timelapses" -exec rm -rf {} + 2>/dev/null || true
+          # Renombrar SOLO si existe timelapses/ (no timelapses_ppt/)
+          for volcan_dir in */; do
+            if [ -d "${volcan_dir}timelapses" ] && [ ! -d "${volcan_dir}timelapses_ppt" ]; then
+              mv "${volcan_dir}timelapses" "${volcan_dir}timelapses_ppt"
+              echo "Renombrado: ${volcan_dir}timelapses -> timelapses_ppt"
+            fi
+          done
           
-          echo "Subcarpetas timelapses/ obsoletas eliminadas"
+          echo "Carpetas renombradas"
       
-      - name: Crear carpeta docs/timelapses centralizada
+      - name: Crear carpeta docs/timelapses/ para dashboard
         run: |
           mkdir -p docs/timelapses
-          echo "Carpeta docs/timelapses creada (aquí van GIFs de dashboard)"
+          echo "Carpeta docs/timelapses/ creada (GIFs dashboard)"
           
-      - name: Verificar carpetas restantes
+      - name: Verificar estructura final
         run: |
-          echo "Carpetas en docs/sentinel2:"
-          ls -la docs/sentinel2/ | grep "^d" | awk '{print $9}'
-      
+          echo "=== Volcanes en docs/sentinel2/ ==="
+          ls -d docs/sentinel2/*/ | sed 's|docs/sentinel2/||' | sed 's|/$||'
+          
+          echo ""
+          echo "=== Subcarpetas timelapses_ppt/ ==="
+          find docs/sentinel2/ -type d -name "timelapses_ppt" | wc -l
+          
       - name: Commit cambios
         run: |
           git config user.name "CleanupBot"
           git config user.email "cleanup@copernicus.com"
           
-          git add docs/sentinel2/
+          git add docs/sentinel2/ docs/timelapses/
           
           if ! git diff --quiet --staged; then
-            git commit -m "Limpieza: Eliminar carpetas duplicadas con tildes"
+            git commit -m "Limpieza: UTF-8 + Renombrar timelapses/ a timelapses_ppt/"
             git push origin main
-            echo "Carpetas duplicadas eliminadas"
+            echo "Cambios guardados"
           else
-            echo "No hay carpetas para eliminar"
+            echo "No hay cambios"
           fi
