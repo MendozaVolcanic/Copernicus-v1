@@ -45,8 +45,53 @@ jobs:
           import math
           
           VOLCANES = {
+              # ZONA NORTE
+              "Taapaca": {"lat": -18.10, "lon": -69.50},
+              "Parinacota": {"lat": -18.17, "lon": -69.15},
+              "Guallatiri": {"lat": -18.42, "lon": -69.09},
+              "Isluga": {"lat": -19.15, "lon": -68.83},
+              "Irruputuncu": {"lat": -20.73, "lon": -68.55},
+              "Ollague": {"lat": -21.30, "lon": -68.18},
+              "San Pedro": {"lat": -21.88, "lon": -68.40},
+              "Lascar": {"lat": -23.37, "lon": -67.73},
+              # ZONA CENTRO
+              "Tupungatito": {"lat": -33.40, "lon": -69.80},
+              "San Jose": {"lat": -33.78, "lon": -69.90},
+              "Tinguiririca": {"lat": -34.81, "lon": -70.35},
+              "Planchon-Peteroa": {"lat": -35.24, "lon": -70.57},
+              "Descabezado Grande": {"lat": -35.58, "lon": -70.75},
+              "Tatara-San Pedro": {"lat": -36.00, "lon": -70.80},
+              "Laguna del Maule": {"lat": -36.02, "lon": -70.60},
+              "Nevado de Longavi": {"lat": -36.19, "lon": -71.16},
+              "Nevados de Chillan": {"lat": -36.86, "lon": -71.38},
+              # ZONA SUR
+              "Antuco": {"lat": -37.41, "lon": -71.35},
+              "Copahue": {"lat": -37.85, "lon": -71.17},
+              "Callaqui": {"lat": -37.92, "lon": -71.45},
+              "Lonquimay": {"lat": -38.38, "lon": -71.58},
+              "Llaima": {"lat": -38.69, "lon": -71.73},
+              "Sollipulli": {"lat": -38.97, "lon": -71.52},
               "Villarrica": {"lat": -39.42, "lon": -71.93},
-              "Llaima": {"lat": -38.69, "lon": -71.73}
+              "Quetrupillan": {"lat": -39.50, "lon": -71.70},
+              "Lanin": {"lat": -39.64, "lon": -71.50},
+              "Mocho-Choshuenco": {"lat": -39.93, "lon": -72.03},
+              "Carran - Los Venados": {"lat": -40.35, "lon": -72.07},
+              "Puyehue - Cordon Caulle": {"lat": -40.59, "lon": -72.12},
+              "Antillanca - Casablanca": {"lat": -40.77, "lon": -72.15},
+              # ZONA AUSTRAL
+              "Osorno": {"lat": -41.10, "lon": -72.49},
+              "Calbuco": {"lat": -41.33, "lon": -72.61},
+              "Yate": {"lat": -41.76, "lon": -72.40},
+              "Hornopiren": {"lat": -41.87, "lon": -72.43},
+              "Huequi": {"lat": -42.38, "lon": -72.58},
+              "Michinmahuida": {"lat": -42.79, "lon": -72.44},
+              "Chaiten": {"lat": -42.83, "lon": -72.65},
+              "Corcovado": {"lat": -43.18, "lon": -72.80},
+              "Melimoyu": {"lat": -44.08, "lon": -72.88},
+              "Mentolat": {"lat": -44.70, "lon": -73.08},
+              "Cay": {"lat": -45.07, "lon": -73.00},
+              "Maca": {"lat": -45.10, "lon": -73.17},
+              "Hudson": {"lat": -45.90, "lon": -72.97}
           }
           
           CLIENT_ID = os.environ.get('SH_CLIENT_ID')
