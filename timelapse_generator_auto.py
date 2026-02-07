@@ -232,14 +232,14 @@ def generar_gif_ultimos_30_dias(volcan_nombre, tipo='RGB', logo_copernicus=None)
         print(f"    No se pudieron cargar imgenes")
         return None
     
-    # Guardar en carpeta del volcn para coherencia con estructura
-    carpeta_gif = f"docs/sentinel2/{volcan_nombre}/timelapses"
+    # CAMBIO: Guardar en docs/timelapses/ para dashboard
+    carpeta_gif = "docs/timelapses"
     os.makedirs(carpeta_gif, exist_ok=True)
     
     fecha_inicio = fechas[0]
     fecha_fin = fechas[-1]
     
-    # Nombre fijo para dashboard: volcan_tipo.gif (dentro de su carpeta)
+    # Nombre fijo para dashboard: volcan_tipo.gif
     output_path = f"{carpeta_gif}/{volcan_nombre}_{tipo}.gif"
     
     try:
