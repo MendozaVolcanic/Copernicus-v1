@@ -1,0 +1,92 @@
+name: Borrar y Re-descargar Imagenes (Buffer 3km)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmar:
+        description: 'Escribir YES para confirmar borrado de TODAS las imagenes'
+        required: true
+        default: 'NO'
+
+permissions:
+  contents: write
+
+jobs:
+  borrar-y-redescargar:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Verificar confirmacion
+        run: |
+          if [ "${{ github.event.inputs.confirmar }}" != "YES" ]; then
+            echo "❌ Debes escribir YES para confirmar"
+            echo "⚠️  Este workflow borrará TODAS las imágenes PNG"
+            exit 1
+          fi
+          echo "✅ Confirmación recibida"
+      
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Contar imagenes actuales
+        run: |
+          echo "📊 ESTADO ACTUAL:"
+          total=$(find docs/sentinel2/ -name "*.png" -type f 2>/dev/null | wc -l || echo 0)
+          echo "   Imágenes PNG: $total"
+          
+          if [ $total -eq 0 ]; then
+            echo "⚠️  No hay imágenes para borrar"
+            exit 1
+          fi
+      
+      - name: Borrar TODAS las imagenes PNG
+        run: |
+          echo "🗑️  BORRANDO IMÁGENES..."
+          find docs/sentinel2/ -name "*.png" -type f -delete
+          
+          echo "✅ Imágenes borradas"
+      
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Re-descargar con BUFFER_KM = 3
+        env:
+          SH_CLIENT_ID: ${{ secrets.SH_CLIENT_ID }}
+          SH_CLIENT_SECRET: ${{ secrets.SH_CLIENT_SECRET }}
+        run: |
+          echo "📥 RE-DESCARGANDO CON BUFFER 3KM..."
+          python sentinel2_downloader.py
+      
+      - name: Contar imagenes nuevas
+        run: |
+          echo "📊 ESTADO FINAL:"
+          total_nuevas=$(find docs/sentinel2/ -name "*.png" -type f 2>/dev/null | wc -l || echo 0)
+          echo "   Imágenes nuevas: $total_nuevas"
+          
+          if [ $total_nuevas -eq 0 ]; then
+            echo "❌ No se descargaron imágenes nuevas"
+            exit 1
+          fi
+      
+      - name: Commit cambios
+        run: |
+          git config user.name "RedownloadBot"
+          git config user.email "redownload@copernicus.com"
+          
+          git add docs/sentinel2/
+          
+          if ! git diff --quiet --staged; then
+            git commit -m "Re-descarga: TODAS las imágenes con BUFFER_KM = 3km"
+            git pull origin main --rebase -X ours
+            git push origin main
+            echo "✅ Imágenes nuevas guardadas"
+          else
+            echo "⚠️  No hay cambios para guardar"
+          fi
