@@ -14,23 +14,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       
-      - name: Limpiar carpetas con tildes (corruption UTF-8)
+      - name: Limpiar carpetas con tildes corruptas
         run: |
           cd docs/sentinel2
           
-          # Solo eliminar carpetas con nombres CORRUPTOS (tildes mal codificadas)
-          # Las carpetas con nombres correctos se mantienen
+          echo "Eliminando carpetas con UTF-8 corrupto..."
           
-          rm -rf "ChaitÃ©n" "LÃ¡scar" "San JosÃ©" "PlanchÃ³n-Peteroa" 2>/dev/null || true
-          rm -rf "Nevado de LongavÃ­" "Nevados de ChillÃ¡n" "QuetrupillÃ¡n" 2>/dev/null || true
-          rm -rf "LanÃ­n" "CarrÃ¡n - Los Venados" "Puyehue - CordÃ³n Caulle" 2>/dev/null || true
-          rm -rf "HornopirÃ©n" "MacÃ¡" "Antillanca â€" Casablanca" 2>/dev/null || true
+          # Solo eliminar carpetas con nombres CORRUPTOS
+          rm -rf "Chaiten" "Lascar" "San Jose" "Planchon-Peteroa" 2>/dev/null || true
+          rm -rf "Nevado de Longavi" "Nevados de Chillan" "Quetrupillan" 2>/dev/null || true
+          rm -rf "Lanin" "Carran - Los Venados" "Puyehue - Cordon Caulle" 2>/dev/null || true
+          rm -rf "Hornopiren" "Maca" "Antillanca - Casablanca" 2>/dev/null || true
           
-          echo "Carpetas con UTF-8 corrupto eliminadas"
+          echo "Carpetas corruptas eliminadas"
       
-      - name: Renombrar timelapses/ a timelapses_ppt/
+      - name: Renombrar timelapses a timelapses_ppt
         run: |
           cd docs/sentinel2
+          
+          echo "Renombrando carpetas timelapses/ a timelapses_ppt/..."
           
           # Renombrar SOLO si existe timelapses/ (no timelapses_ppt/)
           for volcan_dir in */; do
@@ -42,7 +44,7 @@ jobs:
           
           echo "Carpetas renombradas"
       
-      - name: Crear carpeta docs/timelapses/ para dashboard
+      - name: Crear carpeta docs/timelapses para dashboard
         run: |
           mkdir -p docs/timelapses
           echo "Carpeta docs/timelapses/ creada (GIFs dashboard)"
@@ -50,11 +52,11 @@ jobs:
       - name: Verificar estructura final
         run: |
           echo "=== Volcanes en docs/sentinel2/ ==="
-          ls -d docs/sentinel2/*/ | sed 's|docs/sentinel2/||' | sed 's|/$||'
+          ls -d docs/sentinel2/*/ 2>/dev/null | sed 's|docs/sentinel2/||' | sed 's|/$||' || echo "Sin volcanes"
           
           echo ""
           echo "=== Subcarpetas timelapses_ppt/ ==="
-          find docs/sentinel2/ -type d -name "timelapses_ppt" | wc -l
+          find docs/sentinel2/ -type d -name "timelapses_ppt" 2>/dev/null | wc -l
           
       - name: Commit cambios
         run: |
@@ -64,7 +66,7 @@ jobs:
           git add docs/sentinel2/ docs/timelapses/
           
           if ! git diff --quiet --staged; then
-            git commit -m "Limpieza: UTF-8 + Renombrar timelapses/ a timelapses_ppt/"
+            git commit -m "Limpieza: UTF-8 + Renombrar timelapses a timelapses_ppt"
             git push origin main
             echo "Cambios guardados"
           else
