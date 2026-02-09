@@ -1011,7 +1011,7 @@
             
             // Filtrar volcanes por zona y ordenar por latitud (Norte a Sur)
             // En Chile latitudes son NEGATIVAS: -18 (norte) a -45 (sur)
-            // Con lat negativas: -18 > -23, entonces para Norte→Sur usamos b-a
+            // Con lat negativas: -18 > -23, entonces para Norteâ†’Sur usamos b-a
             const volcanesZona = Object.entries(VOLCANES_CONFIG)
                 .filter(([nombre, config]) => config.zona === zona)
                 .sort((a, b) => b[1].lat - a[1].lat)  // Ordenar descendente: -18, -19, ..., -23
@@ -1220,7 +1220,7 @@
             volcanesGrid.innerHTML = '';
             
             // Filtrar volcanes por zona y ordenar por latitud (Norte a Sur)
-            // Con latitudes negativas: usar b-a para ordenar Norte→Sur
+            // Con latitudes negativas: usar b-a para ordenar Norteâ†’Sur
             const volcanesZona = Object.entries(VOLCANES_CONFIG)
                 .filter(([nombre, config]) => config.zona === zona)
                 .sort((a, b) => b[1].lat - a[1].lat)  // Ordenar descendente: -18, ..., -45
@@ -1721,6 +1721,149 @@
         window.onload = function() {
             cambiarZona(); // Carga zona Sur por defecto
         };
+        };
+
+        <!-- ============================================== -->
+        <!-- SISTEMA DE ESCALAS DINÁMICAS - JAVASCRIPT     -->
+        <!-- Agregado: 2026-02-09                           -->
+        <!-- ============================================== -->
+        
+    </script>
+    
+    <script>
+        // ==============================================
+        // FUNCIÓN: AGREGAR ESCALA A IMAGEN
+        // ==============================================
+        
+        function agregarEscalaAImagen(imgElement, escalaKm = 3) {
+            return new Promise((resolve) => {
+                // Esperar a que imagen cargue
+                if (!imgElement.complete) {
+                    imgElement.onload = () => procesarImagen();
+                } else {
+                    procesarImagen();
+                }
+                
+                function procesarImagen() {
+                    try {
+                        // Crear canvas
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        canvas.width = imgElement.naturalWidth || imgElement.width;
+                        canvas.height = imgElement.naturalHeight || imgElement.height;
+                        
+                        // Dibujar imagen original
+                        ctx.drawImage(imgElement, 0, 0);
+                        
+                        // Calcular escala (3 km)
+                        const areaFisicaKm = 6.0; // Buffer 3km * 2
+                        const pixelesPorKm = canvas.width / areaFisicaKm;
+                        const anchoBarraPx = Math.floor(pixelesPorKm * escalaKm);
+                        
+                        const xStart = canvas.width - anchoBarraPx - 30;
+                        const yPos = canvas.height - 50;
+                        const padding = 10;
+                        const alturaBarra = 6;
+                        
+                        // Fondo negro semi-transparente
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                        ctx.fillRect(
+                            xStart - padding, 
+                            yPos - padding - 20, 
+                            anchoBarraPx + padding * 2, 
+                            50
+                        );
+                        
+                        // Borde negro de la barra
+                        ctx.fillStyle = 'black';
+                        ctx.fillRect(xStart - 2, yPos - 2, anchoBarraPx + 4, alturaBarra + 4);
+                        
+                        // Barra blanca
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(xStart, yPos, anchoBarraPx, alturaBarra);
+                        
+                        // Marcas cada kilómetro
+                        ctx.strokeStyle = 'white';
+                        ctx.lineWidth = 2;
+                        for (let i = 0; i <= escalaKm; i++) {
+                            const xMarca = xStart + Math.floor((anchoBarraPx / escalaKm) * i);
+                            ctx.beginPath();
+                            ctx.moveTo(xMarca, yPos);
+                            ctx.lineTo(xMarca, yPos + alturaBarra + 5);
+                            ctx.stroke();
+                        }
+                        
+                        // Texto "3 km"
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 14px Arial, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(
+                            escalaKm + ' km', 
+                            xStart + anchoBarraPx / 2, 
+                            yPos - 10
+                        );
+                        
+                        // Convertir a data URL
+                        resolve(canvas.toDataURL('image/png'));
+                    } catch (error) {
+                        console.error('Error procesando imagen:', error);
+                        resolve(imgElement.src);
+                    }
+                }
+            });
+        }
+        
+        // ==============================================
+        // APLICAR ESCALAS A IMÁGENES PNG
+        // ==============================================
+        
+        async function aplicarEscalasAImagenes() {
+            const selectors = [
+                'img[src*="_RGB.png"]',
+                'img[src*="_ThermalFalseColor.png"]'
+            ];
+            
+            for (const selector of selectors) {
+                const imagenes = document.querySelectorAll(selector);
+                
+                for (const img of imagenes) {
+                    if (!img.dataset.escalaAgregada) {
+                        try {
+                            const imgConEscala = await agregarEscalaAImagen(img);
+                            img.src = imgConEscala;
+                            img.dataset.escalaAgregada = 'true';
+                        } catch (error) {
+                            console.error('Error agregando escala:', error);
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Ejecutar al cargar
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('Sistema de escalas cargado');
+            setTimeout(aplicarEscalasAImagenes, 1000);
+        });
+        
+        // Observar cambios
+        const observer = new MutationObserver((mutations) => {
+            let hayImagenesNuevas = false;
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeName === 'IMG' || 
+                        (node.querySelectorAll && node.querySelectorAll('img').length > 0)) {
+                        hayImagenesNuevas = true;
+                    }
+                });
+            });
+            if (hayImagenesNuevas) {
+                setTimeout(aplicarEscalasAImagenes, 500);
+            }
+        });
+        
+        observer.observe(document.body, { childList: true, subtree: true });
     </script>
 </body>
 </html>
