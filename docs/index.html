@@ -1581,8 +1581,8 @@
             const imgThermal = document.getElementById('timelapse-thermal-auto');
             
             // Rutas a GIFs en docs/sentinel2/{volcano}/timelapses/
-            imgRGB.src = `${REPO_BASE}/docs/sentinel2/${volcano}/timelapses/${volcano}_RGB.gif?t=${timestamp}`;
-            imgThermal.src = `${REPO_BASE}/docs/sentinel2/${volcano}/timelapses/${volcano}_ThermalFalseColor.gif?t=${timestamp}`;
+            imgRGB.src = `${REPO_BASE}/docs/timelapses/${volcano}_RGB.gif?t=${timestamp}`;
+            imgThermal.src = `${REPO_BASE}/docs/timelapses/${volcano}_ThermalFalseColor.gif?t=${timestamp}`;
             
             // Placeholder si no existe
             imgRGB.onerror = () => {
@@ -1646,7 +1646,7 @@
             header.appendChild(closeBtn);
             
             const img = document.createElement('img');
-            img.src = `${REPO_BASE}/docs/sentinel2/${currentVolcano}/timelapses/${currentVolcano}_${tipoArchivo}.gif?t=${timestamp}`;
+            img.src = `${REPO_BASE}/docs/timelapses/${currentVolcano}_${tipoArchivo}.gif?t=${timestamp}`;
             img.style.cssText = 'max-width: 90%; max-height: 80vh; border-radius: 10px; margin-top: 80px;';
             img.onerror = () => {
                 img.src = 'https://via.placeholder.com/800x600/0d1117/8b949e?text=Timelapse+no+disponible';
