@@ -109,19 +109,13 @@ jobs:
               return response.json()['access_token']
           
           def create_bbox(lat, lon, buffer_km=3):
-              delta_lat = buffer_km / 111.32
-              delta_lon = buffer_km / (111.32 * abs(math.cos(math.radians(lat))))
-              
-              return [
-                  lon - delta_lon,
-                  lat - delta_lat,
-                  lon + delta_lon,
-                  lat + delta_lat
-              ]
+              delta = buffer_km / 111.0
+              return [lon - delta, lat - delta, lon + delta, lat + delta]
           
           def buscar_fechas_disponibles(volcan_nombre, lat, lon, fecha_inicio, fecha_fin, token):
               bbox = create_bbox(lat, lon, BUFFER_KM)
               
+              # CORREGIDO: Usar GET con params, no POST con json
               url = "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search"
               
               headers = {
@@ -129,17 +123,21 @@ jobs:
                   "Content-Type": "application/json"
               }
               
-              body = {
-                  "bbox": bbox,
-                  "datetime": f"{fecha_inicio.isoformat()}Z/{fecha_fin.isoformat()}Z",
-                  "collections": ["sentinel-2-l2a"],
-                  "limit": 500
+              params = {
+                  'collections': 'sentinel-2-l2a',
+                  'bbox': ','.join(map(str, bbox)),
+                  'datetime': f"{fecha_inicio.isoformat()}Z/{fecha_fin.isoformat()}Z",
+                  'limit': 500
               }
               
-              response = requests.post(url, json=body, headers=headers, timeout=30)
+              response = requests.get(url, params=params, headers=headers, timeout=30)
               
               if response.status_code != 200:
                   print(f"Error {volcan_nombre}: {response.status_code}")
+                  try:
+                      print(f"   Detalle: {response.text[:200]}")
+                  except:
+                      pass
                   return []
               
               data = response.json()
