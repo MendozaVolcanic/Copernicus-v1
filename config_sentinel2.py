@@ -22,7 +22,7 @@ CATALOG_API_URL = "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/searc
 # ============================================
 # CONFIGURACIN IMGENES
 # ============================================
-MAX_CLOUD_COVER = 50
+MAX_CLOUD_COVER = 100  # Descargar TODAS (incluso días nublados)
 BUFFER_KM = 3  # Radio alrededor del volcan (antes 15)
 
 # RGB
@@ -52,7 +52,7 @@ function setup() {
 
 function evaluatePixel(sample) {
   // IMPORTANTE: Retornar datos AUNQUE dataMask sea 0 (nube/sombra)
-  // Esto permite ver las nubes en lugar de píxeles negros
+  // Esto permite ver las nubes en lugar de pÃ­xeles negros
   return [2.5 * sample.B04, 2.5 * sample.B03, 2.5 * sample.B02];
 }
 """
