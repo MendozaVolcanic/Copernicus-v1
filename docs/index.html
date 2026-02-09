@@ -192,6 +192,13 @@
             margin-top: 10px;
         }
 
+        #calendar-copernicus-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-top: 10px;
+        }
+
         .calendar-day-header {
             text-align: center;
             color: #8b949e;
@@ -613,8 +620,9 @@
         </div>
         
         <div class="action-buttons">
-            <button class="btn-ui" onclick="toggleTimelapseMode()"> Modo Comparacion Multi-Volcan</button>
-            <button class="btn-ui" style="background: #238636;" onclick="generarPPT()"> PPT Evaluacion Mensual</button>
+            <button class="btn-ui" onclick="toggleTimelapseMode()"> Modo Comparación Multi-Volcán</button>
+            <button class="btn-ui" style="background: #238636;" onclick="generarPPTIndividual()"> PPT Evaluación Individual</button>
+            <button class="btn-ui" style="background: #2ea043;" onclick="generarPPTCompleto()"> PPT Evaluación Completa</button>
             <button class="btn-ui" style="background: #0969da;" onclick="abrirCopernicusBrowser()"> Copernicus Browser</button>
         </div>
 
@@ -638,7 +646,7 @@
             <!-- Se llena dinamicamente segun zona -->
         </select>
         
-        <button onclick="toggleCalendar()"> Ver Imagenes</button>
+        <button onclick="toggleCalendar()"> Ver Imágenes</button>
         <button onclick="toggleCalendarioCopernicus()" style="background: #0969da; border-color: #0969da;"> Ver en Copernicus</button>
     </div>
 
@@ -646,7 +654,7 @@
     <div id="calendar-modal" onclick="closeModalOutside(event)">
         <div class="calendar-content" onclick="event.stopPropagation()">
             <div class="calendar-header">
-                <h3> Calendario de Imagenes</h3>
+                <h3> Calendario de Imágenes</h3>
                 <button class="close-btn" onclick="toggleCalendar()"></button>
             </div>
             
@@ -761,7 +769,7 @@
     <div id="main-content">
         <!-- TIMELAPSES AUTOMTICOS (LTIMOS 30 DAS) -->
         <div id="timelapse-automatico">
-            <h2> Timelapses Automaticos (Ultimos 30 dias)</h2>
+            <h2> Timelapses Automáticos (Últimos 30 días)</h2>
             <p style="text-align: center; color: #8b949e; margin-bottom: 15px;">
                 Se actualizan automaticamente cada dia a las 06:00 UTC
             </p>
@@ -775,7 +783,7 @@
                          onclick="verTimelapseFullscreen('RGB')">
                     <div class="timelapse-info">
                          Sentinel-2 L2A RGB (B04-B03-B02)<br>
-                         Ultimos 30 dias<br>
+                         Últimos 30 días<br>
                          Actualizado: <span id="update-date-rgb">--</span>
                     </div>
                 </div>
@@ -788,7 +796,7 @@
                          onclick="verTimelapseFullscreen('Thermal')">
                     <div class="timelapse-info">
                          Sentinel-2 L2A SWIR (B12-B11-B04)<br>
-                         Ultimos 30 dias<br>
+                         Últimos 30 días<br>
                          Actualizado: <span id="update-date-thermal">--</span>
                     </div>
                 </div>
@@ -796,14 +804,14 @@
         </div>
 
         <div id="timeline">
-            <h3> Fechas Disponibles (Ultimos 30 dias)</h3>
+            <h3> Fechas Disponibles (Últimos 30 días)</h3>
             <div id="timeline-dates">
                 <div class="loading-spinner"></div>
             </div>
         </div>
 
         <div id="image-comparison">
-            <h3 style="color: #58a6ff; margin-bottom: 15px;"> Comparacion de Composiciones</h3>
+            <h3 style="color: #58a6ff; margin-bottom: 15px;"> Comparación de Composiciones</h3>
             <div class="image-grid">
                 <div class="image-panel">
                     <h4> RGB (Color Real)</h4>
@@ -882,7 +890,7 @@
     <div id="timelapse-fullscreen">
         <div class="timelapse-header">
             <div style="display: flex; align-items: center; gap: 20px;">
-                <h2 style="color: #58a6ff; margin: 0;"> Comparacion Multi-Volcan - Ultimas Imagenes</h2>
+                <h2 style="color: #58a6ff; margin: 0;"> Comparacion Multi-Volcan - Últimas Imágenes</h2>
                 <select id="zona-multi-select" onchange="loadMultiVolcanoViewZona()" style="padding: 8px 12px; background: #161b22; color: white; border: 1px solid #30363d; border-radius: 6px;">
                     <option value="Norte" selected>Zona Norte</option>
                     <option value="Centro">Zona Centro</option>
@@ -1286,8 +1294,29 @@
                         const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
                         const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
                         
-                        document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${rgbUrl}', '${volcan} - RGB', '${ultimaFecha}')" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
-                        document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${thermalUrl}', '${volcan} - Thermal', '${ultimaFecha}')" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
+                        // RGB con escala
+                        const rgbImgMV = new Image();
+                        rgbImgMV.crossOrigin = "anonymous";
+                        rgbImgMV.onload = async () => {
+                            const imgConEscala = await agregarEscalaAImagen(rgbImgMV);
+                            document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${imgConEscala}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${imgConEscala}', '${volcan} - RGB', '${ultimaFecha}')">`;
+                        };
+                        rgbImgMV.onerror = () => {
+                            document.getElementById(`rgb-${volcan}`).innerHTML = '<div class="no-image">No disponible</div>';
+                        };
+                        rgbImgMV.src = rgbUrl;
+                        
+                        // Thermal con escala
+                        const thermalImgMV = new Image();
+                        thermalImgMV.crossOrigin = "anonymous";
+                        thermalImgMV.onload = async () => {
+                            const imgConEscala = await agregarEscalaAImagen(thermalImgMV);
+                            document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${imgConEscala}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${imgConEscala}', '${volcan} - Thermal', '${ultimaFecha}')">`;
+                        };
+                        thermalImgMV.onerror = () => {
+                            document.getElementById(`thermal-${volcan}`).innerHTML = '<div class="no-image">No disponible</div>';
+                        };
+                        thermalImgMV.src = thermalUrl;
                     }
                 } catch (e) {
                     document.getElementById(`rgb-${volcan}`).innerHTML = '<div class="no-image">Error</div>';
@@ -1348,8 +1377,29 @@
                         const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
                         const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
                         
-                        document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${rgbUrl}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${rgbUrl}', '${volcan} - RGB', '${ultimaFecha}')" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
-                        document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${thermalUrl}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${thermalUrl}', '${volcan} - Thermal', '${ultimaFecha}')" onerror="this.parentElement.innerHTML='<div class=\\'no-image\\'>No disponible</div>'">`;
+                        // RGB con escala
+                        const rgbImgMV = new Image();
+                        rgbImgMV.crossOrigin = "anonymous";
+                        rgbImgMV.onload = async () => {
+                            const imgConEscala = await agregarEscalaAImagen(rgbImgMV);
+                            document.getElementById(`rgb-${volcan}`).innerHTML = `<img src="${imgConEscala}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${imgConEscala}', '${volcan} - RGB', '${ultimaFecha}')">`;
+                        };
+                        rgbImgMV.onerror = () => {
+                            document.getElementById(`rgb-${volcan}`).innerHTML = '<div class="no-image">No disponible</div>';
+                        };
+                        rgbImgMV.src = rgbUrl;
+                        
+                        // Thermal con escala
+                        const thermalImgMV = new Image();
+                        thermalImgMV.crossOrigin = "anonymous";
+                        thermalImgMV.onload = async () => {
+                            const imgConEscala = await agregarEscalaAImagen(thermalImgMV);
+                            document.getElementById(`thermal-${volcan}`).innerHTML = `<img src="${imgConEscala}" style="width: 100%; border-radius: 4px; cursor: pointer;" onclick="zoomImage('${imgConEscala}', '${volcan} - Thermal', '${ultimaFecha}')">`;
+                        };
+                        thermalImgMV.onerror = () => {
+                            document.getElementById(`thermal-${volcan}`).innerHTML = '<div class="no-image">No disponible</div>';
+                        };
+                        thermalImgMV.src = thermalUrl;
                     }
                 } catch (e) {
                     document.getElementById(`rgb-${volcan}`).innerHTML = '<div class="no-image">Error</div>';
@@ -1427,20 +1477,20 @@
             const dayElements = grid.querySelectorAll('.calendar-day');
             dayElements.forEach(el => el.remove());
             
-            const firstDiay = new Date(calendarYear, calendarMonth, 1);
-            const lastDiay = new Date(calendarYear, calendarMonth + 1, 0);
-            const startDiay = firstDiay.getDay();
+            const firstDay = new Date(calendarYear, calendarMonth, 1);
+            const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
+            const startDay = firstDay.getDay();
             
             // NUEVO: Cargar fechas Copernicus
             const fechasCopernicus = fechasDisponiblesCopernicus[currentVolcano] || [];
             
-            for (let i = 0; i < startDiay; i++) {
+            for (let i = 0; i < startDay; i++) {
                 const emptyDiv = document.createElement('div');
                 emptyDiv.className = 'calendar-day';
                 grid.appendChild(emptyDiv);
             }
             
-            for (let day = 1; day <= lastDiay.getDate(); day++) {
+            for (let day = 1; day <= lastDay.getDate(); day++) {
                 const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
                 // NUEVO: 3 estados
@@ -1564,20 +1614,20 @@
             const dayElements = grid.querySelectorAll('.calendar-day');
             dayElements.forEach(el => el.remove());
             
-            const firstDiay = new Date(calendarCopernicusYear, calendarCopernicusMonth, 1);
-            const lastDiay = new Date(calendarCopernicusYear, calendarCopernicusMonth + 1, 0);
-            const startDiay = firstDiay.getDay();
+            const firstDay = new Date(calendarCopernicusYear, calendarCopernicusMonth, 1);
+            const lastDay = new Date(calendarCopernicusYear, calendarCopernicusMonth + 1, 0);
+            const startDay = firstDay.getDay();
             
             // Cargar fechas Copernicus para este volcn
             const fechasCopernicus = fechasDisponiblesCopernicus[currentVolcano] || [];
             
-            for (let i = 0; i < startDiay; i++) {
+            for (let i = 0; i < startDay; i++) {
                 const emptyDiv = document.createElement('div');
                 emptyDiv.className = 'calendar-day';
                 grid.appendChild(emptyDiv);
             }
             
-            for (let day = 1; day <= lastDiay.getDate(); day++) {
+            for (let day = 1; day <= lastDay.getDate(); day++) {
                 const dateStr = `${calendarCopernicusYear}-${String(calendarCopernicusMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
                 
                 const dayDiv = document.createElement('div');
@@ -1822,6 +1872,53 @@
                     }
                 }
             });
+        }
+
+        // ========================================
+        // FUNCIONES BOTONES PPT
+        // ========================================
+        
+        function generarPPTIndividual() {
+            const volcan = currentVolcano;
+            const url = 'https://github.com/MendozaVolcanic/Copernicus-v1/actions/workflows/ppt_evaluacion_workflow.yml';
+            
+            alert(
+                `📊 PPT EVALUACIÓN INDIVIDUAL\n\n` +
+                `Volcán: ${volcan}\n\n` +
+                `Pasos:\n` +
+                `1. Ir a Actions → Generar PPT Evaluacion\n` +
+                `2. Run workflow\n` +
+                `3. Seleccionar: ${volcan}\n` +
+                `4. Fechas: Último mes\n` +
+                `5. Esperar ~5 minutos\n\n` +
+                `¿Abrir Actions ahora?`
+            );
+            
+            if (confirm('Abrir GitHub Actions?')) {
+                window.open(url, '_blank');
+            }
+        }
+        
+        function generarPPTCompleto() {
+            const url = 'https://github.com/MendozaVolcanic/Copernicus-v1/actions/workflows/ppt_completo_workflow.yml';
+            
+            alert(
+                `📊 PPT EVALUACIÓN COMPLETA\n\n` +
+                `Genera PPT con TODOS los volcanes\n\n` +
+                `⚠️ ADVERTENCIA:\n` +
+                `- Tiempo estimado: 30-45 minutos\n` +
+                `- Generará ~40 slides\n` +
+                `- Tamaño: ~50-80 MB\n\n` +
+                `Pasos:\n` +
+                `1. Ir a Actions → PPT Completo\n` +
+                `2. Run workflow\n` +
+                `3. Esperar completar\n\n` +
+                `¿Abrir Actions ahora?`
+            );
+            
+            if (confirm('Abrir GitHub Actions?')) {
+                window.open(url, '_blank');
+            }
         }
 
         window.onload = function() {
