@@ -639,7 +639,7 @@
         </select>
         
         <button onclick="toggleCalendar()"> Ver Imagenes</button>
-        <button onclick="toggleCalendarioCopernicus()" style="background: #0969dia; border-color: #0969dia;"> Ver en Copernicus</button>
+        <button onclick="toggleCalendarioCopernicus()" style="background: #0969da; border-color: #0969da;"> Ver en Copernicus</button>
     </div>
 
     <!-- CALENDARIO MODAL -->
@@ -1167,12 +1167,18 @@
             thermalContainer.innerHTML = '<div class="loading-spinner"></div>';
             
             const rgbImg = new Image();
-            rgbImg.onload = () => {
+            rgbImg.onload = async () => {
+                // Agregar escala con canvas
+                const imgConEscala = await agregarEscalaAImagen(rgbImg);
+                
                 rgbContainer.innerHTML = `
                     <div class="image-date-overlay"> ${date}</div>
-                    <div class="image-scale-indicator"> 3 km</div>
                 `;
-                rgbContainer.appendChild(rgbImg);
+                
+                const img = new Image();
+                img.src = imgConEscala;
+                img.style.cssText = 'width: 100%; height: auto; display: block;';
+                rgbContainer.appendChild(img);
             };
             rgbImg.onerror = () => {
                 rgbContainer.innerHTML = '<div class="no-image">Imagen no disponible</div>';
@@ -1180,12 +1186,18 @@
             rgbImg.src = rgbUrl;
             
             const thermalImg = new Image();
-            thermalImg.onload = () => {
+            thermalImg.onload = async () => {
+                // Agregar escala con canvas
+                const imgConEscala = await agregarEscalaAImagen(thermalImg);
+                
                 thermalContainer.innerHTML = `
                     <div class="image-date-overlay"> ${date}</div>
-                    <div class="image-scale-indicator"> 3 km</div>
                 `;
-                thermalContainer.appendChild(thermalImg);
+                
+                const img = new Image();
+                img.src = imgConEscala;
+                img.style.cssText = 'width: 100%; height: auto; display: block;';
+                thermalContainer.appendChild(img);
             };
             thermalImg.onerror = () => {
                 thermalContainer.innerHTML = '<div class="no-image">Imagen no disponible</div>';
@@ -1432,6 +1444,19 @@
                 // NUEVO: 3 estados
                 const yaDescargada = availableDates.includes(dateStr);
                 const disponibleCopernicus = fechasCopernicus.includes(dateStr);
+                
+                // DEBUG: Log primer día del mes
+                if (day === 1) {
+                    console.log('🗓️ Debug Calendario:', {
+                        volcano: currentVolcano,
+                        month: `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}`,
+                        availableDatesCount: availableDates.length,
+                        fechasCopernicusCount: fechasCopernicus.length,
+                        firstAvailable: availableDates[0],
+                        firstCopernicus: fechasCopernicus[0],
+                        sampleDate: dateStr
+                    });
+                }
                 
                 const dayDiv = document.createElement('div');
                 dayDiv.textContent = day;
@@ -1716,6 +1741,85 @@
             modal.onclick = (e) => {
                 if (e.target === modal) document.body.removeChild(modal);
             };
+        }
+
+        // ==============================================
+        // FUNCIÓN: AGREGAR ESCALA A IMAGEN
+        // ==============================================
+        
+        async function agregarEscalaAImagen(imgElement, escalaKm = 3) {
+            return new Promise((resolve) => {
+                if (!imgElement.complete) {
+                    imgElement.onload = () => procesarImagen();
+                } else {
+                    procesarImagen();
+                }
+                
+                function procesarImagen() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        canvas.width = imgElement.naturalWidth || imgElement.width;
+                        canvas.height = imgElement.naturalHeight || imgElement.height;
+                        
+                        ctx.drawImage(imgElement, 0, 0);
+                        
+                        // Calcular escala
+                        const areaFisicaKm = 6.0;
+                        const pixelesPorKm = canvas.width / areaFisicaKm;
+                        const anchoBarraPx = Math.floor(pixelesPorKm * escalaKm);
+                        
+                        const xStart = canvas.width - anchoBarraPx - 30;
+                        const yPos = canvas.height - 50;
+                        const padding = 10;
+                        const alturaBarra = 6;
+                        
+                        // Fondo negro
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                        ctx.fillRect(
+                            xStart - padding, 
+                            yPos - padding - 20, 
+                            anchoBarraPx + padding * 2, 
+                            50
+                        );
+                        
+                        // Borde negro
+                        ctx.fillStyle = 'black';
+                        ctx.fillRect(xStart - 2, yPos - 2, anchoBarraPx + 4, alturaBarra + 4);
+                        
+                        // Barra blanca
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(xStart, yPos, anchoBarraPx, alturaBarra);
+                        
+                        // Marcas
+                        ctx.strokeStyle = 'white';
+                        ctx.lineWidth = 2;
+                        for (let i = 0; i <= escalaKm; i++) {
+                            const xMarca = xStart + Math.floor((anchoBarraPx / escalaKm) * i);
+                            ctx.beginPath();
+                            ctx.moveTo(xMarca, yPos);
+                            ctx.lineTo(xMarca, yPos + alturaBarra + 5);
+                            ctx.stroke();
+                        }
+                        
+                        // Texto "3 km"
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 14px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(
+                            escalaKm + ' km', 
+                            xStart + anchoBarraPx / 2, 
+                            yPos - 10
+                        );
+                        
+                        resolve(canvas.toDataURL('image/png'));
+                    } catch (error) {
+                        console.error('Error procesando imagen:', error);
+                        resolve(imgElement.src);
+                    }
+                }
+            });
         }
 
         window.onload = function() {
