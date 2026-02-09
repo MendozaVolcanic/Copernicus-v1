@@ -39,7 +39,7 @@ def formatear_fecha_espanol(fecha_str):
     except:
         return fecha_str
 
-def comprimir_gif(input_path, output_path, max_size_mb=1.2):
+def comprimir_gif(input_path, output_path, max_size_mb=1.0):
     try:
         size_mb = os.path.getsize(input_path) / (1024 * 1024)
         if size_mb <= max_size_mb:
@@ -48,23 +48,29 @@ def comprimir_gif(input_path, output_path, max_size_mb=1.2):
             print(f"      GIF OK ({size_mb:.2f} MB)")
             return output_path
         
-        print(f"      Comprimiendo ({size_mb:.2f} MB  {max_size_mb:.2f} MB)...")
+        print(f"      Comprimiendo ({size_mb:.2f} MB > {max_size_mb:.2f} MB)...")
         img = Image.open(input_path)
         frames = []
         try:
             while True:
-                frame = img.copy().convert('P', palette=Image.ADAPTIVE, colors=128)
+                # Reducir colores a 64 (más agresivo)
+                frame = img.copy().convert('P', palette=Image.ADAPTIVE, colors=64)
                 frames.append(frame)
                 img.seek(img.tell() + 1)
         except EOFError:
             pass
         
+        # Reducir tamaño de frames si muy grande
+        if size_mb > 2.0:
+            new_size = (int(frames[0].width * 0.75), int(frames[0].height * 0.75))
+            frames = [f.resize(new_size, Image.Resampling.LANCZOS) for f in frames]
+        
         frames[0].save(output_path, save_all=True, append_images=frames[1:],
                       optimize=True, duration=img.info.get('duration', 100), loop=0)
-        print(f"       {size_mb:.2f} MB  {os.path.getsize(output_path)/(1024*1024):.2f} MB")
+        print(f"      {size_mb:.2f} MB -> {os.path.getsize(output_path)/(1024*1024):.2f} MB")
         return output_path
     except Exception as e:
-        print(f"       Error: {e}")
+        print(f"      Error: {e}")
         import shutil
         shutil.copy2(input_path, output_path)
         return output_path
@@ -164,11 +170,11 @@ def generar_ppt(volcan_nombre):
         # NUEVO: Reemplazar nombre del volcan en texto final
         elif ("volcan" in texto.lower() or "volcano" in texto.lower()) and len(texto) > 50:
             import re
-            # Reemplazar TODOS los nombres de volcanes en TODOS los párrafos
+            # Reemplazar TODOS los nombres de volcanes en TODOS los parrafos
             cambio_realizado = False
             for volcan_antiguo in VOLCANES_ACTIVOS:
                 if volcan_antiguo.lower() in texto.lower():
-                    # Iterar sobre TODOS los párrafos (no solo el primero)
+                    # Iterar sobre TODOS los parrafos (no solo el primero)
                     for p in shape.text_frame.paragraphs:
                         texto_parrafo = p.text
                         if volcan_antiguo.lower() in texto_parrafo.lower():
