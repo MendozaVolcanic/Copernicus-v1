@@ -1,4 +1,4 @@
-name: Borrar y Re-descargar Imagenes (Buffer 3km)
+name: Borrar y Re-descargar Imagenes (Buffer 3km) v2
 
 on:
   workflow_dispatch:
@@ -27,6 +27,8 @@ jobs:
       
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Contar imagenes actuales
         run: |
@@ -36,7 +38,7 @@ jobs:
           
           if [ $total -eq 0 ]; then
             echo "⚠️  No hay imágenes para borrar"
-            exit 1
+            exit 0
           fi
       
       - name: Borrar TODAS las imagenes PNG
@@ -44,7 +46,10 @@ jobs:
           echo "🗑️  BORRANDO IMÁGENES..."
           find docs/sentinel2/ -name "*.png" -type f -delete
           
-          echo "✅ Imágenes borradas"
+          # También borrar metadata.csv para forzar regeneración
+          find docs/sentinel2/ -name "metadata.csv" -type f -delete
+          
+          echo "✅ Imágenes y metadata borrados"
       
       - name: Configurar Python
         uses: actions/setup-python@v4
@@ -75,18 +80,48 @@ jobs:
             exit 1
           fi
       
-      - name: Commit cambios
+      - name: Commit cambios con retry
         run: |
           git config user.name "RedownloadBot"
           git config user.email "redownload@copernicus.com"
           
           git add docs/sentinel2/
           
-          if ! git diff --quiet --staged; then
-            git commit -m "Re-descarga: TODAS las imágenes con BUFFER_KM = 3km"
-            git pull origin main --rebase -X ours
-            git push origin main
-            echo "✅ Imágenes nuevas guardadas"
-          else
+          if git diff --quiet --staged; then
             echo "⚠️  No hay cambios para guardar"
+            exit 0
           fi
+          
+          # Commit
+          git commit -m "Re-descarga: TODAS las imágenes con BUFFER_KM = 3km"
+          
+          # Push con retry (hasta 5 intentos)
+          max_retries=5
+          retry_count=0
+          
+          while [ $retry_count -lt $max_retries ]; do
+            echo "📤 Intento $((retry_count + 1)) de push..."
+            
+            # Pull con rebase
+            if git pull origin main --rebase -X ours; then
+              echo "✅ Pull exitoso"
+            else
+              echo "⚠️  Pull falló, continuando..."
+            fi
+            
+            # Push
+            if git push origin main; then
+              echo "✅ Push exitoso"
+              exit 0
+            else
+              retry_count=$((retry_count + 1))
+              if [ $retry_count -lt $max_retries ]; then
+                echo "⚠️  Push falló, esperando $((retry_count * 3)) segundos..."
+                sleep $((retry_count * 3))
+              fi
+            fi
+          done
+          
+          echo "❌ Push falló después de $max_retries intentos"
+          echo "⚠️  Las imágenes están descargadas pero no se guardaron en GitHub"
+          exit 1
