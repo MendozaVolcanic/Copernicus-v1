@@ -168,7 +168,7 @@ def generar_ppt(volcan_nombre):
             textos_ok += 1
         
         # NUEVO: Reemplazar nombre del volcan en texto final
-        elif ("volcan" in texto.lower() or "volcano" in texto.lower()) and len(texto) > 50:
+        elif ("volcán" in texto.lower() or "volcan" in texto.lower() or "volcano" in texto.lower()):
             import re
             # Reemplazar TODOS los nombres de volcanes en TODOS los parrafos
             cambio_realizado = False
