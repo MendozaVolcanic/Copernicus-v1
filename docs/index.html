@@ -1167,6 +1167,7 @@
             thermalContainer.innerHTML = '<div class="loading-spinner"></div>';
             
             const rgbImg = new Image();
+            rgbImg.crossOrigin = "anonymous";  // Permitir canvas CORS
             rgbImg.onload = async () => {
                 // Agregar escala con canvas
                 const imgConEscala = await agregarEscalaAImagen(rgbImg);
@@ -1186,6 +1187,7 @@
             rgbImg.src = rgbUrl;
             
             const thermalImg = new Image();
+            thermalImg.crossOrigin = "anonymous";  // Permitir canvas CORS
             thermalImg.onload = async () => {
                 // Agregar escala con canvas
                 const imgConEscala = await agregarEscalaAImagen(thermalImg);
@@ -1427,7 +1429,7 @@
             
             const firstDiay = new Date(calendarYear, calendarMonth, 1);
             const lastDiay = new Date(calendarYear, calendarMonth + 1, 0);
-            const startDiay = firstDiay.getDiay();
+            const startDiay = firstDiay.getDay();
             
             // NUEVO: Cargar fechas Copernicus
             const fechasCopernicus = fechasDisponiblesCopernicus[currentVolcano] || [];
@@ -1564,7 +1566,7 @@
             
             const firstDiay = new Date(calendarCopernicusYear, calendarCopernicusMonth, 1);
             const lastDiay = new Date(calendarCopernicusYear, calendarCopernicusMonth + 1, 0);
-            const startDiay = firstDiay.getDiay();
+            const startDiay = firstDiay.getDay();
             
             // Cargar fechas Copernicus para este volcn
             const fechasCopernicus = fechasDisponiblesCopernicus[currentVolcano] || [];
