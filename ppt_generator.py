@@ -182,6 +182,26 @@ def generar_ppt(volcan_nombre):
                             patron = re.compile(re.escape(volcan_antiguo), re.IGNORECASE)
                             texto_nuevo_p = patron.sub(volcan_nombre, texto_parrafo)
                             
+                            # NUEVO: También reemplazar "mes de [mes] [año]"
+                            # Extraer mes y año de fecha_fin
+                            from datetime import datetime
+                            try:
+                                dt = datetime.strptime(fecha_fin, '%Y-%m-%d')
+                                mes_actual = MESES_ES[dt.month]
+                                ano_actual = dt.year
+                                
+                                # Buscar patrón "mes de [cualquier mes] [año]"
+                                patron_fecha = re.compile(
+                                    r'(mes de )\w+(?: \d{4})?',
+                                    re.IGNORECASE
+                                )
+                                texto_nuevo_p = patron_fecha.sub(
+                                    f"mes de {mes_actual} {ano_actual}",
+                                    texto_nuevo_p
+                                )
+                            except:
+                                pass
+                            
                             if texto_nuevo_p != texto_parrafo:
                                 # Guardar formato
                                 fmt = None
