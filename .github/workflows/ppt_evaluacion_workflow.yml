@@ -1,3 +1,10 @@
+# ============================================================================
+# WORKFLOW: PPT EVALUACIÓN COMPLETA - TODOS LOS VOLCANES
+# ============================================================================
+# CORRECCIÓN: Reemplazar "año" por "anio" para evitar error GitHub Actions
+# GitHub Actions no soporta caracteres con tilde en nombres de inputs
+# ============================================================================
+
 name: PPT Evaluación Completa (Todos los Volcanes)
 
 on:
@@ -7,7 +14,7 @@ on:
         description: 'Mes a procesar (1-12)'
         required: true
         default: '2'
-      año:
+      anio:  # CORREGIDO: "año" → "anio" (sin tilde)
         description: 'Año a procesar'
         required: true
         default: '2026'
@@ -43,9 +50,16 @@ jobs:
       - name: Generar PPT Completo
         env:
           MES: ${{ github.event.inputs.mes }}
-          AÑO: ${{ github.event.inputs.año }}
+          ANIO: ${{ github.event.inputs.anio }}  # CORREGIDO: "año" → "anio"
         run: |
           python3 << 'EOFPY'
+          # ====================================================================
+          # GENERADOR PPT COMPLETO - INLINE PYTHON SCRIPT
+          # ====================================================================
+          # Genera PPT individual para cada volcán del mes seleccionado
+          # Usa variables de entorno MES y ANIO de GitHub Actions
+          # ====================================================================
+          
           import os
           import glob
           import sys
@@ -55,69 +69,71 @@ jobs:
           from pptx.util import Inches, Pt
           from PIL import Image
           
+          # Lista completa de 43 volcanes activos
           VOLCANES = [
-              # ZONA NORTE
+              # ZONA NORTE (8 volcanes)
               "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", 
               "Ollague", "San Pedro", "Lascar",
-              # ZONA CENTRO
+              # ZONA CENTRO (9 volcanes)
               "Tupungatito", "San Jose", "Tinguiririca", "Planchon-Peteroa", 
               "Descabezado Grande", "Tatara-San Pedro", "Laguna del Maule", 
               "Nevado de Longavi", "Nevados de Chillan",
-              # ZONA SUR
+              # ZONA SUR (13 volcanes)
               "Antuco", "Copahue", "Callaqui", "Lonquimay", "Llaima", 
               "Sollipulli", "Villarrica", "Quetrupillan", "Lanin", 
               "Mocho-Choshuenco", "Carran - Los Venados", 
               "Puyehue - Cordon Caulle", "Antillanca - Casablanca",
-              # ZONA AUSTRAL
+              # ZONA AUSTRAL (13 volcanes)
               "Osorno", "Calbuco", "Yate", "Hornopiren", "Huequi", 
               "Michinmahuida", "Chaiten", "Corcovado", "Melimoyu", 
               "Mentolat", "Cay", "Maca", "Hudson"
           ]
           
+          # Diccionario de nombres de meses en español
           MESES_ES = {
               1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril',
               5: 'mayo', 6: 'junio', 7: 'julio', 8: 'agosto',
               9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre'
           }
           
+          # Leer variables de entorno de GitHub Actions
           mes = int(os.getenv('MES'))
-          año = int(os.getenv('AÑO'))
+          anio = int(os.getenv('ANIO'))  # CORREGIDO: usar ANIO en lugar de AÑO
           
           print(f"="*80)
-          print(f"GENERANDO PPT COMPLETO: {MESES_ES[mes].upper()} {año}")
+          print(f"GENERANDO PPT COMPLETO: {MESES_ES[mes].upper()} {anio}")
           print(f"="*80)
           
-          # Calcular rango de fechas del mes
-          fecha_inicio = datetime(año, mes, 1)
+          # Calcular rango de fechas del mes seleccionado
+          fecha_inicio = datetime(anio, mes, 1)
           if mes == 12:
-              fecha_fin = datetime(año, 12, 31)
+              fecha_fin = datetime(anio, 12, 31)
           else:
-              fecha_fin = datetime(año, mes + 1, 1) - timedelta(days=1)
+              fecha_fin = datetime(anio, mes + 1, 1) - timedelta(days=1)
           
           fecha_inicio_str = fecha_inicio.strftime('%Y-%m-%d')
           fecha_fin_str = fecha_fin.strftime('%Y-%m-%d')
           
           print(f"\nRango: {fecha_inicio_str} → {fecha_fin_str}")
           
-          # Crear presentación base
+          # Ruta de plantilla base
           plantilla = "docs/plantillas/Cambios_morfologicos.pptx"
           prs_base = Presentation(plantilla)
           
-          # Crear nueva presentación para combinar todas
+          # Crear nueva presentación (placeholder para futuro merge)
           prs_completo = Presentation()
           prs_completo.slide_width = prs_base.slide_width
           prs_completo.slide_height = prs_base.slide_height
           
-          # Copiar slide master de plantilla
-          # (esto mantiene el diseño base)
-          
+          # Contadores de progreso
           volcanes_procesados = 0
           volcanes_sin_datos = 0
           
+          # Iterar sobre cada volcán
           for volcan in VOLCANES:
               print(f"\n🌋 {volcan}")
               
-              # Buscar timelapses del volcán
+              # Buscar carpeta de timelapses del volcán
               carpeta_timelapses = f"docs/sentinel2/{volcan}/timelapses_ppt"
               
               if not os.path.exists(carpeta_timelapses):
@@ -125,19 +141,20 @@ jobs:
                   volcanes_sin_datos += 1
                   continue
               
-              # Buscar GIFs del mes específico
-              pattern_rgb = f"{carpeta_timelapses}/{volcan}_RGB_*{año}-{mes:02d}*.gif"
-              pattern_thermal = f"{carpeta_timelapses}/{volcan}_ThermalFalseColor_*{año}-{mes:02d}*.gif"
+              # Buscar GIFs del mes específico (patrón: *YYYY-MM*.gif)
+              pattern_rgb = f"{carpeta_timelapses}/{volcan}_RGB_*{anio}-{mes:02d}*.gif"
+              pattern_thermal = f"{carpeta_timelapses}/{volcan}_ThermalFalseColor_*{anio}-{mes:02d}*.gif"
               
               gifs_rgb = sorted(glob.glob(pattern_rgb))
               gifs_thermal = sorted(glob.glob(pattern_thermal))
               
               if not gifs_rgb or not gifs_thermal:
-                  print(f"   ⚠️ Sin GIFs para {MESES_ES[mes]} {año}")
+                  print(f"   ⚠️ Sin GIFs para {MESES_ES[mes]} {anio}")
                   volcanes_sin_datos += 1
                   continue
               
-              gif_rgb = gifs_rgb[-1]  # Más reciente
+              # Tomar el GIF más reciente de cada tipo
+              gif_rgb = gifs_rgb[-1]
               gif_thermal = gifs_thermal[-1]
               
               print(f"   ✅ RGB: {os.path.basename(gif_rgb)}")
@@ -147,48 +164,58 @@ jobs:
               prs_volcan = Presentation(plantilla)
               slide = prs_volcan.slides[0]
               
-              # Actualizar textos del slide
+              # ============================================================
+              # ACTUALIZAR TEXTOS DEL SLIDE
+              # ============================================================
+              # Buscar y reemplazar nombre del volcán y mes/año en textos
+              # ============================================================
               for shape in slide.shapes:
                   if not hasattr(shape, "text_frame"):
                       continue
                   
                   texto = shape.text.lower()
                   
-                  # Reemplazar nombre del volcán
+                  # Reemplazar nombre del volcán en cualquier texto que mencione volcanes
                   if "volcán" in texto or "volcan" in texto:
                       for p in shape.text_frame.paragraphs:
                           for run in p.runs:
-                              # Reemplazar cualquier nombre de volcán anterior
+                              # Buscar y reemplazar cualquier nombre de volcán anterior
                               for v_antiguo in VOLCANES:
                                   if v_antiguo.lower() in run.text.lower():
                                       run.text = run.text.replace(v_antiguo, volcan)
                                       break
                       
-                      # Actualizar mes y año
+                      # Actualizar mes y año en textos que mencionen "mes de"
                       for p in shape.text_frame.paragraphs:
                           texto_p = p.text.lower()
                           if "mes de" in texto_p:
                               for run in p.runs:
                                   import re
+                                  # Patrón: "mes de [cualquier_mes] [año]"
                                   patron = re.compile(r'(mes de )\w+(?: \d{4})?', re.IGNORECASE)
-                                  run.text = patron.sub(f"mes de {MESES_ES[mes]} {año}", run.text)
+                                  run.text = patron.sub(f"mes de {MESES_ES[mes]} {anio}", run.text)
               
-              # Reemplazar GIFs (buscar imágenes en el slide)
+              # ============================================================
+              # REEMPLAZAR GIFs EN SLIDE
+              # ============================================================
+              # Buscar placeholders de imagen y reemplazarlos con GIFs
+              # ============================================================
               shapes_img = [s for s in slide.shapes if s.shape_type == 13]
-              shapes_img.sort(key=lambda x: x.top)
+              shapes_img.sort(key=lambda x: x.top)  # Ordenar de arriba a abajo
               
               if len(shapes_img) >= 2:
-                  # Comprimir GIFs si son muy grandes
+                  # Función para comprimir GIF si es muy grande (>1.2 MB)
                   def comprimir_gif_temp(gif_path, max_mb=1.2):
                       temp_path = f"/tmp/{os.path.basename(gif_path)}"
                       size_mb = os.path.getsize(gif_path) / (1024 * 1024)
                       
+                      # Si es pequeño, copiar directo
                       if size_mb <= max_mb:
                           import shutil
                           shutil.copy2(gif_path, temp_path)
                           return temp_path
                       
-                      # Comprimir
+                      # Comprimir reduciendo colores a 128
                       img = Image.open(gif_path)
                       frames = []
                       try:
@@ -199,45 +226,49 @@ jobs:
                       except EOFError:
                           pass
                       
+                      # Guardar con optimización
                       frames[0].save(temp_path, save_all=True, append_images=frames[1:],
                                     optimize=True, duration=img.info.get('duration', 1000), loop=0)
                       return temp_path
                   
+                  # Comprimir ambos GIFs
                   gif_rgb_comp = comprimir_gif_temp(gif_rgb)
                   gif_thermal_comp = comprimir_gif_temp(gif_thermal)
                   
-                  # RGB (arriba)
+                  # Reemplazar imagen RGB (arriba)
                   s = shapes_img[0]
                   s.element.getparent().remove(s.element)
                   slide.shapes.add_picture(gif_rgb_comp, s.left, s.top, s.width, s.height)
                   
-                  # Thermal (abajo)
+                  # Reemplazar imagen Thermal (abajo)
                   s = shapes_img[1]
                   s.element.getparent().remove(s.element)
                   slide.shapes.add_picture(gif_thermal_comp, s.left, s.top, s.width, s.height)
                   
                   print(f"   ✅ GIFs insertados")
               
-              # Copiar slide a presentación completa
-              # (esto es complejo en python-pptx, alternativa: guardar individual y combinar)
-              
-              # ALTERNATIVA: Guardar PPT individual primero
+              # ============================================================
+              # GUARDAR PPT INDIVIDUAL
+              # ============================================================
+              # Guardar en: docs/sentinel2/{volcan}/reportes/
+              # ============================================================
               os.makedirs(f"docs/sentinel2/{volcan}/reportes", exist_ok=True)
-              ppt_individual = f"docs/sentinel2/{volcan}/reportes/{volcan}_Evaluacion_{año}-{mes:02d}.pptx"
+              ppt_individual = f"docs/sentinel2/{volcan}/reportes/{volcan}_Evaluacion_{anio}-{mes:02d}.pptx"
               prs_volcan.save(ppt_individual)
               print(f"   💾 Guardado: {ppt_individual}")
               
               volcanes_procesados += 1
           
+          # Resumen final
           print(f"\n{'='*80}")
           print(f"COMPLETADO")
           print(f"   ✅ Procesados: {volcanes_procesados}")
           print(f"   ⚠️ Sin datos: {volcanes_sin_datos}")
           print(f"{'='*80}")
           
-          # NOTA: Combinar PPTs individuales requiere librería adicional
-          # Por ahora, genera PPTs individuales por volcán
-          # TODO: Implementar merge de PPTs en v2.0
+          # NOTA: Merge de PPTs requiere librería adicional
+          # Por ahora genera PPTs individuales (1 por volcán)
+          # TODO v2.0: Implementar combinación en archivo único
           
           EOFPY
       
@@ -246,31 +277,38 @@ jobs:
           git config user.name "PPTCompletoBot"
           git config user.email "pptcompleto@copernicus.com"
           
+          # Agregar todos los PPTs generados
           git add docs/sentinel2/**/reportes/*.pptx
           
+          # Verificar si hay cambios
           if git diff --quiet --staged; then
             echo "⚠️ No hay PPTs nuevos"
             exit 0
           fi
           
-          git commit -m "PPT Completo: ${{ github.event.inputs.mes }}/${{ github.event.inputs.año }} (todos los volcanes)"
+          # Commit con información del mes/año
+          git commit -m "PPT Completo: ${{ github.event.inputs.mes }}/${{ github.event.inputs.anio }} (todos los volcanes)"
           
+          # Push con retry logic (5 intentos máximo)
           max_retries=5
           retry_count=0
           
           while [ $retry_count -lt $max_retries ]; do
             echo "📤 Intento $((retry_count + 1))..."
             
+            # Pull con rebase para evitar conflictos
             git pull origin main --rebase -X ours || true
             
+            # Intentar push
             if git push origin main; then
               echo "✅ Push exitoso"
               exit 0
             fi
             
+            # Si falla, esperar antes de reintentar
             retry_count=$((retry_count + 1))
             [ $retry_count -lt $max_retries ] && sleep $((retry_count * 3))
           done
           
-          echo "❌ Push falló"
+          echo "❌ Push falló después de $max_retries intentos"
           exit 1
