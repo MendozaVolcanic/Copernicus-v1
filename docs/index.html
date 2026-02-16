@@ -26,7 +26,7 @@
         /* HEADER */
         header {
             background: linear-gradient(90deg, #161b22 0%, #1f2937 100%);
-            padding: 20px;
+            padding: 0;
             text-align: center;
             border-bottom: 2px solid #58a6ff;
             box-shadow: 0 4px 20px rgba(88, 166, 255, 0.3);
@@ -53,13 +53,13 @@
             align-items: center;
             border-bottom: 1px solid #30363d;
             flex-wrap: wrap;
-            gap: 10px;
+            gap: 6px;
         }
 
         .status-item {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 3px;
             font-size: 0.85em;
         }
 
@@ -96,7 +96,7 @@
 
         .action-buttons {
             display: flex;
-            gap: 10px;
+            gap: 6px;
         }
 
         /* SELECTOR DE VOLCAN + CALENDARIO */
@@ -105,7 +105,7 @@
             padding: 15px 20px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 6px;
             border-bottom: 1px solid #30363d;
             flex-wrap: wrap;
         }
@@ -142,7 +142,7 @@
             background: #161b22;
             border: 2px solid #58a6ff;
             border-radius: 10px;
-            padding: 20px;
+            padding: 0;
             max-width: 450px;
             width: 90%;
         }
@@ -151,7 +151,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 0;
         }
 
         .calendar-header h3 {
@@ -172,7 +172,7 @@
 
         .calendar-selectors {
             display: flex;
-            gap: 10px;
+            gap: 6px;
             margin-bottom: 15px;
         }
 
@@ -181,21 +181,21 @@
             background: #0d1117;
             color: #e0e0e0;
             border: 1px solid #30363d;
-            padding: 5px;
+            padding: 3px;
             border-radius: 6px;
         }
 
         #calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
+            gap: 3px;
             margin-top: 10px;
         }
 
         #calendar-copernicus-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
-            gap: 5px;
+            gap: 3px;
             margin-top: 10px;
         }
 
@@ -204,11 +204,11 @@
             color: #8b949e;
             font-size: 0.85em;
             font-weight: bold;
-            padding: 5px;
+            padding: 3px;
         }
 
         .calendar-day {
-            padding: 5px;
+            padding: 3px;
             text-align: center;
             border-radius: 4px;
             transition: all 0.2s;
@@ -249,7 +249,7 @@
             margin-top: 15px;
             font-size: 0.8em;
             display: flex;
-            gap: 10px;
+            gap: 6px;
             justify-content: center;
             color: #8b949e;
         }
@@ -257,7 +257,7 @@
         .legend-item {
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 3px;
         }
 
         .legend-box {
@@ -269,7 +269,7 @@
         /* TIMELAPSES AUTOMTICOS */
         #timelapse-automatico {
             background: #161b22;
-            padding: 20px;
+            padding: 0;
             margin: 20px;
             border-radius: 10px;
             border: 2px solid #58a6ff;
@@ -283,7 +283,7 @@
 
         .timelapse-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(650px, 1fr));
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
             margin-top: 15px;
         }
@@ -291,20 +291,20 @@
         .timelapse-card {
             background: #0d1117;
             border: 1px solid #30363d;
-            border-radius: 8px;
-            padding: 10px;
+            border-radius: 4px;
+            padding: 8px;
         }
 
         .timelapse-card h3 {
             color: #58a6ff;
-            margin-bottom: 10px;
+            margin-bottom: 0;
             font-size: 1.1em;
         }
 
         .timelapse-card img {
             width: 100%;
             border-radius: 6px;
-            margin-bottom: 10px;
+            margin-bottom: 0;
             cursor: pointer;
             transition: transform 0.2s;
         }
@@ -328,13 +328,13 @@
 
         #timeline h3 {
             color: #58a6ff;
-            margin-bottom: 10px;
+            margin-bottom: 0;
             font-size: 1em;
         }
 
         #timeline-dates {
             display: flex;
-            gap: 5px;
+            gap: 3px;
             overflow-x: auto;
             padding-bottom: 5px;
         }
@@ -376,7 +376,7 @@
         /* COMPARACIN DE IMGENES */
         #image-comparison {
             background: #0d1117;
-            padding: 20px;
+            padding: 0;
             margin: 15px 20px;
             border-radius: 10px;
         }
@@ -389,19 +389,19 @@
         .image-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 10px;
+            gap: 6px;
         }
 
         .image-panel {
             background: #161b22;
-            border-radius: 8px;
-            padding: 10px;
+            border-radius: 4px;
+            padding: 8px;
             border: 1px solid #30363d;
         }
 
         .image-panel h4 {
             color: #58a6ff;
-            margin-bottom: 10px;
+            margin-bottom: 0;
             font-size: 1em;
         }
 
@@ -475,7 +475,7 @@
         /* TIMELAPSE CONTAINER */
         #timelapse-container {
             background: #161b22;
-            padding: 20px;
+            padding: 0;
             margin: 15px 20px;
             border-radius: 10px;
             display: none;
@@ -484,19 +484,19 @@
         .gif-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 10px;
+            gap: 6px;
             margin-top: 15px;
         }
 
         .gif-panel {
             background: #0d1117;
-            border-radius: 8px;
-            padding: 10px;
+            border-radius: 4px;
+            padding: 8px;
         }
 
         .gif-panel h4 {
             color: #58a6ff;
-            margin-bottom: 10px;
+            margin-bottom: 0;
         }
 
         .gif-container {
@@ -518,7 +518,7 @@
         /* METADATA */
         #metadata {
             background: #161b22;
-            padding: 20px;
+            padding: 0;
             margin: 15px 20px;
             border-radius: 10px;
         }
@@ -531,7 +531,7 @@
         .metadata-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
+            gap: 6px;
         }
 
         .metadata-item {
@@ -568,7 +568,7 @@
 
         .timelapse-header {
             background: #161b22;
-            padding: 20px;
+            padding: 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -581,7 +581,7 @@
         .timelapse-content {
             flex: 1;
             overflow-y: auto;
-            padding: 20px;
+            padding: 0;
         }
 
         /* CAMBIO QUIRRGICO 1: ESCALAS TIMELAPSES */
@@ -830,7 +830,7 @@
         </div>
 
         <div id="timelapse-container">
-            <h3 style="color: #58a6ff; margin-bottom: 10px;"> Timelapses del Mes</h3>
+            <h3 style="color: #58a6ff; margin-bottom: 0;"> Timelapses del Mes</h3>
             <div class="gif-grid">
                 <div class="gif-panel">
                     <h4> RGB</h4>
@@ -901,14 +901,14 @@
             <button class="btn-ui" onclick="toggleTimelapseMode()"> Volver al Dashboard</button>
         </div>
         <div class="timelapse-content">
-            <div id="volcanes-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(650px, 1fr)); gap: 10px; padding: 10px;">
+            <div id="volcanes-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;">
                 <!-- Se llena dinámicamente con JavaScript -->
             </div>
         </div>
     </div>
 
     <!-- CAMBIO QUIRRGICO 7: CRDITOS -->
-    <footer style="background: #0d1117; padding: 20px; text-align: center; color: #8b949e; border-top: 1px solid #30363d; font-size: 0.85em; line-height: 1.8; margin-top: 40px;">
+    <footer style="background: #0d1117; padding: 0; text-align: center; color: #8b949e; border-top: 1px solid #30363d; font-size: 0.85em; line-height: 1.8; margin-top: 40px;">
         <p><strong style="color: #58a6ff;"> Fuente de Datos:</strong></p>
         <p>
             Sentinel-2 L2A (ESA/Copernicus) | 
@@ -930,7 +930,7 @@
         </p>
         
         <p style="margin-top: 15px; font-size: 0.75em; color: #6e7681;">
-             2026 Sistema de Monitoreo Volcánico Automatizado - Chile
+             2025 Sistema de Monitoreo Volcánico Automatizado - Chile
         </p>
     </footer>
 
@@ -1250,7 +1250,7 @@
             
             for (const volcan of volcanesZona) {
                 const panel = document.createElement('div');
-                panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 10px;';
+                panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 8px;';
                 
                 // Obtener ultima fecha
                 let ultimaFecha = '';
@@ -1271,14 +1271,14 @@
                 panel.innerHTML = `
                     <h2 style="color: #58a6ff; margin-bottom: 5px;">${volcan}</h2>
                     ${ultimaFecha ? `<p style="color: #8b949e; font-size: 0.85em; margin-bottom: 15px;"> ${ultimaFecha}</p>` : ''}
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                        <div style="background: #0d1117; border-radius: 6px; padding: 5px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 3px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">RGB</h4>
                             <div id="rgb-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
                                 <div class="loading-spinner"></div>
                             </div>
                         </div>
-                        <div style="background: #0d1117; border-radius: 6px; padding: 5px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 3px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">Thermal</h4>
                             <div id="thermal-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
                                 <div class="loading-spinner"></div>
@@ -1333,7 +1333,7 @@
             
             for (const volcan of volcanesActivos) {
                 const panel = document.createElement('div');
-                panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 10px;';
+                panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 8px;';
                 
                 // Obtener ultima fecha
                 let ultimaFecha = '';
@@ -1354,14 +1354,14 @@
                 panel.innerHTML = `
                     <h2 style="color: #58a6ff; margin-bottom: 5px;">${volcan}</h2>
                     ${ultimaFecha ? `<p style="color: #8b949e; font-size: 0.85em; margin-bottom: 15px;"> ${ultimaFecha}</p>` : ''}
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
-                        <div style="background: #0d1117; border-radius: 6px; padding: 5px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 3px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">RGB</h4>
                             <div id="rgb-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
                                 <div class="loading-spinner"></div>
                             </div>
                         </div>
-                        <div style="background: #0d1117; border-radius: 6px; padding: 5px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 3px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">Thermal</h4>
                             <div id="thermal-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
                                 <div class="loading-spinner"></div>
@@ -1703,7 +1703,7 @@
                 top: 0;
                 width: 100%;
                 background: #161b22;
-                padding: 20px;
+                padding: 0;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
@@ -1763,7 +1763,7 @@
                 top: 0;
                 width: 100%;
                 background: #161b22;
-                padding: 20px;
+                padding: 0;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
