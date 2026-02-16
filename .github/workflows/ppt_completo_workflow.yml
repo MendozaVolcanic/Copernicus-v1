@@ -1,0 +1,223 @@
+# ============================================================================
+# WORKFLOW: PPT EVALUACIÓN COMPLETA (TODOS LOS VOLCANES)
+# ============================================================================
+# Genera PPTs individuales para TODOS los volcanes de un mes específico
+# Requiere que existan timelapses_ppt/ (ejecutar ppt_timelapses_workflow.yml primero)
+# ============================================================================
+
+name: PPT Evaluación Completa (Todos los Volcanes)
+
+on:
+  workflow_dispatch:
+    inputs:
+      mes:
+        description: 'Mes a procesar (1-12)'
+        required: true
+        default: '2'
+      anio:
+        description: 'Año a procesar'
+        required: true
+        default: '2026'
+
+permissions:
+  contents: write
+
+jobs:
+  generar-ppts-completos:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Instalar dependencias
+        run: |
+          pip install python-pptx Pillow requests python-dateutil
+      
+      - name: Verificar plantilla
+        run: |
+          if [ ! -f "docs/plantillas/Cambios_morfologicos.pptx" ]; then
+            echo "❌ Plantilla NO encontrada"
+            exit 1
+          fi
+          echo "✅ Plantilla encontrada"
+      
+      - name: Generar PPTs para todos los volcanes
+        env:
+          MES: ${{ github.event.inputs.mes }}
+          ANIO: ${{ github.event.inputs.anio }}
+        run: |
+          python3 << 'EOFPY'
+          import os
+          import glob
+          from datetime import datetime
+          from pptx import Presentation
+          from PIL import Image
+          
+          # Lista 43 volcanes
+          VOLCANES = [
+              # ZONA NORTE
+              "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", 
+              "Ollague", "San Pedro", "Lascar",
+              # ZONA CENTRO
+              "Tupungatito", "San Jose", "Tinguiririca", "Planchon-Peteroa", 
+              "Descabezado Grande", "Tatara-San Pedro", "Laguna del Maule", 
+              "Nevado de Longavi", "Nevados de Chillan",
+              # ZONA SUR
+              "Antuco", "Copahue", "Callaqui", "Lonquimay", "Llaima", 
+              "Sollipulli", "Villarrica", "Quetrupillan", "Lanin", 
+              "Mocho-Choshuenco", "Carran - Los Venados", 
+              "Puyehue - Cordon Caulle", "Antillanca - Casablanca",
+              # ZONA AUSTRAL
+              "Osorno", "Calbuco", "Yate", "Hornopiren", "Huequi", 
+              "Michinmahuida", "Chaiten", "Corcovado", "Melimoyu", 
+              "Mentolat", "Cay", "Maca", "Hudson"
+          ]
+          
+          MESES_ES = {
+              1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril',
+              5: 'mayo', 6: 'junio', 7: 'julio', 8: 'agosto',
+              9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre'
+          }
+          
+          mes = int(os.getenv('MES'))
+          anio = int(os.getenv('ANIO'))
+          
+          print(f"{'='*80}")
+          print(f"PPT COMPLETO: {MESES_ES[mes].upper()} {anio}")
+          print(f"{'='*80}")
+          
+          plantilla = "docs/plantillas/Cambios_morfologicos.pptx"
+          
+          procesados = 0
+          sin_datos = 0
+          
+          for volcan in VOLCANES:
+              print(f"\n🌋 {volcan}")
+              
+              carpeta_timelapses = f"docs/sentinel2/{volcan}/timelapses_ppt"
+              
+              if not os.path.exists(carpeta_timelapses):
+                  print(f"   ⚠️ Sin carpeta timelapses")
+                  sin_datos += 1
+                  continue
+              
+              # Buscar GIFs del mes específico
+              pattern_rgb = f"{carpeta_timelapses}/{volcan}_RGB_*{anio}-{mes:02d}*.gif"
+              pattern_thermal = f"{carpeta_timelapses}/{volcan}_ThermalFalseColor_*{anio}-{mes:02d}*.gif"
+              
+              gifs_rgb = sorted(glob.glob(pattern_rgb))
+              gifs_thermal = sorted(glob.glob(pattern_thermal))
+              
+              if not gifs_rgb or not gifs_thermal:
+                  print(f"   ⚠️ Sin GIFs para {MESES_ES[mes]} {anio}")
+                  sin_datos += 1
+                  continue
+              
+              gif_rgb = gifs_rgb[-1]
+              gif_thermal = gifs_thermal[-1]
+              
+              print(f"   ✅ RGB: {os.path.basename(gif_rgb)}")
+              print(f"   ✅ Thermal: {os.path.basename(gif_thermal)}")
+              
+              # Cargar plantilla
+              prs = Presentation(plantilla)
+              slide = prs.slides[0]
+              
+              # Comprimir GIF si es muy grande
+              def comprimir_gif(input_path, max_mb=1.2):
+                  temp_path = f"/tmp/{os.path.basename(input_path)}"
+                  size_mb = os.path.getsize(input_path) / (1024 * 1024)
+                  
+                  if size_mb <= max_mb:
+                      import shutil
+                      shutil.copy2(input_path, temp_path)
+                      return temp_path
+                  
+                  img = Image.open(input_path)
+                  frames = []
+                  try:
+                      while True:
+                          frame = img.copy().convert('P', palette=Image.ADAPTIVE, colors=128)
+                          frames.append(frame)
+                          img.seek(img.tell() + 1)
+                  except EOFError:
+                      pass
+                  
+                  frames[0].save(temp_path, save_all=True, append_images=frames[1:],
+                                optimize=True, duration=img.info.get('duration', 1000), loop=0)
+                  return temp_path
+              
+              gif_rgb_comp = comprimir_gif(gif_rgb)
+              gif_thermal_comp = comprimir_gif(gif_thermal)
+              
+              # Reemplazar GIFs
+              shapes_img = [s for s in slide.shapes if s.shape_type == 13]
+              shapes_img.sort(key=lambda x: x.top)
+              
+              if len(shapes_img) >= 2:
+                  # RGB
+                  s = shapes_img[0]
+                  s.element.getparent().remove(s.element)
+                  slide.shapes.add_picture(gif_rgb_comp, s.left, s.top, s.width, s.height)
+                  
+                  # Thermal
+                  s = shapes_img[1]
+                  s.element.getparent().remove(s.element)
+                  slide.shapes.add_picture(gif_thermal_comp, s.left, s.top, s.width, s.height)
+                  
+                  print(f"   ✅ GIFs insertados")
+              
+              # Guardar PPT
+              os.makedirs(f"docs/sentinel2/{volcan}/reportes", exist_ok=True)
+              ppt_path = f"docs/sentinel2/{volcan}/reportes/{volcan}_Evaluacion_{anio}-{mes:02d}.pptx"
+              prs.save(ppt_path)
+              print(f"   💾 {ppt_path}")
+              
+              procesados += 1
+          
+          print(f"\n{'='*80}")
+          print(f"COMPLETADO")
+          print(f"   ✅ Procesados: {procesados}")
+          print(f"   ⚠️ Sin datos: {sin_datos}")
+          print(f"{'='*80}")
+          EOFPY
+      
+      - name: Commit PPTs
+        run: |
+          git config user.name "PPTCompletoBot"
+          git config user.email "pptcompleto@copernicus.com"
+          
+          git add docs/sentinel2/**/reportes/*.pptx
+          
+          if git diff --quiet --staged; then
+            echo "⚠️ No hay PPTs nuevos"
+            exit 0
+          fi
+          
+          git commit -m "PPT Completo: ${{ github.event.inputs.mes }}/${{ github.event.inputs.anio }} (todos los volcanes)"
+          
+          # Push con retry
+          max_retries=5
+          retry_count=0
+          
+          while [ $retry_count -lt $max_retries ]; do
+            echo "📤 Intento $((retry_count + 1))..."
+            git pull origin main --rebase -X ours || true
+            
+            if git push origin main; then
+              echo "✅ Push exitoso"
+              exit 0
+            fi
+            
+            retry_count=$((retry_count + 1))
+            [ $retry_count -lt $max_retries ] && sleep $((retry_count * 3))
+          done
+          
+          echo "❌ Push falló"
+          exit 1
