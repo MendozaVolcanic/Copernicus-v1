@@ -1,7 +1,7 @@
 # ============================================================================
 # WORKFLOW: PPT EVALUACIÓN COMPLETA (TODOS LOS VOLCANES)
 # ============================================================================
-# Genera PPTs individuales para TODOS los volcanes de un mes específico
+# Genera PPTs individuales para TODOS los volcanes de un rango de fechas
 # Requiere que existan timelapses_ppt/ (ejecutar ppt_timelapses_workflow.yml primero)
 # ============================================================================
 
@@ -10,14 +10,14 @@ name: PPT Evaluación Completa (Todos los Volcanes)
 on:
   workflow_dispatch:
     inputs:
-      mes:
-        description: 'Mes a procesar (1-12)'
+      fecha_inicio:
+        description: 'Fecha inicio (YYYY-MM-DD)'
         required: true
-        default: '2'
-      anio:
-        description: 'Año a procesar'
+        default: '2026-02-01'
+      fecha_fin:
+        description: 'Fecha fin (YYYY-MM-DD)'
         required: true
-        default: '2026'
+        default: '2026-02-28'
 
 permissions:
   contents: write
@@ -49,8 +49,8 @@ jobs:
       
       - name: Generar PPTs para todos los volcanes
         env:
-          MES: ${{ github.event.inputs.mes }}
-          ANIO: ${{ github.event.inputs.anio }}
+          FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
+          FECHA_FIN: ${{ github.event.inputs.fecha_fin }}
         run: |
           python3 << 'EOFPY'
           import os
@@ -85,11 +85,12 @@ jobs:
               9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre'
           }
           
-          mes = int(os.getenv('MES'))
-          anio = int(os.getenv('ANIO'))
+          # FIX: Usar fecha_inicio y fecha_fin en lugar de mes/año
+          fecha_inicio = os.getenv('FECHA_INICIO')
+          fecha_fin = os.getenv('FECHA_FIN')
           
           print(f"{'='*80}")
-          print(f"PPT COMPLETO: {MESES_ES[mes].upper()} {anio}")
+          print(f"PPT COMPLETO: {fecha_inicio} → {fecha_fin}")
           print(f"{'='*80}")
           
           plantilla = "docs/plantillas/Cambios_morfologicos.pptx"
@@ -107,20 +108,21 @@ jobs:
                   sin_datos += 1
                   continue
               
-              # Buscar GIFs del mes específico
-              pattern_rgb = f"{carpeta_timelapses}/{volcan}_RGB_*{anio}-{mes:02d}*.gif"
-              pattern_thermal = f"{carpeta_timelapses}/{volcan}_ThermalFalseColor_*{anio}-{mes:02d}*.gif"
+              # FIX: Buscar GIFs que coincidan con el rango de fechas
+              # Patrón: {Volcan}_{tipo}_{fecha_inicio}_{fecha_fin}.gif
+              pattern_rgb = f"{carpeta_timelapses}/{volcan}_RGB_{fecha_inicio}_{fecha_fin}.gif"
+              pattern_thermal = f"{carpeta_timelapses}/{volcan}_ThermalFalseColor_{fecha_inicio}_{fecha_fin}.gif"
               
-              gifs_rgb = sorted(glob.glob(pattern_rgb))
-              gifs_thermal = sorted(glob.glob(pattern_thermal))
+              gifs_rgb = glob.glob(pattern_rgb)
+              gifs_thermal = glob.glob(pattern_thermal)
               
               if not gifs_rgb or not gifs_thermal:
-                  print(f"   ⚠️ Sin GIFs para {MESES_ES[mes]} {anio}")
+                  print(f"   ⚠️ Sin GIFs para rango {fecha_inicio} → {fecha_fin}")
                   sin_datos += 1
                   continue
               
-              gif_rgb = gifs_rgb[-1]
-              gif_thermal = gifs_thermal[-1]
+              gif_rgb = gifs_rgb[0]
+              gif_thermal = gifs_thermal[0]
               
               print(f"   ✅ RGB: {os.path.basename(gif_rgb)}")
               print(f"   ✅ Thermal: {os.path.basename(gif_thermal)}")
@@ -173,9 +175,9 @@ jobs:
                   
                   print(f"   ✅ GIFs insertados")
               
-              # Guardar PPT
+              # Guardar PPT con rango de fechas en el nombre
               os.makedirs(f"docs/sentinel2/{volcan}/reportes", exist_ok=True)
-              ppt_path = f"docs/sentinel2/{volcan}/reportes/{volcan}_Evaluacion_{anio}-{mes:02d}.pptx"
+              ppt_path = f"docs/sentinel2/{volcan}/reportes/{volcan}_Evaluacion_{fecha_inicio}_{fecha_fin}.pptx"
               prs.save(ppt_path)
               print(f"   💾 {ppt_path}")
               
@@ -200,7 +202,7 @@ jobs:
             exit 0
           fi
           
-          git commit -m "PPT Completo: ${{ github.event.inputs.mes }}/${{ github.event.inputs.anio }} (todos los volcanes)"
+          git commit -m "PPT Completo: ${{ github.event.inputs.fecha_inicio }} → ${{ github.event.inputs.fecha_fin }} (todos los volcanes)"
           
           # Push con retry
           max_retries=5
