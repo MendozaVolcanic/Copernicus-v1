@@ -59,7 +59,7 @@
         .status-item {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 5px;
             font-size: 0.85em;
         }
 
@@ -105,7 +105,7 @@
             padding: 15px 20px;
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 10px;
             border-bottom: 1px solid #30363d;
             flex-wrap: wrap;
         }
@@ -151,7 +151,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .calendar-header h3 {
@@ -181,7 +181,7 @@
             background: #0d1117;
             color: #e0e0e0;
             border: 1px solid #30363d;
-            padding: 8px;
+            padding: 5px;
             border-radius: 6px;
         }
 
@@ -204,11 +204,11 @@
             color: #8b949e;
             font-size: 0.85em;
             font-weight: bold;
-            padding: 8px;
+            padding: 5px;
         }
 
         .calendar-day {
-            padding: 8px;
+            padding: 5px;
             text-align: center;
             border-radius: 4px;
             transition: all 0.2s;
@@ -249,7 +249,7 @@
             margin-top: 15px;
             font-size: 0.8em;
             display: flex;
-            gap: 15px;
+            gap: 10px;
             justify-content: center;
             color: #8b949e;
         }
@@ -292,7 +292,7 @@
             background: #0d1117;
             border: 1px solid #30363d;
             border-radius: 8px;
-            padding: 15px;
+            padding: 10px;
         }
 
         .timelapse-card h3 {
@@ -334,7 +334,7 @@
 
         #timeline-dates {
             display: flex;
-            gap: 8px;
+            gap: 5px;
             overflow-x: auto;
             padding-bottom: 5px;
         }
@@ -389,13 +389,13 @@
         .image-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 15px;
+            gap: 10px;
         }
 
         .image-panel {
             background: #161b22;
             border-radius: 8px;
-            padding: 15px;
+            padding: 10px;
             border: 1px solid #30363d;
         }
 
@@ -484,14 +484,14 @@
         .gif-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-            gap: 15px;
+            gap: 10px;
             margin-top: 15px;
         }
 
         .gif-panel {
             background: #0d1117;
             border-radius: 8px;
-            padding: 15px;
+            padding: 10px;
         }
 
         .gif-panel h4 {
@@ -531,7 +531,7 @@
         .metadata-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
+            gap: 10px;
         }
 
         .metadata-item {
@@ -901,7 +901,7 @@
             <button class="btn-ui" onclick="toggleTimelapseMode()"> Volver al Dashboard</button>
         </div>
         <div class="timelapse-content">
-            <div id="volcanes-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(650px, 1fr)); gap: 15px; padding: 15px;">
+            <div id="volcanes-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(650px, 1fr)); gap: 10px; padding: 10px;">
                 <!-- Se llena dinámicamente con JavaScript -->
             </div>
         </div>
@@ -1250,7 +1250,7 @@
             
             for (const volcan of volcanesZona) {
                 const panel = document.createElement('div');
-                panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px;';
+                panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 10px;';
                 
                 // Obtener ultima fecha
                 let ultimaFecha = '';
@@ -1271,16 +1271,16 @@
                 panel.innerHTML = `
                     <h2 style="color: #58a6ff; margin-bottom: 5px;">${volcan}</h2>
                     ${ultimaFecha ? `<p style="color: #8b949e; font-size: 0.85em; margin-bottom: 15px;"> ${ultimaFecha}</p>` : ''}
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div style="background: #0d1117; border-radius: 6px; padding: 8px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 5px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">RGB</h4>
-                            <div id="rgb-${volcan}" style="min-height: 280px; display: flex; align-items: center; justify-content: center;">
+                            <div id="rgb-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
                                 <div class="loading-spinner"></div>
                             </div>
                         </div>
-                        <div style="background: #0d1117; border-radius: 6px; padding: 8px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 5px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">Thermal</h4>
-                            <div id="thermal-${volcan}" style="min-height: 280px; display: flex; align-items: center; justify-content: center;">
+                            <div id="thermal-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
                                 <div class="loading-spinner"></div>
                             </div>
                         </div>
@@ -1333,7 +1333,7 @@
             
             for (const volcan of volcanesActivos) {
                 const panel = document.createElement('div');
-                panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 15px;';
+                panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 10px;';
                 
                 // Obtener ultima fecha
                 let ultimaFecha = '';
@@ -1354,16 +1354,16 @@
                 panel.innerHTML = `
                     <h2 style="color: #58a6ff; margin-bottom: 5px;">${volcan}</h2>
                     ${ultimaFecha ? `<p style="color: #8b949e; font-size: 0.85em; margin-bottom: 15px;"> ${ultimaFecha}</p>` : ''}
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                        <div style="background: #0d1117; border-radius: 6px; padding: 8px;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 5px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">RGB</h4>
-                            <div id="rgb-${volcan}" style="min-height: 280px; display: flex; align-items: center; justify-content: center;">
+                            <div id="rgb-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
                                 <div class="loading-spinner"></div>
                             </div>
                         </div>
-                        <div style="background: #0d1117; border-radius: 6px; padding: 8px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 5px;">
                             <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">Thermal</h4>
-                            <div id="thermal-${volcan}" style="min-height: 280px; display: flex; align-items: center; justify-content: center;">
+                            <div id="thermal-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
                                 <div class="loading-spinner"></div>
                             </div>
                         </div>
