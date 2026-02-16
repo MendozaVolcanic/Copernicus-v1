@@ -1,0 +1,153 @@
+# ============================================================================
+# WORKFLOW: PPT EVALUACIÓN INDIVIDUAL (1 VOLCÁN)
+# ============================================================================
+# Genera PPT para un volcán específico con rango de fechas personalizado
+# ============================================================================
+
+name: PPT Evaluación Individual
+
+on:
+  workflow_dispatch:
+    inputs:
+      volcan:
+        description: 'Volcán a procesar'
+        required: true
+        type: choice
+        options:
+          # ZONA NORTE (8)
+          - Taapaca
+          - Parinacota
+          - Guallatiri
+          - Isluga
+          - Irruputuncu
+          - Ollague
+          - San Pedro
+          - Lascar
+          # ZONA CENTRO (9)
+          - Tupungatito
+          - San Jose
+          - Tinguiririca
+          - Planchon-Peteroa
+          - Descabezado Grande
+          - Tatara-San Pedro
+          - Laguna del Maule
+          - Nevado de Longavi
+          - Nevados de Chillan
+          # ZONA SUR (13)
+          - Antuco
+          - Copahue
+          - Callaqui
+          - Lonquimay
+          - Llaima
+          - Sollipulli
+          - Villarrica
+          - Quetrupillan
+          - Lanin
+          - Mocho-Choshuenco
+          - Carran - Los Venados
+          - Puyehue - Cordon Caulle
+          - Antillanca - Casablanca
+          # ZONA AUSTRAL (13)
+          - Osorno
+          - Calbuco
+          - Yate
+          - Hornopiren
+          - Huequi
+          - Michinmahuida
+          - Chaiten
+          - Corcovado
+          - Melimoyu
+          - Mentolat
+          - Cay
+          - Maca
+          - Hudson
+      
+      fecha_inicio:
+        description: 'Fecha inicio (YYYY-MM-DD)'
+        required: true
+        default: '2026-01-01'
+      
+      fecha_fin:
+        description: 'Fecha fin (YYYY-MM-DD)'
+        required: true
+        default: '2026-02-05'
+
+permissions:
+  contents: write
+
+jobs:
+  generar-ppt-individual:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Instalar dependencias
+        run: |
+          pip install python-pptx Pillow requests
+      
+      - name: Verificar plantilla
+        run: |
+          if [ ! -f "docs/plantillas/Cambios_morfologicos.pptx" ]; then
+            echo "❌ Plantilla NO encontrada"
+            exit 1
+          fi
+          echo "✅ Plantilla encontrada"
+      
+      - name: Generar timelapse para el volcán
+        env:
+          VOLCAN: ${{ github.event.inputs.volcan }}
+          FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
+          FECHA_FIN: ${{ github.event.inputs.fecha_fin }}
+        run: |
+          python timelapse_generator.py
+      
+      - name: Generar PPT individual
+        env:
+          VOLCAN: ${{ github.event.inputs.volcan }}
+          FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
+          FECHA_FIN: ${{ github.event.inputs.fecha_fin }}
+        run: |
+          python ppt_generator.py
+      
+      - name: Commit cambios
+        run: |
+          git config user.name "PPTIndividualBot"
+          git config user.email "pptindividual@copernicus.com"
+          
+          # Agregar PPT y GIFs generados
+          git add docs/sentinel2/${{ github.event.inputs.volcan }}/reportes/*.pptx
+          git add docs/sentinel2/${{ github.event.inputs.volcan }}/timelapses_ppt/*.gif
+          
+          if git diff --quiet --staged; then
+            echo "⚠️ No hay archivos nuevos"
+            exit 0
+          fi
+          
+          git commit -m "PPT Individual: ${{ github.event.inputs.volcan }} (${{ github.event.inputs.fecha_inicio }} → ${{ github.event.inputs.fecha_fin }})"
+          
+          # Push con retry
+          max_retries=5
+          retry_count=0
+          
+          while [ $retry_count -lt $max_retries ]; do
+            echo "📤 Intento $((retry_count + 1))..."
+            git pull origin main --rebase -X ours || true
+            
+            if git push origin main; then
+              echo "✅ Push exitoso"
+              exit 0
+            fi
+            
+            retry_count=$((retry_count + 1))
+            [ $retry_count -lt $max_retries ] && sleep $((retry_count * 2))
+          done
+          
+          echo "❌ Push falló"
+          exit 1
