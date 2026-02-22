@@ -1,8 +1,9 @@
 """
-SENTINEL-2 DOWNLOADER V3.0 COMPLETO
+SENTINEL-2 DOWNLOADER V3.1 - FIX DETECCIÓN SATÉLITE
 + Compresin automtica
 + Limpieza de imgenes >60 das
 + Generacin de JSON para calendario
++ NUEVO: Detección correcta Sentinel-2A/2B/2C con nivel L2A
 """
 
 import requests
@@ -79,6 +80,44 @@ class SentinelHubAuth:
         }
 
 # =========================
+# FUNCIN AUXILIAR DETECCIN SATLITE
+# =========================
+
+def detectar_satelite(platform_str):
+    """
+    Detecta satélite Sentinel-2 desde platform string de la API
+    
+    FIX V3.1: Ahora detecta correctamente 2A, 2B y 2C
+    Incluye nivel de procesamiento L2A en el nombre
+    
+    Args:
+        platform_str: String como "Sentinel-2A", "Sentinel-2B", "Sentinel-2C" 
+                     o "sentinel-2a", "SENTINEL-2B", etc.
+    
+    Returns:
+        str: "Sentinel-2A L2A", "Sentinel-2B L2A" o "Sentinel-2C L2A"
+    
+    Ejemplos:
+        >>> detectar_satelite("Sentinel-2A")
+        'Sentinel-2A L2A'
+        >>> detectar_satelite("sentinel-2c")
+        'Sentinel-2C L2A'
+    """
+    if not platform_str:
+        return 'Sentinel-2 L2A (desconocido)'
+    
+    platform_lower = platform_str.lower()
+    
+    if 'sentinel-2a' in platform_lower or platform_str.endswith('2A'):
+        return 'Sentinel-2A L2A'
+    elif 'sentinel-2b' in platform_lower or platform_str.endswith('2B'):
+        return 'Sentinel-2B L2A'
+    elif 'sentinel-2c' in platform_lower or platform_str.endswith('2C'):
+        return 'Sentinel-2C L2A'
+    else:
+        return 'Sentinel-2 L2A (desconocido)'
+
+# =========================
 # BSQUEDA DE IMGENES
 # =========================
 
@@ -147,10 +186,11 @@ class SentinelHubSearcher:
                     print(f"    Imagen sin fecha vlida, saltando...")
                     continue
                 
+                # FIX V3.1: Usar función detectar_satelite() para 2A/2B/2C
                 results.append({
                     'date': fecha,
                     'cloud_cover': props.get('cloudCover', props.get('eo:cloud_cover', 0)),
-                    'sensor': 'Sentinel-2A' if props.get('platform', '').endswith('2A') else 'Sentinel-2B'
+                    'sensor': detectar_satelite(props.get('platform', ''))  # ← CAMBIO AQUÍ
                 })
             
             return results
@@ -268,22 +308,23 @@ def limpiar_imagenes_antiguas(volcan_nombre):
     
     borrados = 0
     
-    for tipo in ['RGB', 'ThermalFalseColor']:
-        carpeta = f"docs/sentinel2/{volcan_nombre}/{tipo}"
+    # FIX: Buscar en estructura correcta docs/sentinel2/{Volcan}/*.png
+    carpeta = f"docs/sentinel2/{volcan_nombre}"
+    
+    if not os.path.exists(carpeta):
+        print(f"    Carpeta no existe")
+        return 0
+    
+    for img_path in glob.glob(f"{carpeta}/*.png"):
+        nombre = os.path.basename(img_path)
+        fecha = nombre.split('_')[0]
         
-        if not os.path.exists(carpeta):
-            continue
-        
-        for img_path in glob.glob(f"{carpeta}/*.png"):
-            nombre = os.path.basename(img_path)
-            fecha = nombre.split('_')[0]
-            
-            if fecha < cutoff_str:
-                try:
-                    os.remove(img_path)
-                    borrados += 1
-                except Exception as e:
-                    print(f"    Error: {e}")
+        if fecha < cutoff_str:
+            try:
+                os.remove(img_path)
+                borrados += 1
+            except Exception as e:
+                print(f"    Error: {e}")
     
     if borrados > 0:
         print(f"    Borrados: {borrados} archivos")
@@ -304,13 +345,15 @@ def generar_json_fechas_disponibles():
     fechas_por_volcan = {}
     
     for volcan_nombre in volcanes_activos.keys():
-        carpeta_rgb = f"docs/sentinel2/{volcan_nombre}/RGB"
+        # FIX: Buscar directamente en docs/sentinel2/{Volcan}/*.png
+        carpeta = f"docs/sentinel2/{volcan_nombre}"
         
-        if not os.path.exists(carpeta_rgb):
+        if not os.path.exists(carpeta):
             continue
         
         fechas = []
-        for img_path in glob.glob(f"{carpeta_rgb}/*.png"):
+        # Buscar solo archivos RGB (para no duplicar fechas)
+        for img_path in glob.glob(f"{carpeta}/*_RGB.png"):
             nombre = os.path.basename(img_path)
             fecha = nombre.split('_')[0]
             fechas.append(fecha)
@@ -363,7 +406,7 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
     for resultado in resultados:
         fecha = resultado['date']
         cloud_cover = resultado['cloud_cover']
-        sensor = resultado['sensor']
+        sensor = resultado['sensor']  # Ahora incluye "L2A" al final
         
         # VALIDACIN: Saltar si fecha vaca o invlida
         if not fecha or len(fecha) != 10:
@@ -391,8 +434,8 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
                 'fecha': fecha,
                 'tipo': tipo,
                 'cobertura_nubosa': cloud_cover,
-                'sensor': sensor,
-                'ruta_archivo': f"{tipo}/{fecha}_{tipo}.png",
+                'sensor': sensor,  # Guarda "Sentinel-2A L2A" en CSV
+                'ruta_archivo': f"{fecha}_{tipo}.png",  # FIX: Ruta correcta
                 'tamano_mb': round(size_mb, 2)
             })
     
@@ -422,7 +465,7 @@ def main():
     """Proceso principal"""
     
     print("="*80)
-    print(" SENTINEL-2 DOWNLOADER V3.0 AUTOMTICO")
+    print(" SENTINEL-2 DOWNLOADER V3.1 - FIX DETECCIN SATLITE")
     print("="*80)
     
     auth = SentinelHubAuth()
@@ -438,6 +481,7 @@ def main():
     print(f"\n Volcanes activos: {len(volcanes_activos)}")
     print(f" Compresin: lossless")
     print(f" Retencin: 60 das")
+    print(f" Deteccin satlite: 2A/2B/2C L2A")  # ← NUEVO
     
     for nombre, config in volcanes_activos.items():
         try:
