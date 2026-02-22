@@ -1,7 +1,12 @@
 """
-TIMELAPSE_GENERATOR.PY V3.0 - ESCALAS CORREGIDAS
-Genera GIF animado con escala CORRECTA y PROPORCIONAL
-Buffer real: 3 km  Escala mostrada: 3 km
+TIMELAPSE_GENERATOR.PY V3.1
+BASE: V3.0 + Sistema de caché + Compresión inteligente
+
+NUEVO V3.1:
+- Integración con gif_cache.py (evita re-procesar GIFs existentes)
+- Integración con gif_optimizer.py (compresión adaptativa)
+- Limpieza automática de caché >90 días
+- Estadísticas de caché al finalizar
 """
 
 import os
@@ -13,7 +18,13 @@ from io import BytesIO
 import json
 
 # =========================
-# CONFIGURACIN
+# NUEVO V3.1: IMPORTS CACHÉ Y OPTIMIZADOR
+# =========================
+from gif_cache import existe_en_cache, guardar_en_cache, limpiar_cache_antiguo, estadisticas_cache
+from gif_optimizer import comprimir_gif_inteligente
+
+# =========================
+# CONFIGURACIÓN
 # =========================
 
 VOLCANES_ACTIVOS = [
@@ -52,7 +63,7 @@ def descargar_logo_copernicus():
         response = requests.get(logo_url, timeout=10)
         if response.status_code == 200:
             logo = Image.open(BytesIO(response.content))
-            # Redimensionar a tamao apropiado (ancho 150px)
+            # Redimensionar a tamaño apropiado (ancho 150px)
             aspect = logo.height / logo.width
             new_width = 150
             new_height = int(new_width * aspect)
@@ -62,10 +73,10 @@ def descargar_logo_copernicus():
                 logo = logo.convert('RGBA')
             return logo
         else:
-            print(f"    No se pudo descargar logo (status {response.status_code})")
+            print(f"    ⚠️  No se pudo descargar logo (status {response.status_code})")
             return None
     except Exception as e:
-        print(f"    Error descargando logo: {e}")
+        print(f"    ⚠️  Error descargando logo: {e}")
         return None
 
 
@@ -92,16 +103,16 @@ def crear_logo_copernicus_texto():
 
 def agregar_escala_kilometros(img, escala_km=3, tipo='RGB'):
     """
-    Agrega escala de kilmetros CORRECTA y PROPORCIONAL
+    Agrega escala de kilómetros CORRECTA y PROPORCIONAL
     
-    FIX CRTICO:
+    FIX CRÍTICO:
     - Buffer usado en descarga: 3 km
-    - rea total de imagen: 6 km  6 km (2  buffer)
-    - Escala mostrada: 3 km (mitad del rea)
+    - Área total de imagen: 6 km × 6 km (2 × buffer)
+    - Escala mostrada: 3 km (mitad del área)
     
     Args:
         img: PIL Image
-        escala_km: Kilmetros a representar (3 km = buffer real)
+        escala_km: Kilómetros a representar (3 km = buffer real)
         tipo: 'RGB' o 'ThermalFalseColor'
     """
     draw = ImageDraw.Draw(img)
@@ -109,20 +120,18 @@ def agregar_escala_kilometros(img, escala_km=3, tipo='RGB'):
     img_width, img_height = img.size
     
     # ========================================
-    # FIX CRTICO: CLCULO CORRECTO DE ESCALA
+    # FIX CRÍTICO: CÁLCULO CORRECTO DE ESCALA
     # ========================================
-    # rea fsica total: 6 km  6 km (buffer 3 km en config)
-    # Ancho de imagen: 1024px (tanto RGB como Thermal)
-    # Proporcin: 1024px / 6 km = 170.67 px/km
-    # Escala de 3 km: 3 km  170.67 px/km = 512px
+    # Área física total: 6 km × 6 km (buffer 3 km en config)
+    # Ancho de imagen: 800px (tanto RGB como Thermal)
+    # Proporción: 800px / 6 km = 133.33 px/km
+    # Escala de 3 km: 3 km × 133.33 px/km = 400px
     
-    area_fisica_km = 6.0  # Buffer 3km  rea total 6km
+    area_fisica_km = 6.0  # Buffer 3km → área total 6km
     pixels_por_km = img_width / area_fisica_km
     ancho_barra_px = int(pixels_por_km * escala_km)
     
-    print(f"    Escala {tipo}: {escala_km} km = {ancho_barra_px} px (imagen {img_width}px = {area_fisica_km} km)")
-    
-    # Posicin (abajo a la derecha)
+    # Posición (abajo a la derecha)
     x_start = img_width - ancho_barra_px - 30
     y_pos = img_height - 50
     
@@ -151,7 +160,7 @@ def agregar_escala_kilometros(img, escala_km=3, tipo='RGB'):
         fill=(255, 255, 255, 255)
     )
     
-    # Marcas cada kilmetro
+    # Marcas cada kilómetro
     for i in range(int(escala_km) + 1):
         x_marca = x_start + int((ancho_barra_px / escala_km) * i)
         draw.line([(x_marca, y_pos), (x_marca, y_pos + altura_barra + 5)], fill=(255, 255, 255), width=2)
@@ -231,7 +240,7 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
     # Combinar overlay con imagen original
     img_final = Image.alpha_composite(img_copy, overlay)
     
-    # 4. ESCALA (abajo derecha) - DESPUS del composite
+    # 4. ESCALA (abajo derecha) - DESPUÉS del composite
     img_final = agregar_escala_kilometros(img_final, escala_km=3, tipo=tipo)
     
     # Convertir de vuelta a RGB
@@ -245,7 +254,7 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
 
 def cargar_config_fechas(volcan_nombre):
     """
-    Carga configuracin de fechas desde JSON
+    Carga configuración de fechas desde JSON
     Si no existe, usa todas las fechas disponibles
     """
     config_path = f'docs/sentinel2/configs/timelapse_{volcan_nombre}.json'
@@ -253,7 +262,7 @@ def cargar_config_fechas(volcan_nombre):
     if os.path.exists(config_path):
         with open(config_path, 'r') as f:
             config = json.load(f)
-            print(f"    Usando rango: {config['fecha_inicio']}  {config['fecha_fin']}")
+            print(f"    ℹ️  Usando rango: {config['fecha_inicio']} → {config['fecha_fin']}")
             return config['fecha_inicio'], config['fecha_fin']
     
     return None, None
@@ -262,16 +271,34 @@ def cargar_config_fechas(volcan_nombre):
 def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=None, fecha_fin=None):
     """
     Genera GIF timelapse con rango de fechas configurable
-    FILTRA imagenes con cobertura de nubes <= 30% para PPT
+    FILTRA imágenes con cobertura de nubes <= 30% para PPT
+    
+    NUEVO V3.1: Sistema de caché integrado
     """
     
-    print(f"\n Generando GIF: {volcan_nombre} - {tipo}")
+    print(f"\n🎬 Generando GIF: {volcan_nombre} - {tipo}")
     
-    # CORRECCION: Las imagenes estan directamente en docs/sentinel2/{volcan}/
+    # =========================
+    # NUEVO V3.1: VERIFICAR CACHÉ PRIMERO
+    # =========================
+    if fecha_inicio and fecha_fin:
+        cached_gif = existe_en_cache(volcan_nombre, tipo, fecha_inicio, fecha_fin)
+        
+        if cached_gif:
+            print(f"    ✅ Usando GIF en caché: {os.path.basename(cached_gif)}")
+            size_mb = os.path.getsize(cached_gif) / (1024 * 1024)
+            print(f"    📦 Tamaño: {size_mb:.2f} MB")
+            
+            # Extraer fechas del nombre para retornar
+            return cached_gif, fecha_inicio, fecha_fin
+    
+    print(f"    🔨 Generando nuevo GIF...")
+    
+    # CORRECCIÓN: Las imágenes están directamente en docs/sentinel2/{volcan}/
     carpeta_imagenes = f"docs/sentinel2/{volcan_nombre}"
     
     if not os.path.exists(carpeta_imagenes):
-        print(f"    Carpeta no existe: {carpeta_imagenes}")
+        print(f"    ❌ Carpeta no existe: {carpeta_imagenes}")
         return None
     
     # Cargar metadata para filtrar por cobertura de nubes
@@ -287,18 +314,18 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
             df_filtrado = df[df['cobertura_nubosa'] <= 30]
             fechas_validas = set(df_filtrado['fecha'].unique())
             
-            print(f"    Filtro nubes: {len(fechas_validas)} fechas con <=30% nubes")
+            print(f"    🌥️  Filtro nubes: {len(fechas_validas)} fechas con ≤30% nubes")
         except Exception as e:
-            print(f"    No se pudo cargar metadata: {e}")
-            print(f"    Continuando sin filtro de nubes...")
+            print(f"    ⚠️  No se pudo cargar metadata: {e}")
+            print(f"    ℹ️  Continuando sin filtro de nubes...")
     else:
-        print(f"    metadata.csv no encontrado, sin filtro de nubes")
+        print(f"    ⚠️  metadata.csv no encontrado, sin filtro de nubes")
     
-    # Buscar imagenes del tipo especifico
+    # Buscar imágenes del tipo específico
     imagenes_paths = sorted(glob.glob(f"{carpeta_imagenes}/*_{tipo}.png"))
     
     if len(imagenes_paths) == 0:
-        print(f"    No hay imgenes {tipo} en {carpeta_imagenes}")
+        print(f"    ❌ No hay imágenes {tipo} en {carpeta_imagenes}")
         return None
     
     # Filtrar por rango de fechas si se especifica
@@ -309,18 +336,18 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
             fecha = nombre.split('_')[0]
             
             if fecha_inicio <= fecha <= fecha_fin:
-                # FILTRO ADICIONAL: Solo imagenes con nubes <= 30%
+                # FILTRO ADICIONAL: Solo imágenes con nubes <= 30%
                 if not fechas_validas or fecha in fechas_validas:
                     imagenes_filtradas.append(img_path)
         
         imagenes_paths = imagenes_filtradas
-        print(f"    Filtrado por fechas + nubes: {len(imagenes_paths)} imgenes")
+        print(f"    📅 Filtrado por fechas + nubes: {len(imagenes_paths)} imágenes")
     
     if len(imagenes_paths) == 0:
-        print(f"    No hay imgenes en el rango {fecha_inicio} - {fecha_fin}")
+        print(f"    ❌ No hay imágenes en el rango {fecha_inicio} → {fecha_fin}")
         return None
     
-    print(f"    Procesando {len(imagenes_paths)} imgenes")
+    print(f"    🔍 Procesando {len(imagenes_paths)} imágenes")
     
     imagenes = []
     fechas = []
@@ -337,13 +364,13 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
             img_con_overlay = agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus)
             imagenes.append(img_con_overlay)
             
-            print(f"    {fecha}")
+            print(f"       {fecha}")
         except Exception as e:
-            print(f"    Error cargando {img_path}: {e}")
+            print(f"    ❌ Error cargando {img_path}: {e}")
             continue
     
     if len(imagenes) == 0:
-        print(f"    No se pudieron cargar imgenes")
+        print(f"    ❌ No se pudieron cargar imágenes")
         return None
     
     carpeta_gif = f"docs/sentinel2/{volcan_nombre}/timelapses_ppt"
@@ -356,59 +383,48 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
     output_path = f"{carpeta_gif}/{volcan_nombre}_{tipo}_{fecha_inicio_real}_{fecha_fin_real}.gif"
     
     try:
-        # ========================================
-        # COMPRIMIR GIF PARA <1.5 MB
-        # ========================================
-        imagenes[0].save(
+        # =========================
+        # NUEVO V3.1: USAR COMPRESOR INTELIGENTE
+        # =========================
+        print(f"    🎨 Aplicando compresión inteligente...")
+        size_mb = comprimir_gif_inteligente(
+            imagenes,
             output_path,
-            save_all=True,
-            append_images=imagenes[1:],
-            duration=DURACION_FRAME,
-            loop=0,
-            optimize=True,  # PIL optimiza automticamente
-            quality=85      # NUEVO: Reducir calidad para comprimir ms
+            duracion=DURACION_FRAME,
+            target_mb=1.2
         )
         
-        size_mb = os.path.getsize(output_path) / (1024 * 1024)
+        # =========================
+        # NUEVO V3.1: GUARDAR EN CACHÉ
+        # =========================
+        if fecha_inicio and fecha_fin:
+            guardar_en_cache(volcan_nombre, tipo, fecha_inicio_real, fecha_fin_real, output_path)
         
-        # Si an es muy grande, reducir ms
-        if size_mb > 1.5:
-            print(f"    GIF muy grande ({size_mb:.2f} MB), recomprimiendo...")
-            
-            # Reducir tamao de frames
-            imagenes_reducidas = []
-            for img in imagenes:
-                # Reducir a 85% del tamao
-                new_size = (int(img.width * 0.85), int(img.height * 0.85))
-                img_reducida = img.resize(new_size, Image.Resampling.LANCZOS)
-                imagenes_reducidas.append(img_reducida)
-            
-            imagenes_reducidas[0].save(
-                output_path,
-                save_all=True,
-                append_images=imagenes_reducidas[1:],
-                duration=DURACION_FRAME,
-                loop=0,
-                optimize=True,
-                quality=80
-            )
-            
-            size_mb = os.path.getsize(output_path) / (1024 * 1024)
-        
-        print(f"    GIF generado: {size_mb:.2f} MB")
-        print(f"    Perodo: {fecha_inicio_real}  {fecha_fin_real}")
+        print(f"    ✅ GIF generado: {size_mb:.2f} MB")
+        print(f"    📅 Período: {fecha_inicio_real} → {fecha_fin_real}")
         
         return output_path, fecha_inicio_real, fecha_fin_real
+    
     except Exception as e:
-        print(f"    Error generando GIF: {e}")
+        print(f"    ❌ Error generando GIF: {e}")
         return None
 
 
 def main():
     print("="*80)
-    print(" GENERADOR DE TIMELAPSES V3.0")
-    print("   Escalas CORREGIDAS - Buffer real: 3 km")
+    print("🎬 GENERADOR DE TIMELAPSES V3.1")
+    print("   NUEVO: Caché + Compresión inteligente")
     print("="*80)
+    
+    # =========================
+    # NUEVO V3.1: LIMPIAR CACHÉ ANTIGUO AL INICIO
+    # =========================
+    print("\n🧹 Limpiando caché antiguo (>90 días)...")
+    eliminados = limpiar_cache_antiguo(dias=90)
+    if eliminados > 0:
+        print(f"   🗑️  Eliminados: {eliminados} GIFs antiguos")
+    else:
+        print(f"   ✅ No hay GIFs antiguos para eliminar")
     
     # Leer variables de entorno si existen (para workflow manual)
     volcan_env = os.getenv('VOLCAN')
@@ -416,28 +432,28 @@ def main():
     fecha_fin_env = os.getenv('FECHA_FIN')
     
     if volcan_env and fecha_inicio_env and fecha_fin_env:
-        print(f"\nMODO MANUAL:")
-        print(f"   Volcan: {volcan_env}")
-        print(f"   Rango: {fecha_inicio_env} -> {fecha_fin_env}")
+        print(f"\n📋 MODO MANUAL:")
+        print(f"   Volcán: {volcan_env}")
+        print(f"   Rango: {fecha_inicio_env} → {fecha_fin_env}")
         volcanes_a_procesar = [volcan_env]
     else:
-        print("\nMODO AUTOMATICO: Procesando todos los volcanes")
+        print("\n🤖 MODO AUTOMÁTICO: Procesando todos los volcanes")
         volcanes_a_procesar = VOLCANES_ACTIVOS
     
     # Descargar logo de Copernicus
-    print("\n Descargando logo de Copernicus...")
+    print("\n📥 Descargando logo de Copernicus...")
     logo_copernicus = descargar_logo_copernicus()
     
     if logo_copernicus is None:
-        print("    Usando logo de texto alternativo")
+        print("    ℹ️  Usando logo de texto alternativo")
         logo_copernicus = crear_logo_copernicus_texto()
     else:
-        print("    Logo descargado")
+        print("    ✅ Logo descargado")
     
     gifs_generados = []
     
     for volcan in volcanes_a_procesar:
-        print(f"\n Procesando: {volcan}")
+        print(f"\n🌋 Procesando: {volcan}")
         
         # Si hay variables de entorno, usarlas; sino, cargar config
         if fecha_inicio_env and fecha_fin_env:
@@ -452,14 +468,25 @@ def main():
                 gifs_generados.append(resultado)
     
     print("\n" + "="*80)
-    print(f" PROCESO COMPLETADO - {len(gifs_generados)} GIFs generados")
+    print(f"✅ PROCESO COMPLETADO - {len(gifs_generados)} GIFs generados")
     print("="*80)
     
+    # =========================
+    # NUEVO V3.1: MOSTRAR ESTADÍSTICAS DE CACHÉ
+    # =========================
+    stats = estadisticas_cache()
+    print(f"\n💾 Estadísticas de caché:")
+    print(f"   Entradas: {stats['total_entradas']}")
+    print(f"   Espacio: {stats['espacio_total_mb']} MB")
+    
+    print(f"\n📦 GIFs generados:")
     for gif_info in gifs_generados:
-        if len(gif_info) == 3:
+        if isinstance(gif_info, tuple) and len(gif_info) == 3:
             gif_path, fecha_i, fecha_f = gif_info
             size_mb = os.path.getsize(gif_path) / (1024 * 1024)
-            print(f"    {os.path.basename(gif_path)}: {size_mb:.2f} MB ({fecha_i}  {fecha_f})")
+            print(f"   {os.path.basename(gif_path)}: {size_mb:.2f} MB ({fecha_i} → {fecha_f})")
+    
+    print("="*80)
 
 
 if __name__ == "__main__":
