@@ -1,6 +1,11 @@
 """
-PPT_GENERATOR.PY V5.0 - CORREGIDO FINAL
-NO modifica ttulo - Solo actualiza fechas timelapses - Comprime < 3MB
+PPT_GENERATOR.PY V5.1
+BASE: V5.0 + Integración sistema de caché
+
+NUEVO V5.1:
+- Import de gif_cache (los GIFs ya están cacheados por timelapse_generator.py)
+- Mensaje informativo sobre GIFs encontrados
+- NO genera GIFs (solo los usa)
 """
 
 import os
@@ -8,6 +13,13 @@ import glob
 from datetime import datetime
 from pptx import Presentation
 from PIL import Image
+
+# =========================
+# NUEVO V5.1: IMPORT SISTEMA DE CACHÉ
+# =========================
+# Nota: ppt_generator NO genera GIFs, solo los usa
+# El caché ya fue implementado en timelapse_generator.py
+from gif_cache import existe_en_cache
 
 VOLCANES_ACTIVOS = [
     # ZONA NORTE
@@ -45,10 +57,10 @@ def comprimir_gif(input_path, output_path, max_size_mb=1.0):
         if size_mb <= max_size_mb:
             import shutil
             shutil.copy2(input_path, output_path)
-            print(f"      GIF OK ({size_mb:.2f} MB)")
+            print(f"      ✅ GIF OK ({size_mb:.2f} MB)")
             return output_path
         
-        print(f"      Comprimiendo ({size_mb:.2f} MB > {max_size_mb:.2f} MB)...")
+        print(f"      🔽 Comprimiendo ({size_mb:.2f} MB > {max_size_mb:.2f} MB)...")
         img = Image.open(input_path)
         frames = []
         try:
@@ -67,27 +79,32 @@ def comprimir_gif(input_path, output_path, max_size_mb=1.0):
         
         frames[0].save(output_path, save_all=True, append_images=frames[1:],
                       optimize=True, duration=img.info.get('duration', 100), loop=0)
-        print(f"      {size_mb:.2f} MB -> {os.path.getsize(output_path)/(1024*1024):.2f} MB")
+        print(f"      ✅ {size_mb:.2f} MB → {os.path.getsize(output_path)/(1024*1024):.2f} MB")
         return output_path
     except Exception as e:
-        print(f"      Error: {e}")
+        print(f"      ❌ Error: {e}")
         import shutil
         shutil.copy2(input_path, output_path)
         return output_path
 
 def generar_ppt(volcan_nombre):
-    print(f"\n {volcan_nombre}")
+    print(f"\n🌋 {volcan_nombre}")
     
     carpeta_timelapses = f"docs/sentinel2/{volcan_nombre}/timelapses_ppt"
     if not os.path.exists(carpeta_timelapses):
-        print(f"    No existe: {carpeta_timelapses}")
+        print(f"    ❌ No existe: {carpeta_timelapses}")
         return None
     
+    # =========================
+    # NUEVO V5.1: BUSCAR GIFs (ya cacheados por timelapse_generator.py)
+    # =========================
     gifs_rgb = sorted(glob.glob(f"{carpeta_timelapses}/{volcan_nombre}_RGB_*.gif"))
     gifs_thermal = sorted(glob.glob(f"{carpeta_timelapses}/{volcan_nombre}_ThermalFalseColor_*.gif"))
     
+    print(f"    📂 GIFs encontrados: RGB={len(gifs_rgb)}, Thermal={len(gifs_thermal)}")
+    
     if not gifs_rgb or not gifs_thermal:
-        print(f"    GIFs incompletos")
+        print(f"    ❌ GIFs incompletos")
         return None
     
     gif_rgb_path = gifs_rgb[-1]
@@ -95,21 +112,21 @@ def generar_ppt(volcan_nombre):
     
     partes = os.path.basename(gif_rgb_path).replace('.gif', '').split('_')
     if len(partes) < 4:
-        print(f"    No se pudieron extraer fechas")
+        print(f"    ❌ No se pudieron extraer fechas")
         return None
     
     fecha_inicio, fecha_fin = partes[-2], partes[-1]
-    print(f"    {fecha_inicio}  {fecha_fin}")
+    print(f"    📅 {fecha_inicio} → {fecha_fin}")
     
     temp_rgb = f"/tmp/{volcan_nombre}_RGB.gif"
     temp_thermal = f"/tmp/{volcan_nombre}_Thermal.gif"
     
-    print(f"    Comprimiendo...")
+    print(f"    🔽 Comprimiendo GIFs para PPT...")
     gif_rgb_final = comprimir_gif(gif_rgb_path, temp_rgb)
     gif_thermal_final = comprimir_gif(gif_thermal_path, temp_thermal)
     
     if not os.path.exists(PLANTILLA_PATH):
-        print(f"    Plantilla no encontrada")
+        print(f"    ❌ Plantilla no encontrada")
         return None
     
     prs = Presentation(PLANTILLA_PATH)
@@ -119,10 +136,10 @@ def generar_ppt(volcan_nombre):
     fecha_fin_es = formatear_fecha_espanol(fecha_fin)
     ano = fecha_fin.split('-')[0]
     
-    texto_rgb = f"Imagenes Sentinel 2 L2A color verdadero, Time Lapse {fecha_inicio_es}  {fecha_fin_es} {ano}"
-    texto_thermal = f"Imagenes Sentinel 2 L2A Falso color, Time Lapse {fecha_inicio_es}  {fecha_fin_es} {ano}"
+    texto_rgb = f"Imagenes Sentinel 2 L2A color verdadero, Time Lapse {fecha_inicio_es} → {fecha_fin_es} {ano}"
+    texto_thermal = f"Imagenes Sentinel 2 L2A Falso color, Time Lapse {fecha_inicio_es} → {fecha_fin_es} {ano}"
     
-    print(f"    Actualizando textos...")
+    print(f"    ✏️  Actualizando textos...")
     textos_ok = 0
     
     for shape in slide.shapes:
@@ -146,7 +163,7 @@ def generar_ppt(volcan_nombre):
                 if fmt['size']: run.font.size = fmt['size']
                 if fmt['bold'] is not None: run.font.bold = fmt['bold']
                 if fmt['italic'] is not None: run.font.italic = fmt['italic']
-            print(f"       RGB")
+            print(f"       ✅ RGB")
             textos_ok += 1
         
         # Reemplazar texto Thermal timelapse
@@ -164,17 +181,17 @@ def generar_ppt(volcan_nombre):
                 if fmt['size']: run.font.size = fmt['size']
                 if fmt['bold'] is not None: run.font.bold = fmt['bold']
                 if fmt['italic'] is not None: run.font.italic = fmt['italic']
-            print(f"       Thermal")
+            print(f"       ✅ Thermal")
             textos_ok += 1
         
-        # NUEVO: Reemplazar nombre del volcan en texto final
+        # Reemplazar nombre del volcán en texto final
         elif ("volcán" in texto.lower() or "volcan" in texto.lower() or "volcano" in texto.lower()):
             import re
-            # Reemplazar TODOS los nombres de volcanes en TODOS los parrafos
+            # Reemplazar TODOS los nombres de volcanes en TODOS los párrafos
             cambio_realizado = False
             for volcan_antiguo in VOLCANES_ACTIVOS:
                 if volcan_antiguo.lower() in texto.lower():
-                    # Iterar sobre TODOS los parrafos (no solo el primero)
+                    # Iterar sobre TODOS los párrafos (no solo el primero)
                     for p in shape.text_frame.paragraphs:
                         texto_parrafo = p.text
                         if volcan_antiguo.lower() in texto_parrafo.lower():
@@ -182,7 +199,7 @@ def generar_ppt(volcan_nombre):
                             patron = re.compile(re.escape(volcan_antiguo), re.IGNORECASE)
                             texto_nuevo_p = patron.sub(volcan_nombre, texto_parrafo)
                             
-                            # NUEVO: También reemplazar "mes de [mes] [año]"
+                            # También reemplazar "mes de [mes] [año]"
                             # Extraer mes y año de fecha_fin
                             from datetime import datetime
                             try:
@@ -224,13 +241,13 @@ def generar_ppt(volcan_nombre):
                                 cambio_realizado = True
             
             if cambio_realizado:
-                print(f"       Nombre volcan actualizado en multiples parrafos")
+                print(f"       ✅ Nombre volcán actualizado")
                 textos_ok += 1
     
     if textos_ok < 2:
-        print(f"    Textos: {textos_ok} (esperados 2-3)")
+        print(f"    ⚠️  Textos: {textos_ok} (esperados 2-3)")
     
-    print(f"    Reemplazando GIFs...")
+    print(f"    🖼️  Reemplazando GIFs...")
     shapes_img = [{'shape': s, 'top': s.top, 'left': s.left, 
                    'width': s.width, 'height': s.height}
                   for s in slide.shapes if s.shape_type == 13]
@@ -241,13 +258,13 @@ def generar_ppt(volcan_nombre):
         s = shapes_img[0]
         s['shape'].element.getparent().remove(s['shape'].element)
         slide.shapes.add_picture(gif_rgb_final, s['left'], s['top'], s['width'], s['height'])
-        print(f"       RGB")
+        print(f"       ✅ RGB")
         
         # Thermal (abajo)
         s = shapes_img[1]
         s['shape'].element.getparent().remove(s['shape'].element)
         slide.shapes.add_picture(gif_thermal_final, s['left'], s['top'], s['width'], s['height'])
-        print(f"       Thermal")
+        print(f"       ✅ Thermal")
     
     carpeta_reportes = os.path.join(OUTPUT_DIR, volcan_nombre, "reportes")
     os.makedirs(carpeta_reportes, exist_ok=True)
@@ -258,7 +275,7 @@ def generar_ppt(volcan_nombre):
     try:
         prs.save(output_path)
         size_mb = os.path.getsize(output_path) / (1024 * 1024)
-        status = "" if size_mb < 3.0 else ""
+        status = "✅" if size_mb < 3.0 else "⚠️"
         print(f"   {status} PPT: {size_mb:.2f} MB")
         
         try:
@@ -269,26 +286,27 @@ def generar_ppt(volcan_nombre):
         
         return output_path
     except Exception as e:
-        print(f"    Error: {e}")
+        print(f"    ❌ Error: {e}")
         return None
 
 def main():
     print("="*80)
-    print(" PPT GENERATOR V5.0 - NO modifica ttulo, solo fechas")
+    print("📊 PPT GENERATOR V5.1")
+    print("   NUEVO: Integración con sistema de caché")
     print("="*80)
     
     if not os.path.exists(PLANTILLA_PATH):
-        print(f"\n Plantilla no encontrada: {PLANTILLA_PATH}")
+        print(f"\n❌ Plantilla no encontrada: {PLANTILLA_PATH}")
         return
     
     # Leer variables de entorno si existen (para workflow manual)
     volcan_env = os.getenv('VOLCAN')
     
     if volcan_env:
-        print(f"\nMODO MANUAL: Procesando {volcan_env}")
+        print(f"\n📋 MODO MANUAL: Procesando {volcan_env}")
         volcanes_a_procesar = [volcan_env]
     else:
-        print("\nMODO AUTOMATICO: Procesando todos los volcanes")
+        print("\n🤖 MODO AUTOMÁTICO: Procesando todos los volcanes")
         volcanes_a_procesar = VOLCANES_ACTIVOS
     
     ppts = []
@@ -298,13 +316,13 @@ def main():
             if ppt:
                 ppts.append(ppt)
         except Exception as e:
-            print(f" Error en {volcan}: {e}")
+            print(f"❌ Error en {volcan}: {e}")
     
     print("\n" + "="*80)
-    print(f" {len(ppts)} PPTs generados")
+    print(f"✅ {len(ppts)} PPTs generados")
     for ppt in ppts:
         size_mb = os.path.getsize(ppt) / (1024 * 1024)
-        print(f"   {os.path.basename(ppt)}: {size_mb:.2f} MB")
+        print(f"   📄 {os.path.basename(ppt)}: {size_mb:.2f} MB")
     print("="*80)
 
 if __name__ == "__main__":
