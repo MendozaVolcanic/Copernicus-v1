@@ -37,7 +37,7 @@ jobs:
         env:
           NASA_FIRMS_API_KEY: ${{ secrets.NASA_FIRMS_API_KEY }}
         run: |
-          python << 'EOFPY'
+          python -c "
 import sys
 sys.path.append('.')
 
@@ -47,38 +47,38 @@ from alert_generator import generar_alerta_markdown, crear_resumen_alertas
 from config_sentinel2 import VOLCANES
 import os
 
-print("="*80)
-print("🔍 SISTEMA DE DETECCIÓN AUTOMÁTICA DE CAMBIOS")
-print("="*80)
+print('='*80)
+print('🔍 SISTEMA DE DETECCIÓN AUTOMÁTICA DE CAMBIOS')
+print('='*80)
 
 # Leer API key de FIRMS
 api_key = os.getenv('NASA_FIRMS_API_KEY')
 
 if api_key:
-    print("\n✅ API Key NASA FIRMS configurada")
+    print('\n✅ API Key NASA FIRMS configurada')
 else:
-    print("\n⚠️  API Key NASA FIRMS NO configurada")
-    print("   Usando solo detección Sentinel-2")
+    print('\n⚠️  API Key NASA FIRMS NO configurada')
+    print('   Usando solo detección Sentinel-2')
 
 alertas_generadas = []
 
 for volcan_nombre, config in VOLCANES.items():
-    print(f"\n🌋 Analizando: {volcan_nombre}")
+    print(f'\n🌋 Analizando: {volcan_nombre}')
     
     try:
         # Detectar cambios con Sentinel-2
         cambio = obtener_cambio_maximo(volcan_nombre)
         
         if not cambio:
-            print(f"   ⚪ Sin cambios significativos")
+            print(f'   ⚪ Sin cambios significativos')
             continue
         
         if not cambio.get('cambio_detectado'):
-            print(f"   ⚪ Sin cambios significativos")
+            print(f'   ⚪ Sin cambios significativos')
             continue
         
-        print(f"   🔍 Cambio detectado: {cambio['porcentaje_cambio']}%")
-        print(f"   📊 Tipo: {cambio['tipo_cambio']}")
+        print(f'   🔍 Cambio detectado: {cambio[\"porcentaje_cambio\"]}%')
+        print(f'   📊 Tipo: {cambio[\"tipo_cambio\"]}')
         
         # Cross-reference con FIRMS
         nivel_alerta = cross_reference_sentinel_firms(
@@ -89,7 +89,7 @@ for volcan_nombre, config in VOLCANES.items():
             api_key=api_key
         )
         
-        print(f"   🚨 Nivel alerta: {nivel_alerta}")
+        print(f'   🚨 Nivel alerta: {nivel_alerta}')
         
         # Generar alerta si es necesario
         if nivel_alerta in ['ALERTA_CRITICA', 'ALERTA_MODERADA', 'ALERTA_MENOR']:
@@ -117,15 +117,15 @@ for volcan_nombre, config in VOLCANES.items():
             alertas_generadas.append(alerta)
     
     except Exception as e:
-        print(f"   ❌ Error: {e}")
+        print(f'   ❌ Error: {e}')
         import traceback
         traceback.print_exc()
         continue
 
-print("\n" + "="*80)
-print(f"📊 RESUMEN")
-print("="*80)
-print(f"Total alertas: {len(alertas_generadas)}")
+print('\n' + '='*80)
+print(f'📊 RESUMEN')
+print('='*80)
+print(f'Total alertas: {len(alertas_generadas)}')
 
 if alertas_generadas:
     # Crear archivo resumen
@@ -136,14 +136,14 @@ if alertas_generadas:
     moderadas = sum(1 for a in alertas_generadas if a['nivel'] == 'ALERTA_MODERADA')
     menores = sum(1 for a in alertas_generadas if a['nivel'] == 'ALERTA_MENOR')
     
-    print(f"\n🔴 Críticas: {criticas}")
-    print(f"🟡 Moderadas: {moderadas}")
-    print(f"🟢 Menores: {menores}")
+    print(f'\n🔴 Críticas: {criticas}')
+    print(f'🟡 Moderadas: {moderadas}')
+    print(f'🟢 Menores: {menores}')
 else:
-    print("\n✅ No se generaron alertas")
+    print('\n✅ No se generaron alertas')
 
-print("="*80)
-          EOFPY
+print('='*80)
+          "
       
       - name: Commit alertas
         if: success()
