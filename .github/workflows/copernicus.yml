@@ -2,7 +2,14 @@ name: Monitoreo Copernicus Automatico
 
 on:
   schedule:
-    - cron: '0 6 * * *'
+    # FIX: Ejecutar 2 veces al día para capturar imágenes nuevas rápidamente
+    # Sentinel-2 pasa sobre Chile ~10:00-11:00 AM local (13:00-14:00 UTC)
+    # Imágenes L2A disponibles ~6-12 horas después (19:00-02:00 UTC)
+    # 
+    # 10:00 UTC (07:00 Chile): Primera búsqueda del día
+    # 20:00 UTC (17:00 Chile): Captura imágenes del paso matinal publicadas ese día
+    - cron: '0 10,20 * * *'
+  
   workflow_dispatch:
 
 permissions:
