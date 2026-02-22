@@ -605,6 +605,119 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        /* ========================================
+           MEJORA 7: COMPARACIÓN LADO A LADO
+           ======================================== */
+        
+        .date-selectors {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #161b22;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+        
+        .selector-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .selector-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #58a6ff;
+        }
+        
+        .selector-group select {
+            padding: 10px 14px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #0d1117;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .selector-group select:hover {
+            border-color: #58a6ff;
+            background: #161b22;
+        }
+        
+        .selector-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .selector-buttons button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            background: #238636;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .selector-buttons button:hover {
+            background: #2ea043;
+            transform: translateY(-1px);
+        }
+        
+        .comparison-grid-2x2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .comparison-item {
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #0d1117;
+        }
+        
+        .comparison-header {
+            background: #161b22;
+            padding: 12px;
+            font-weight: 600;
+            text-align: center;
+            color: #58a6ff;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .comparison-image {
+            width: 100%;
+            display: block;
+            background: #000;
+        }
+        
+        .comparison-metadata {
+            padding: 12px;
+            font-size: 12px;
+            background: #0d1117;
+            border-top: 1px solid #30363d;
+        }
+        
+        .comparison-metadata div {
+            margin: 6px 0;
+            color: #8b949e;
+        }
+        
+        .comparison-metadata strong {
+            color: #e0e0e0;
+        }
+
     </style>
 </head>
 <body>
@@ -811,12 +924,38 @@
         </div>
 
         <div id="image-comparison">
-            <h3 style="color: #58a6ff; margin-bottom: 15px;"> Comparación de Composiciones</h3>
-            <div class="image-grid">
-                <div class="image-panel">
-                    <h4> RGB (Color Real)</h4>
-                    <div class="image-container" id="rgb-container">
-                        <div class="loading-spinner"></div>
+            <h3 style="color: #58a6ff; margin-bottom: 15px;">🔍 Comparación de Composiciones</h3>
+            
+            <!-- MEJORA 7: Selectores de fecha -->
+            <div class="date-selectors">
+                <div class="selector-group">
+                    <label for="fecha-izquierda">📅 Imagen Izquierda:</label>
+                    <select id="fecha-izquierda" onchange="actualizarComparacion()">
+                        <option value="">Seleccionar fecha...</option>
+                    </select>
+                </div>
+                
+                <div class="selector-group">
+                    <label for="fecha-derecha">📅 Imagen Derecha:</label>
+                    <select id="fecha-derecha" onchange="actualizarComparacion()">
+                        <option value="">Seleccionar fecha...</option>
+                    </select>
+                </div>
+                
+                <div class="selector-buttons">
+                    <button onclick="intercambiarFechas()" title="Intercambiar fechas">⇄</button>
+                    <button onclick="resetearComparacion()" title="Resetear a últimas 2 fechas">↺</button>
+                </div>
+            </div>
+            
+            <!-- Grid de comparación 2x2 -->
+            <div class="comparison-grid-2x2" id="comparison-grid">
+                <p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #8b949e;">
+                    Selecciona dos fechas para comparar
+                </p>
+            </div>
+        </div>
+
                     </div>
                 </div>
                 
@@ -1924,6 +2063,200 @@
         window.onload = function() {
             cambiarZona(); // Carga zona Sur por defecto
         };
+
+        // ============================================
+        // MEJORA 7: COMPARACIÓN LADO A LADO
+        // ============================================
+        
+        let fechasDisponibles = [];
+        let volcanActual = null;
+        
+        function cargarFechasComparacion(volcan) {
+            volcanActual = volcan;
+            
+            const metadataPath = `sentinel2/${volcan}/metadata.csv`;
+            
+            fetch(metadataPath)
+                .then(response => response.text())
+                .then(csv => {
+                    const lineas = csv.split('\n');
+                    const fechas = new Set();
+                    
+                    lineas.slice(1).forEach(linea => {
+                        const columnas = linea.split(',');
+                        if (columnas[0] && columnas[0].length === 10) {
+                            fechas.add(columnas[0]);
+                        }
+                    });
+                    
+                    fechasDisponibles = Array.from(fechas).sort().reverse();
+                    poblarSelectoresFechas();
+                    
+                    if (fechasDisponibles.length >= 2) {
+                        document.getElementById('fecha-izquierda').value = fechasDisponibles[1];
+                        document.getElementById('fecha-derecha').value = fechasDisponibles[0];
+                        actualizarComparacion();
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando fechas:', error);
+                });
+        }
+        
+        function poblarSelectoresFechas() {
+            const selectIzq = document.getElementById('fecha-izquierda');
+            const selectDer = document.getElementById('fecha-derecha');
+            
+            selectIzq.innerHTML = '<option value="">Seleccionar fecha...</option>';
+            selectDer.innerHTML = '<option value="">Seleccionar fecha...</option>';
+            
+            fechasDisponibles.forEach(fecha => {
+                const optionIzq = document.createElement('option');
+                optionIzq.value = fecha;
+                optionIzq.textContent = fecha;
+                selectIzq.appendChild(optionIzq);
+                
+                const optionDer = document.createElement('option');
+                optionDer.value = fecha;
+                optionDer.textContent = fecha;
+                selectDer.appendChild(optionDer);
+            });
+        }
+        
+        function actualizarComparacion() {
+            const fechaIzq = document.getElementById('fecha-izquierda').value;
+            const fechaDer = document.getElementById('fecha-derecha').value;
+            
+            if (!fechaIzq || !fechaDer) {
+                document.getElementById('comparison-grid').innerHTML = 
+                    '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #8b949e;">Selecciona dos fechas para comparar</p>';
+                return;
+            }
+            
+            if (!volcanActual) {
+                console.error('No hay volcán seleccionado');
+                return;
+            }
+            
+            const grid = document.getElementById('comparison-grid');
+            grid.innerHTML = `
+                <div class="comparison-item">
+                    <div class="comparison-header">🟦 RGB - ${fechaIzq}</div>
+                    <img src="sentinel2/${volcanActual}/${fechaIzq}_RGB.png" 
+                         class="comparison-image" 
+                         alt="RGB ${fechaIzq}"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo disponible%3C/text%3E%3C/svg%3E'">
+                    <div class="comparison-metadata" id="meta-izq-rgb">
+                        Cargando metadatos...
+                    </div>
+                </div>
+                
+                <div class="comparison-item">
+                    <div class="comparison-header">🟦 RGB - ${fechaDer}</div>
+                    <img src="sentinel2/${volcanActual}/${fechaDer}_RGB.png" 
+                         class="comparison-image" 
+                         alt="RGB ${fechaDer}"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo disponible%3C/text%3E%3C/svg%3E'">
+                    <div class="comparison-metadata" id="meta-der-rgb">
+                        Cargando metadatos...
+                    </div>
+                </div>
+                
+                <div class="comparison-item">
+                    <div class="comparison-header">🟥 Thermal - ${fechaIzq}</div>
+                    <img src="sentinel2/${volcanActual}/${fechaIzq}_ThermalFalseColor.png" 
+                         class="comparison-image" 
+                         alt="Thermal ${fechaIzq}"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo disponible%3C/text%3E%3C/svg%3E'">
+                    <div class="comparison-metadata" id="meta-izq-thermal">
+                        Cargando metadatos...
+                    </div>
+                </div>
+                
+                <div class="comparison-item">
+                    <div class="comparison-header">🟥 Thermal - ${fechaDer}</div>
+                    <img src="sentinel2/${volcanActual}/${fechaDer}_ThermalFalseColor.png" 
+                         class="comparison-image" 
+                         alt="Thermal ${fechaDer}"
+                         onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo disponible%3C/text%3E%3C/svg%3E'">
+                    <div class="comparison-metadata" id="meta-der-thermal">
+                        Cargando metadatos...
+                    </div>
+                </div>
+            `;
+            
+            cargarMetadatosComparacion(fechaIzq, 'izq');
+            cargarMetadatosComparacion(fechaDer, 'der');
+        }
+        
+        function cargarMetadatosComparacion(fecha, lado) {
+            const metadataPath = `sentinel2/${volcanActual}/metadata.csv`;
+            
+            fetch(metadataPath)
+                .then(response => response.text())
+                .then(csv => {
+                    const lineas = csv.split('\n');
+                    let metadataRGB = null;
+                    let metadataThermal = null;
+                    
+                    lineas.slice(1).forEach(linea => {
+                        const cols = linea.split(',');
+                        if (cols[0] === fecha) {
+                            const metadata = {
+                                fecha: cols[0],
+                                tipo: cols[1],
+                                nubes: parseFloat(cols[2]),
+                                sensor: cols[3]
+                            };
+                            
+                            if (cols[1] === 'RGB') {
+                                metadataRGB = metadata;
+                            } else if (cols[1] === 'ThermalFalseColor') {
+                                metadataThermal = metadata;
+                            }
+                        }
+                    });
+                    
+                    if (metadataRGB) {
+                        document.getElementById(`meta-${lado}-rgb`).innerHTML = `
+                            <div><strong>Satélite:</strong> ${metadataRGB.sensor}</div>
+                            <div><strong>Nubes:</strong> ${metadataRGB.nubes.toFixed(1)}%</div>
+                        `;
+                    }
+                    
+                    if (metadataThermal) {
+                        document.getElementById(`meta-${lado}-thermal`).innerHTML = `
+                            <div><strong>Satélite:</strong> ${metadataThermal.sensor}</div>
+                            <div><strong>Nubes:</strong> ${metadataThermal.nubes.toFixed(1)}%</div>
+                            <div><strong>Bandas:</strong> B12-B11-B04</div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando metadatos:', error);
+                });
+        }
+        
+        function intercambiarFechas() {
+            const selectIzq = document.getElementById('fecha-izquierda');
+            const selectDer = document.getElementById('fecha-derecha');
+            
+            const temp = selectIzq.value;
+            selectIzq.value = selectDer.value;
+            selectDer.value = temp;
+            
+            actualizarComparacion();
+        }
+        
+        function resetearComparacion() {
+            if (fechasDisponibles.length >= 2) {
+                document.getElementById('fecha-izquierda').value = fechasDisponibles[1];
+                document.getElementById('fecha-derecha').value = fechasDisponibles[0];
+                actualizarComparacion();
+            }
+        }
+
+
     </script>
 </body>
 </html>
