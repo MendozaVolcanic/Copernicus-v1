@@ -1,14 +1,9 @@
-name: Detección Automática de Cambios
+name: Deteccion Automatica de Cambios
 
 on:
   schedule:
     - cron: '0 21 * * *'
   workflow_dispatch:
-    inputs:
-      dias_atras:
-        description: 'Días hacia atrás para analizar'
-        required: false
-        default: '30'
 
 permissions:
   contents: write
@@ -27,125 +22,112 @@ jobs:
           python-version: '3.10'
       
       - name: Instalar dependencias
-        run: |
-          pip install requests numpy Pillow pandas pytz
+        run: pip install requests numpy Pillow pandas pytz
       
-      - name: Crear script de detección
+      - name: Crear script de deteccion
         run: |
-          cat > detect_changes.py << 'EOF'
-import sys
-sys.path.append('.')
-
-from change_detector import analizar_serie_temporal, obtener_cambio_maximo
-from firms_integration import cross_reference_sentinel_firms, verificar_alertas_firms
-from alert_generator import generar_alerta_markdown, crear_resumen_alertas
-from config_sentinel2 import VOLCANES
-import os
-
-print('='*80)
-print('🔍 SISTEMA DE DETECCIÓN AUTOMÁTICA DE CAMBIOS')
-print('='*80)
-
-api_key = os.getenv('NASA_FIRMS_API_KEY')
-
-if api_key:
-    print('\n✅ API Key NASA FIRMS configurada')
-else:
-    print('\n⚠️  API Key NASA FIRMS NO configurada')
-    print('   Usando solo detección Sentinel-2')
-
-alertas_generadas = []
-
-for volcan_nombre, config in VOLCANES.items():
-    print(f'\n🌋 Analizando: {volcan_nombre}')
-    
-    try:
-        cambio = obtener_cambio_maximo(volcan_nombre)
-        
-        if not cambio or not cambio.get('cambio_detectado'):
-            print(f'   ⚪ Sin cambios significativos')
-            continue
-        
-        print(f'   🔍 Cambio detectado: {cambio["porcentaje_cambio"]}%')
-        print(f'   📊 Tipo: {cambio["tipo_cambio"]}')
-        
-        nivel_alerta = cross_reference_sentinel_firms(
-            volcan_nombre,
-            config['lat'],
-            config['lon'],
-            cambio,
-            api_key=api_key
-        )
-        
-        print(f'   🚨 Nivel alerta: {nivel_alerta}')
-        
-        if nivel_alerta in ['ALERTA_CRITICA', 'ALERTA_MODERADA', 'ALERTA_MENOR']:
-            firms_resultado = None
-            if api_key:
-                firms_resultado = verificar_alertas_firms(
-                    volcan_nombre,
-                    config['lat'],
-                    config['lon'],
-                    dias_atras=7,
-                    api_key=api_key
-                )
-            
-            alerta = generar_alerta_markdown(
-                volcan_nombre,
-                nivel_alerta,
-                cambio,
-                firms_resultado
-            )
-            
-            alertas_generadas.append(alerta)
-    
-    except Exception as e:
-        print(f'   ❌ Error: {e}')
-        import traceback
-        traceback.print_exc()
-        continue
-
-print('\n' + '='*80)
-print(f'📊 RESUMEN')
-print('='*80)
-print(f'Total alertas: {len(alertas_generadas)}')
-
-if alertas_generadas:
-    crear_resumen_alertas(alertas_generadas)
-    
-    criticas = sum(1 for a in alertas_generadas if a['nivel'] == 'ALERTA_CRITICA')
-    moderadas = sum(1 for a in alertas_generadas if a['nivel'] == 'ALERTA_MODERADA')
-    menores = sum(1 for a in alertas_generadas if a['nivel'] == 'ALERTA_MENOR')
-    
-    print(f'\n🔴 Críticas: {criticas}')
-    print(f'🟡 Moderadas: {moderadas}')
-    print(f'🟢 Menores: {menores}')
-else:
-    print('\n✅ No se generaron alertas')
-
-print('='*80)
-EOF
+          cat > detect_changes.py << 'EOFSCRIPT'
+          import sys
+          sys.path.append('.')
+          
+          from change_detector import obtener_cambio_maximo
+          from firms_integration import cross_reference_sentinel_firms, verificar_alertas_firms
+          from alert_generator import generar_alerta_markdown, crear_resumen_alertas
+          from config_sentinel2 import VOLCANES
+          import os
+          
+          print('='*80)
+          print('DETECCION AUTOMATICA DE CAMBIOS')
+          print('='*80)
+          
+          api_key = os.getenv('NASA_FIRMS_API_KEY')
+          
+          if api_key:
+              print('API Key configurada')
+          else:
+              print('API Key NO configurada')
+          
+          alertas = []
+          
+          for volcan_nombre, config in VOLCANES.items():
+              print(f'Analizando: {volcan_nombre}')
+              
+              try:
+                  cambio = obtener_cambio_maximo(volcan_nombre)
+                  
+                  if not cambio or not cambio.get('cambio_detectado'):
+                      print(f'  Sin cambios')
+                      continue
+                  
+                  print(f'  Cambio: {cambio["porcentaje_cambio"]}%')
+                  
+                  nivel = cross_reference_sentinel_firms(
+                      volcan_nombre,
+                      config['lat'],
+                      config['lon'],
+                      cambio,
+                      api_key=api_key
+                  )
+                  
+                  print(f'  Nivel: {nivel}')
+                  
+                  if nivel in ['ALERTA_CRITICA', 'ALERTA_MODERADA', 'ALERTA_MENOR']:
+                      firms_resultado = None
+                      if api_key:
+                          firms_resultado = verificar_alertas_firms(
+                              volcan_nombre,
+                              config['lat'],
+                              config['lon'],
+                              dias_atras=7,
+                              api_key=api_key
+                          )
+                      
+                      alerta = generar_alerta_markdown(
+                          volcan_nombre,
+                          nivel,
+                          cambio,
+                          firms_resultado
+                      )
+                      
+                      alertas.append(alerta)
+              
+              except Exception as e:
+                  print(f'  Error: {e}')
+                  continue
+          
+          print('='*80)
+          print(f'Total alertas: {len(alertas)}')
+          
+          if alertas:
+              crear_resumen_alertas(alertas)
+              
+              criticas = sum(1 for a in alertas if a['nivel'] == 'ALERTA_CRITICA')
+              moderadas = sum(1 for a in alertas if a['nivel'] == 'ALERTA_MODERADA')
+              menores = sum(1 for a in alertas if a['nivel'] == 'ALERTA_MENOR')
+              
+              print(f'Criticas: {criticas}')
+              print(f'Moderadas: {moderadas}')
+              print(f'Menores: {menores}')
+          else:
+              print('Sin alertas')
+          
+          print('='*80)
+          EOFSCRIPT
       
-      - name: Ejecutar detección de cambios
+      - name: Ejecutar deteccion
         env:
           NASA_FIRMS_API_KEY: ${{ secrets.NASA_FIRMS_API_KEY }}
-        run: |
-          python detect_changes.py
+        run: python detect_changes.py
       
       - name: Commit alertas
-        if: success()
         run: |
           git config user.name "AlertBot"
           git config user.email "alert@copernicus.com"
-          
           git add docs/alertas/*.md 2>/dev/null || true
-          
           if git diff --quiet --staged 2>/dev/null; then
-            echo "⚪ No hay alertas nuevas"
+            echo "Sin alertas nuevas"
           else
-            FECHA=$(date +'%Y-%m-%d')
-            git commit -m "🚨 Alertas automáticas: $FECHA"
+            git commit -m "Alertas: $(date +'%Y-%m-%d')"
             git pull origin main --rebase -X ours || true
-            git push origin main
-            echo "✅ Alertas guardadas en GitHub"
+            git push origin main || true
           fi
