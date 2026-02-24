@@ -2297,18 +2297,19 @@
                         }
                     });
                     
-                    // Actualizar metadatos RGB
                     if (metadataRGB) {
-                        document.getElementById(`meta-${lado}-rgb-fecha`).textContent = metadataRGB.fecha;
-                        document.getElementById(`meta-${lado}-rgb-sensor`).textContent = metadataRGB.sensor;
-                        document.getElementById(`meta-${lado}-rgb-clouds`).textContent = `${metadataRGB.nubes.toFixed(1)}%`;
+                        document.getElementById(`meta-${lado}-rgb`).innerHTML = `
+                            <div><strong>Satélite:</strong> ${metadataRGB.sensor}</div>
+                            <div><strong>Nubes:</strong> ${metadataRGB.nubes.toFixed(1)}%</div>
+                        `;
                     }
                     
-                    // Actualizar metadatos Thermal
                     if (metadataThermal) {
-                        document.getElementById(`meta-${lado}-thermal-fecha`).textContent = metadataThermal.fecha;
-                        document.getElementById(`meta-${lado}-thermal-sensor`).textContent = metadataThermal.sensor;
-                        document.getElementById(`meta-${lado}-thermal-clouds`).textContent = `${metadataThermal.nubes.toFixed(1)}%`;
+                        document.getElementById(`meta-${lado}-thermal`).innerHTML = `
+                            <div><strong>Satélite:</strong> ${metadataThermal.sensor}</div>
+                            <div><strong>Nubes:</strong> ${metadataThermal.nubes.toFixed(1)}%</div>
+                            <div><strong>Bandas:</strong> B12-B11-B04</div>
+                        `;
                     }
                 })
                 .catch(error => {
