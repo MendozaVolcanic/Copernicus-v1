@@ -718,6 +718,42 @@
             color: #e0e0e0;
         }
 
+
+        /* CORRECCIÓN 2: ESCALAS EN IMÁGENES DE COMPARACIÓN */
+        .comparison-item {
+            position: relative;
+        }
+        
+        .comparison-item::after {
+            content: "3 km";
+            position: absolute;
+            bottom: 20px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            pointer-events: none;
+            z-index: 10;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .comparison-item::before {
+            content: "";
+            position: absolute;
+            bottom: 26px;
+            right: 75px;
+            width: 60px;
+            height: 4px;
+            background: white;
+            border: 1px solid #000;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+            pointer-events: none;
+            z-index: 10;
+        }
+
     </style>
 </head>
 <body>
@@ -2303,19 +2339,26 @@
                         }
                     });
                     
+                    // Actualizar metadatos RGB
                     if (metadataRGB) {
-                        document.getElementById(`meta-${lado}-rgb`).innerHTML = `
-                            <div><strong>Satélite:</strong> ${metadataRGB.sensor}</div>
-                            <div><strong>Nubes:</strong> ${metadataRGB.nubes.toFixed(1)}%</div>
-                        `;
+                        const elemFecha = document.getElementById(`meta-${lado}-rgb-fecha`);
+                        const elemSensor = document.getElementById(`meta-${lado}-rgb-sensor`);
+                        const elemClouds = document.getElementById(`meta-${lado}-rgb-clouds`);
+                        
+                        if (elemFecha) elemFecha.textContent = metadataRGB.fecha;
+                        if (elemSensor) elemSensor.textContent = metadataRGB.sensor;
+                        if (elemClouds) elemClouds.textContent = `${metadataRGB.nubes.toFixed(1)}%`;
                     }
                     
+                    // Actualizar metadatos Thermal
                     if (metadataThermal) {
-                        document.getElementById(`meta-${lado}-thermal`).innerHTML = `
-                            <div><strong>Satélite:</strong> ${metadataThermal.sensor}</div>
-                            <div><strong>Nubes:</strong> ${metadataThermal.nubes.toFixed(1)}%</div>
-                            <div><strong>Bandas:</strong> B12-B11-B04</div>
-                        `;
+                        const elemFecha = document.getElementById(`meta-${lado}-thermal-fecha`);
+                        const elemSensor = document.getElementById(`meta-${lado}-thermal-sensor`);
+                        const elemClouds = document.getElementById(`meta-${lado}-thermal-clouds`);
+                        
+                        if (elemFecha) elemFecha.textContent = metadataThermal.fecha;
+                        if (elemSensor) elemSensor.textContent = metadataThermal.sensor;
+                        if (elemClouds) elemClouds.textContent = `${metadataThermal.nubes.toFixed(1)}%`;
                     }
                 })
                 .catch(error => {
