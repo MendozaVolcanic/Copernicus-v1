@@ -2,10 +2,7 @@ name: Detección Automática de Cambios
 
 on:
   schedule:
-    # Ejecutar después de copernicus.yml (21:00 UTC)
-    # Copernicus corre a 10:00 y 20:00 UTC, este corre a 21:00
     - cron: '0 21 * * *'
-  
   workflow_dispatch:
     inputs:
       dias_atras:
@@ -31,18 +28,16 @@ jobs:
       
       - name: Instalar dependencias
         run: |
-          pip install requests numpy Pillow pandas
+          pip install requests numpy Pillow pandas pytz
       
-      - name: Ejecutar detección de cambios
-        env:
-          NASA_FIRMS_API_KEY: ${{ secrets.NASA_FIRMS_API_KEY }}
+      - name: Crear script de detección
         run: |
-          python -c "
+          cat > detect_changes.py << 'EOF'
 import sys
 sys.path.append('.')
 
 from change_detector import analizar_serie_temporal, obtener_cambio_maximo
-from firms_integration import cross_reference_sentinel_firms
+from firms_integration import cross_reference_sentinel_firms, verificar_alertas_firms
 from alert_generator import generar_alerta_markdown, crear_resumen_alertas
 from config_sentinel2 import VOLCANES
 import os
@@ -51,7 +46,6 @@ print('='*80)
 print('🔍 SISTEMA DE DETECCIÓN AUTOMÁTICA DE CAMBIOS')
 print('='*80)
 
-# Leer API key de FIRMS
 api_key = os.getenv('NASA_FIRMS_API_KEY')
 
 if api_key:
@@ -66,21 +60,15 @@ for volcan_nombre, config in VOLCANES.items():
     print(f'\n🌋 Analizando: {volcan_nombre}')
     
     try:
-        # Detectar cambios con Sentinel-2
         cambio = obtener_cambio_maximo(volcan_nombre)
         
-        if not cambio:
+        if not cambio or not cambio.get('cambio_detectado'):
             print(f'   ⚪ Sin cambios significativos')
             continue
         
-        if not cambio.get('cambio_detectado'):
-            print(f'   ⚪ Sin cambios significativos')
-            continue
+        print(f'   🔍 Cambio detectado: {cambio["porcentaje_cambio"]}%')
+        print(f'   📊 Tipo: {cambio["tipo_cambio"]}')
         
-        print(f'   🔍 Cambio detectado: {cambio[\"porcentaje_cambio\"]}%')
-        print(f'   📊 Tipo: {cambio[\"tipo_cambio\"]}')
-        
-        # Cross-reference con FIRMS
         nivel_alerta = cross_reference_sentinel_firms(
             volcan_nombre,
             config['lat'],
@@ -91,11 +79,7 @@ for volcan_nombre, config in VOLCANES.items():
         
         print(f'   🚨 Nivel alerta: {nivel_alerta}')
         
-        # Generar alerta si es necesario
         if nivel_alerta in ['ALERTA_CRITICA', 'ALERTA_MODERADA', 'ALERTA_MENOR']:
-            # Consultar FIRMS para incluir en alerta
-            from firms_integration import verificar_alertas_firms
-            
             firms_resultado = None
             if api_key:
                 firms_resultado = verificar_alertas_firms(
@@ -106,7 +90,6 @@ for volcan_nombre, config in VOLCANES.items():
                     api_key=api_key
                 )
             
-            # Generar alerta
             alerta = generar_alerta_markdown(
                 volcan_nombre,
                 nivel_alerta,
@@ -128,10 +111,8 @@ print('='*80)
 print(f'Total alertas: {len(alertas_generadas)}')
 
 if alertas_generadas:
-    # Crear archivo resumen
     crear_resumen_alertas(alertas_generadas)
     
-    # Mostrar por nivel
     criticas = sum(1 for a in alertas_generadas if a['nivel'] == 'ALERTA_CRITICA')
     moderadas = sum(1 for a in alertas_generadas if a['nivel'] == 'ALERTA_MODERADA')
     menores = sum(1 for a in alertas_generadas if a['nivel'] == 'ALERTA_MENOR')
@@ -143,7 +124,13 @@ else:
     print('\n✅ No se generaron alertas')
 
 print('='*80)
-          "
+EOF
+      
+      - name: Ejecutar detección de cambios
+        env:
+          NASA_FIRMS_API_KEY: ${{ secrets.NASA_FIRMS_API_KEY }}
+        run: |
+          python detect_changes.py
       
       - name: Commit alertas
         if: success()
@@ -151,14 +138,14 @@ print('='*80)
           git config user.name "AlertBot"
           git config user.email "alert@copernicus.com"
           
-          git add docs/alertas/*.md || true
+          git add docs/alertas/*.md 2>/dev/null || true
           
-          if ! git diff --quiet --staged 2>/dev/null; then
+          if git diff --quiet --staged 2>/dev/null; then
+            echo "⚪ No hay alertas nuevas"
+          else
             FECHA=$(date +'%Y-%m-%d')
             git commit -m "🚨 Alertas automáticas: $FECHA"
-            git pull origin main --rebase -X ours
+            git pull origin main --rebase -X ours || true
             git push origin main
             echo "✅ Alertas guardadas en GitHub"
-          else
-            echo "⚪ No hay alertas nuevas"
           fi
