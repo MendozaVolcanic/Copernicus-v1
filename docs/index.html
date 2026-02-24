@@ -718,6 +718,42 @@
             color: #e0e0e0;
         }
 
+    
+        /* ESCALA PARA IMÁGENES DE COMPARACIÓN */
+        .comparison-image-container {
+            position: relative;
+            width: 100%;
+        }
+        
+        .comparison-image {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .comparison-scale-overlay {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 12px;
+            border-radius: 4px;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            pointer-events: none;
+        }
+        
+        .comparison-scale-bar {
+            display: inline-block;
+            width: 60px;
+            height: 4px;
+            background: white;
+            margin-right: 8px;
+            vertical-align: middle;
+            border: 1px solid #000;
+        }
+
     </style>
 </head>
 <body>
@@ -733,7 +769,7 @@
         </div>
         
         <div class="action-buttons">
-            <button class="btn-ui" onclick="toggleTimelapseMode()"> Modo Comparación Multi-Volcán</button>
+            <button class="btn-ui" style="background: #da3633;" onclick="toggleTimelapseMode()"> Modo Comparación Multi-Volcán</button>
             <button class="btn-ui" style="background: #238636;" onclick="generarPPTIndividual()"> PPT Evaluación Individual</button>
             <button class="btn-ui" style="background: #2ea043;" onclick="generarPPTCompleto()"> PPT Evaluación Completa</button>
             <button class="btn-ui" style="background: #0969da;" onclick="abrirCopernicusBrowser()"> Copernicus Browser</button>
@@ -2228,10 +2264,15 @@
             grid.innerHTML = `
                 <div class="comparison-item">
                     <div class="comparison-header">🟦 RGB - ${fechaIzq}</div>
+                    <div class="comparison-image-container">
                     <img src="sentinel2/${volcanActual}/${fechaIzq}_RGB.png" 
                          class="comparison-image" 
                          alt="RGB ${fechaIzq}"
                          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo disponible%3C/text%3E%3C/svg%3E'">
+                    <div class="comparison-scale-overlay">
+                        <span class="comparison-scale-bar"></span>3 km
+                    </div>
+                </div>
                     <div class="comparison-metadata" id="meta-izq-rgb">
                         Cargando metadatos...
                     </div>
@@ -2239,10 +2280,15 @@
                 
                 <div class="comparison-item">
                     <div class="comparison-header">🟦 RGB - ${fechaDer}</div>
+                    <div class="comparison-image-container">
                     <img src="sentinel2/${volcanActual}/${fechaDer}_RGB.png" 
                          class="comparison-image" 
                          alt="RGB ${fechaDer}"
                          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo disponible%3C/text%3E%3C/svg%3E'">
+                    <div class="comparison-scale-overlay">
+                        <span class="comparison-scale-bar"></span>3 km
+                    </div>
+                </div>
                     <div class="comparison-metadata" id="meta-der-rgb">
                         Cargando metadatos...
                     </div>
@@ -2250,10 +2296,15 @@
                 
                 <div class="comparison-item">
                     <div class="comparison-header">🟥 Thermal - ${fechaIzq}</div>
+                    <div class="comparison-image-container">
                     <img src="sentinel2/${volcanActual}/${fechaIzq}_ThermalFalseColor.png" 
                          class="comparison-image" 
                          alt="Thermal ${fechaIzq}"
                          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo disponible%3C/text%3E%3C/svg%3E'">
+                    <div class="comparison-scale-overlay">
+                        <span class="comparison-scale-bar"></span>3 km
+                    </div>
+                </div>
                     <div class="comparison-metadata" id="meta-izq-thermal">
                         Cargando metadatos...
                     </div>
@@ -2261,10 +2312,15 @@
                 
                 <div class="comparison-item">
                     <div class="comparison-header">🟥 Thermal - ${fechaDer}</div>
+                    <div class="comparison-image-container">
                     <img src="sentinel2/${volcanActual}/${fechaDer}_ThermalFalseColor.png" 
                          class="comparison-image" 
                          alt="Thermal ${fechaDer}"
                          onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22%3E%3Crect fill=%22%23333%22 width=%22100%22 height=%22100%22/%3E%3Ctext x=%2250%25%22 y=%2250%25%22 text-anchor=%22middle%22 fill=%22%23999%22%3ENo disponible%3C/text%3E%3C/svg%3E'">
+                    <div class="comparison-scale-overlay">
+                        <span class="comparison-scale-bar"></span>3 km
+                    </div>
+                </div>
                     <div class="comparison-metadata" id="meta-der-thermal">
                         Cargando metadatos...
                     </div>
@@ -2281,7 +2337,8 @@
             fetch(metadataPath)
                 .then(response => response.text())
                 .then(csv => {
-                    const lineas = csv.split('\n');
+                    const lineas = csv.split('
+');
                     let metadataRGB = null;
                     let metadataThermal = null;
                     
@@ -2298,6 +2355,37 @@
                             if (cols[1] === 'RGB') {
                                 metadataRGB = metadata;
                             } else if (cols[1] === 'ThermalFalseColor') {
+                                metadataThermal = metadata;
+                            }
+                        }
+                    });
+                    
+                    // Actualizar metadatos RGB
+                    if (metadataRGB) {
+                        const elemFecha = document.getElementById(`meta-${lado}-rgb-fecha`);
+                        const elemSensor = document.getElementById(`meta-${lado}-rgb-sensor`);
+                        const elemClouds = document.getElementById(`meta-${lado}-rgb-clouds`);
+                        
+                        if (elemFecha) elemFecha.textContent = metadataRGB.fecha;
+                        if (elemSensor) elemSensor.textContent = metadataRGB.sensor;
+                        if (elemClouds) elemClouds.textContent = `${metadataRGB.nubes.toFixed(1)}%`;
+                    }
+                    
+                    // Actualizar metadatos Thermal
+                    if (metadataThermal) {
+                        const elemFecha = document.getElementById(`meta-${lado}-thermal-fecha`);
+                        const elemSensor = document.getElementById(`meta-${lado}-thermal-sensor`);
+                        const elemClouds = document.getElementById(`meta-${lado}-thermal-clouds`);
+                        
+                        if (elemFecha) elemFecha.textContent = metadataThermal.fecha;
+                        if (elemSensor) elemSensor.textContent = metadataThermal.sensor;
+                        if (elemClouds) elemClouds.textContent = `${metadataThermal.nubes.toFixed(1)}%`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando metadatos:', error);
+                });
+        } else if (cols[1] === 'ThermalFalseColor') {
                                 metadataThermal = metadata;
                             }
                         }
