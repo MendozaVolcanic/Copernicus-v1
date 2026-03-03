@@ -90,7 +90,7 @@ jobs:
       
       - name: Instalar dependencias
         run: |
-          pip install python-pptx Pillow requests
+          pip install python-pptx Pillow requests numpy
       
       - name: Verificar plantilla
         run: |
