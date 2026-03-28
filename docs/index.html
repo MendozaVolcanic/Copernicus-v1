@@ -18,9 +18,25 @@
         body.timelapse-mode #main-content {
             display: none;
         }
-        
+
         body.timelapse-mode #timelapse-fullscreen {
             display: flex !important;
+        }
+
+        body.personal-mode #main-content { display: none; }
+        body.personal-mode #monitoreo-personal-fullscreen { display: flex !important; }
+        body.riesgosos-mode #main-content { display: none; }
+        body.riesgosos-mode #riesgosos-fullscreen { display: flex !important; }
+
+        #monitoreo-personal-fullscreen, #riesgosos-fullscreen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100vh;
+            background: #0b0e14;
+            z-index: 2000;
+            flex-direction: column;
+            overflow-y: auto;
         }
 
         /* HEADER */
@@ -770,9 +786,12 @@
         
         <div class="action-buttons">
             <button class="btn-ui" style="background: #da3633;" onclick="toggleTimelapseMode()"> Modo Comparación Multi-Volcán</button>
+            <button class="btn-ui" style="background: #6e40c9;" onclick="toggleMonitoreoPersonal()"> Monitoreo Personal</button>
+            <button class="btn-ui" style="background: #b45309;" onclick="toggleRiesgosos()"> 14 más Riesgosos</button>
             <button class="btn-ui" style="background: #238636;" onclick="generarPPTIndividual()"> PPT Evaluación Individual</button>
             <button class="btn-ui" style="background: #2ea043;" onclick="generarPPTCompleto()"> PPT Evaluación Completa</button>
             <button class="btn-ui" style="background: #0969da;" onclick="abrirCopernicusBrowser()"> Copernicus Browser</button>
+            <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
         </div>
 
         <div class="status-item">
@@ -1157,12 +1176,76 @@
                     <option value="Austral">Zona Austral</option>
                 </select>
             </div>
-            <button class="btn-ui" onclick="toggleTimelapseMode()"> Volver al Dashboard</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
+                <button class="btn-ui" onclick="toggleTimelapseMode()"> Volver al Dashboard</button>
+            </div>
         </div>
         <div class="timelapse-content">
             <div id="volcanes-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;">
                 <!-- Se llena dinámicamente con JavaScript -->
             </div>
+        </div>
+    </div>
+
+    <!-- MODO MONITOREO PERSONAL -->
+    <div id="monitoreo-personal-fullscreen">
+        <div class="timelapse-header">
+            <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+                <h2 style="color: #a371f7; margin: 0;"> Monitoreo Personal</h2>
+                <select id="personal-volcano-select" multiple style="padding: 6px; background: #0d1117; color: #e0e0e0; border: 1px solid #30363d; border-radius: 6px; min-width: 200px; height: 90px; font-size: 0.9em;">
+                    <optgroup label="── Zona Norte ──">
+                        <option>Taapaca</option><option>Parinacota</option><option>Guallatiri</option>
+                        <option>Isluga</option><option>Irruputuncu</option><option>Ollague</option>
+                        <option>San Pedro</option><option>Lascar</option>
+                    </optgroup>
+                    <optgroup label="── Zona Centro ──">
+                        <option>Tupungatito</option><option>San Jose</option><option>Tinguiririca</option>
+                        <option>Planchon-Peteroa</option><option>Descabezado Grande</option>
+                        <option>Tatara-San Pedro</option><option>Laguna del Maule</option>
+                        <option>Nevado de Longavi</option><option>Nevados de Chillan</option>
+                    </optgroup>
+                    <optgroup label="── Zona Sur ──">
+                        <option>Antuco</option><option>Copahue</option><option>Callaqui</option>
+                        <option>Lonquimay</option><option>Llaima</option><option>Sollipulli</option>
+                        <option>Villarrica</option><option>Quetrupillan</option><option>Lanin</option>
+                        <option>Mocho-Choshuenco</option><option>Carran - Los Venados</option>
+                        <option>Puyehue - Cordon Caulle</option><option>Antillanca - Casablanca</option>
+                    </optgroup>
+                    <optgroup label="── Zona Austral ──">
+                        <option>Osorno</option><option>Calbuco</option><option>Yate</option>
+                        <option>Hornopiren</option><option>Huequi</option><option>Michinmahuidia</option>
+                        <option>Chaiten</option><option>Corcovado</option><option>Melimoyu</option>
+                        <option>Mentolat</option><option>Cay</option><option>Maca</option><option>Hudson</option>
+                    </optgroup>
+                </select>
+                <span style="color: #8b949e; font-size: 0.78em; line-height: 1.5;">Ctrl+Click<br>selección múltiple</span>
+                <button class="btn-ui" style="background: #6e40c9;" onclick="loadMonitoreoPersonal()"> Cargar Selección</button>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
+                <button class="btn-ui" onclick="toggleMonitoreoPersonal()"> Volver al Dashboard</button>
+            </div>
+        </div>
+        <div class="timelapse-content">
+            <div id="personal-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;"></div>
+        </div>
+    </div>
+
+    <!-- MODO 14 MÁS RIESGOSOS -->
+    <div id="riesgosos-fullscreen">
+        <div class="timelapse-header">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h2 style="color: #f97316; margin: 0;"> 14 Volcanes más Riesgosos</h2>
+                <span style="color: #8b949e; font-size: 0.85em;">Ranking SERNAGEOMIN · Peligrosidad Volcánica</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
+                <button class="btn-ui" onclick="toggleRiesgosos()"> Volver al Dashboard</button>
+            </div>
+        </div>
+        <div class="timelapse-content">
+            <div id="riesgosos-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;"></div>
         </div>
     </div>
 
@@ -1485,13 +1568,127 @@
             }
         }
 
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
         function toggleTimelapseMode() {
+            document.body.classList.remove('personal-mode', 'riesgosos-mode');
             document.body.classList.toggle('timelapse-mode');
-            
             if (document.body.classList.contains('timelapse-mode')) {
-                // Seleccionar Zona Norte por defecto
                 document.getElementById('zona-multi-select').value = 'Norte';
                 loadMultiVolcanoViewZona();
+            }
+        }
+
+        function toggleMonitoreoPersonal() {
+            document.body.classList.remove('timelapse-mode', 'riesgosos-mode');
+            document.body.classList.toggle('personal-mode');
+            if (document.body.classList.contains('personal-mode')) {
+                document.getElementById('personal-grid').innerHTML = '<p style="color:#8b949e; padding:20px;">Selecciona volcanes de la lista y presiona <strong>Cargar Selección</strong>.</p>';
+            }
+        }
+
+        async function loadMonitoreoPersonal() {
+            const select = document.getElementById('personal-volcano-select');
+            const seleccionados = Array.from(select.selectedOptions).map(o => o.value);
+            if (seleccionados.length === 0) {
+                alert('Selecciona al menos un volcán con Ctrl+Click.');
+                return;
+            }
+            await cargarPanelesList(seleccionados, 'personal-grid', '');
+        }
+
+        function toggleRiesgosos() {
+            document.body.classList.remove('timelapse-mode', 'personal-mode');
+            document.body.classList.toggle('riesgosos-mode');
+            if (document.body.classList.contains('riesgosos-mode')) {
+                loadRiesgososView();
+            }
+        }
+
+        async function loadRiesgososView() {
+            const VOLCANES_RIESGOSOS = [
+                { nombre: 'Villarrica',              region: 'La Araucanía - Los Ríos' },
+                { nombre: 'Calbuco',                 region: 'Los Lagos' },
+                { nombre: 'Llaima',                  region: 'La Araucanía' },
+                { nombre: 'Puyehue - Cordon Caulle', region: 'Los Ríos - Los Lagos' },
+                { nombre: 'Descabezado Grande',      region: 'Maule' },
+                { nombre: 'Carran - Los Venados',    region: 'Los Ríos' },
+                { nombre: 'Chaiten',                 region: 'Los Lagos' },
+                { nombre: 'Osorno',                  region: 'Los Lagos' },
+                { nombre: 'Mocho-Choshuenco',        region: 'Los Ríos' },
+                { nombre: 'Nevados de Chillan',      region: 'Ñuble' },
+                { nombre: 'Lonquimay',               region: 'La Araucanía' },
+                { nombre: 'Hudson',                  region: 'Aysén' },
+                { nombre: 'Antuco',                  region: 'Biobío' },
+                { nombre: 'Lascar',                  region: 'Antofagasta' }
+            ];
+            const nombres = VOLCANES_RIESGOSOS.map(v => v.nombre);
+            const regiones = {};
+            VOLCANES_RIESGOSOS.forEach((v, i) => { regiones[v.nombre] = `#${i+1} · ${v.region}`; });
+            await cargarPanelesList(nombres, 'riesgosos-grid', regiones);
+        }
+
+        async function cargarPanelesList(volcanesList, gridId, subtitulos) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            for (const volcan of volcanesList) {
+                const panel = document.createElement('div');
+                panel.style.cssText = 'background: #161b22; border: 1px solid #30363d; border-radius: 4px; padding: 8px;';
+                let ultimaFecha = '';
+                try {
+                    const metadataUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/metadata.csv?t=${Date.now()}`;
+                    const response = await fetch(metadataUrl);
+                    const csvText = await response.text();
+                    const lines = csvText.trim().split('\n');
+                    if (lines.length > 1) ultimaFecha = lines[1].split(',')[0];
+                } catch (e) {}
+                const subtitulo = subtitulos && subtitulos[volcan] ? subtitulos[volcan] : '';
+                panel.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:4px;">
+                        <h2 style="color:#58a6ff; margin:0;">${volcan}</h2>
+                        ${subtitulo ? `<span style="color:#f97316; font-size:0.8em; font-weight:bold;">${subtitulo}</span>` : ''}
+                    </div>
+                    ${ultimaFecha ? `<p style="color:#8b949e; font-size:0.85em; margin-bottom:8px;"> ${ultimaFecha}</p>` : ''}
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:3px;">
+                        <div style="background:#0d1117; border-radius:6px; padding:3px;">
+                            <h4 style="color:#58a6ff; margin:0 0 8px 0; font-size:0.9em;">RGB</h4>
+                            <div id="list-rgb-${gridId}-${volcan}" style="min-height:280px; display:flex; align-items:center; justify-content:center;"><div class="loading-spinner"></div></div>
+                        </div>
+                        <div style="background:#0d1117; border-radius:6px; padding:3px;">
+                            <h4 style="color:#58a6ff; margin:0 0 8px 0; font-size:0.9em;">Thermal</h4>
+                            <div id="list-thermal-${gridId}-${volcan}" style="min-height:280px; display:flex; align-items:center; justify-content:center;"><div class="loading-spinner"></div></div>
+                        </div>
+                    </div>`;
+                grid.appendChild(panel);
+                if (ultimaFecha) {
+                    const rgbUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
+                    const thermalUrl = `${REPO_BASE}/docs/sentinel2/${volcan}/${ultimaFecha}_ThermalFalseColor.png?t=${Date.now()}`;
+                    const rgbId = `list-rgb-${gridId}-${volcan}`;
+                    const thermalId = `list-thermal-${gridId}-${volcan}`;
+                    const rgbImg = new Image(); rgbImg.crossOrigin = 'anonymous';
+                    rgbImg.onload = async () => {
+                        const c = await agregarEscalaAImagen(rgbImg);
+                        document.getElementById(rgbId).innerHTML = `<img src="${c}" style="width:100%; border-radius:4px; cursor:pointer;" onclick="zoomImage('${c}','${volcan} - RGB','${ultimaFecha}')">`;
+                    };
+                    rgbImg.onerror = () => { document.getElementById(rgbId).innerHTML = '<div class="no-image">No disponible</div>'; };
+                    rgbImg.src = rgbUrl;
+                    const thImg = new Image(); thImg.crossOrigin = 'anonymous';
+                    thImg.onload = async () => {
+                        const c = await agregarEscalaAImagen(thImg);
+                        document.getElementById(thermalId).innerHTML = `<img src="${c}" style="width:100%; border-radius:4px; cursor:pointer;" onclick="zoomImage('${c}','${volcan} - Thermal','${ultimaFecha}')">`;
+                    };
+                    thImg.onerror = () => { document.getElementById(thermalId).innerHTML = '<div class="no-image">No disponible</div>'; };
+                    thImg.src = thermalUrl;
+                } else {
+                    document.getElementById(`list-rgb-${gridId}-${volcan}`).innerHTML = '<div class="no-image">Sin datos</div>';
+                    document.getElementById(`list-thermal-${gridId}-${volcan}`).innerHTML = '<div class="no-image">Sin datos</div>';
+                }
             }
         }
 
