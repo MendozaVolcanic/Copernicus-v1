@@ -1,0 +1,320 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2">
+  <Document>
+    <name>Centroides Volcanes Chile - 43 Volcanes Activos</name>
+    <description>Puntos centroides para verificación y ajuste manual. Generado desde config_sentinel2.py</description>
+
+    <!-- Estilos por zona -->
+    <Style id="norte">
+      <IconStyle>
+        <color>ff0000ff</color>
+        <scale>1.2</scale>
+        <Icon><href>http://maps.google.com/mapfiles/kml/shapes/volcano.png</href></Icon>
+      </IconStyle>
+      <LabelStyle><color>ff0000ff</color></LabelStyle>
+    </Style>
+    <Style id="centro">
+      <IconStyle>
+        <color>ff00ff00</color>
+        <scale>1.2</scale>
+        <Icon><href>http://maps.google.com/mapfiles/kml/shapes/volcano.png</href></Icon>
+      </IconStyle>
+      <LabelStyle><color>ff00ff00</color></LabelStyle>
+    </Style>
+    <Style id="sur">
+      <IconStyle>
+        <color>ff00ffff</color>
+        <scale>1.2</scale>
+        <Icon><href>http://maps.google.com/mapfiles/kml/shapes/volcano.png</href></Icon>
+      </IconStyle>
+      <LabelStyle><color>ff00ffff</color></LabelStyle>
+    </Style>
+    <Style id="austral">
+      <IconStyle>
+        <color>ffff00ff</color>
+        <scale>1.2</scale>
+        <Icon><href>http://maps.google.com/mapfiles/kml/shapes/volcano.png</href></Icon>
+      </IconStyle>
+      <LabelStyle><color>ffff00ff</color></LabelStyle>
+    </Style>
+
+    <!-- ZONA NORTE -->
+    <Folder>
+      <name>Zona Norte (8 volcanes)</name>
+      <Placemark>
+        <name>Taapaca</name>
+        <description>buffer_km: 5.0 | id: 354010</description>
+        <styleUrl>#norte</styleUrl>
+        <Point><coordinates>-69.50584,-18.10922,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Parinacota</name>
+        <description>buffer_km: 2.5 | id: 354020</description>
+        <styleUrl>#norte</styleUrl>
+        <Point><coordinates>-69.14534,-18.17126,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Guallatiri</name>
+        <description>buffer_km: 2.5 | id: 354030</description>
+        <styleUrl>#norte</styleUrl>
+        <Point><coordinates>-69.08500,-18.42781,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Isluga</name>
+        <description>buffer_km: 3.5 | id: 355030</description>
+        <styleUrl>#norte</styleUrl>
+        <Point><coordinates>-68.82225,-19.16737,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Irruputuncu</name>
+        <description>buffer_km: 1.4 | id: 355040</description>
+        <styleUrl>#norte</styleUrl>
+        <Point><coordinates>-68.56041,-20.73329,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Ollague</name>
+        <description>buffer_km: 3.5 | id: 355050</description>
+        <styleUrl>#norte</styleUrl>
+        <Point><coordinates>-68.17941,-21.30685,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>San Pedro</name>
+        <description>buffer_km: 4.5 | id: 355080</description>
+        <styleUrl>#norte</styleUrl>
+        <Point><coordinates>-68.40706,-21.88485,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Lascar</name>
+        <description>buffer_km: 2.8 | id: 355100</description>
+        <styleUrl>#norte</styleUrl>
+        <Point><coordinates>-67.73611,-23.36726,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+
+    <!-- ZONA CENTRO -->
+    <Folder>
+      <name>Zona Centro (9 volcanes)</name>
+      <Placemark>
+        <name>Tupungatito</name>
+        <description>buffer_km: 3.5 | id: 357010</description>
+        <styleUrl>#centro</styleUrl>
+        <Point><coordinates>-69.82181,-33.40849,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>San Jose</name>
+        <description>buffer_km: 2.5 | id: 357020</description>
+        <styleUrl>#centro</styleUrl>
+        <Point><coordinates>-69.89732,-33.78682,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Tinguiririca</name>
+        <description>buffer_km: 2.8 | id: 357030</description>
+        <styleUrl>#centro</styleUrl>
+        <Point><coordinates>-70.34917,-34.80794,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Planchon-Peteroa</name>
+        <description>buffer_km: 1.3 | id: 357040</description>
+        <styleUrl>#centro</styleUrl>
+        <Point><coordinates>-70.57189,-35.24212,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Descabezado Grande</name>
+        <description>buffer_km: 7.0 | id: 357050</description>
+        <styleUrl>#centro</styleUrl>
+        <Point><coordinates>-70.74830,-35.60431,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Tatara-San Pedro</name>
+        <description>buffer_km: 3.5 | id: 357055</description>
+        <styleUrl>#centro</styleUrl>
+        <Point><coordinates>-70.84533,-35.99755,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Laguna del Maule</name>
+        <description>buffer_km: 9.0 | id: 357058</description>
+        <styleUrl>#centro</styleUrl>
+        <Point><coordinates>-70.49828,-36.07100,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Nevado de Longavi</name>
+        <description>buffer_km: 5.0 | id: 357065</description>
+        <styleUrl>#centro</styleUrl>
+        <Point><coordinates>-71.17010,-36.20001,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Nevados de Chillan</name>
+        <description>buffer_km: 3.3 | id: 357070</description>
+        <styleUrl>#centro</styleUrl>
+        <Point><coordinates>-71.35231,-37.41096,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+
+    <!-- ZONA SUR -->
+    <Folder>
+      <name>Zona Sur (13 volcanes)</name>
+      <Placemark>
+        <name>Antuco</name>
+        <description>buffer_km: 3.0 | id: 357080</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-71.34097,-37.41859,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Copahue</name>
+        <description>buffer_km: 2.0 | id: 357090</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-71.16836,-37.85715,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Callaqui</name>
+        <description>buffer_km: 5.0 | id: 357095</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-71.46113,-37.92554,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Lonquimay</name>
+        <description>buffer_km: 3.0 | id: 357100</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-71.58530,-38.38216,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Llaima</name>
+        <description>buffer_km: 4.0 | id: 357110</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-71.73447,-38.71238,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Sollipulli</name>
+        <description>buffer_km: 5.0 | id: 357115</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-71.51557,-38.98103,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Villarrica</name>
+        <description>buffer_km: 1.5 | id: 357120</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-71.93939,-39.42052,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Quetrupillan</name>
+        <description>buffer_km: 5.5 | id: 357125</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-71.70337,-39.53150,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Lanin</name>
+        <description>buffer_km: 4.5 | id: 357130</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-71.47923,-39.62762,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Mocho-Choshuenco</name>
+        <description>buffer_km: 5.0 | id: 357135</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-72.00281,-39.93439,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Carran - Los Venados</name>
+        <description>buffer_km: 6.5 | id: 357143</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-72.10509,-40.37922,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Puyehue - Cordon Caulle</name>
+        <description>buffer_km: 10.0 | id: 357150</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-72.14826,-40.54783,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Antillanca - Casablanca</name>
+        <description>buffer_km: 5.5 | id: 357155</description>
+        <styleUrl>#sur</styleUrl>
+        <Point><coordinates>-72.15114,-40.76716,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+
+    <!-- ZONA AUSTRAL -->
+    <Folder>
+      <name>Zona Austral (13 volcanes)</name>
+      <Placemark>
+        <name>Osorno</name>
+        <description>buffer_km: 4.0 | id: 358060</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.49271,-41.10453,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Calbuco</name>
+        <description>buffer_km: 2.5 | id: 358070</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.60399,-41.33035,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Yate</name>
+        <description>buffer_km: 4.5 | id: 358080</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.38678,-41.77750,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Hornopiren</name>
+        <description>buffer_km: 2.5 | id: 358085</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.43178,-41.88132,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Huequi</name>
+        <description>buffer_km: 1.5 | id: 358090</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.58103,-42.38094,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Michinmahuida</name>
+        <description>buffer_km: 9.5 | id: 358095</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.43927,-42.83733,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Chaiten</name>
+        <description>buffer_km: 2.7 | id: 358041</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.65155,-42.83276,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Corcovado</name>
+        <description>buffer_km: 2.5 | id: 358100</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.78979,-43.19300,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Melimoyu</name>
+        <description>buffer_km: 7.0 | id: 358110</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.85073,-44.07612,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Mentolat</name>
+        <description>buffer_km: 3.0 | id: 358120</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-73.07507,-44.69272,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Cay</name>
+        <description>buffer_km: 3.5 | id: 358130</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.96318,-45.07068,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Maca</name>
+        <description>buffer_km: 3.5 | id: 358140</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-73.16908,-45.11210,0</coordinates></Point>
+      </Placemark>
+      <Placemark>
+        <name>Hudson</name>
+        <description>buffer_km: 8.0 | id: 358150</description>
+        <styleUrl>#austral</styleUrl>
+        <Point><coordinates>-72.96508,-45.90915,0</coordinates></Point>
+      </Placemark>
+    </Folder>
+
+  </Document>
+</kml>

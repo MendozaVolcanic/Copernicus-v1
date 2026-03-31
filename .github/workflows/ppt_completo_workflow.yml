@@ -2,6 +2,11 @@
 # WORKFLOW: PPT EVALUACIÓN COMPLETA (TODOS LOS VOLCANES)
 # ============================================================================
 # Genera GIFs + PPTs para todos los volcanes en el rango de fechas indicado.
+# - GIFs e individual PPTs → se commitean al repo (tamaño razonable)
+# - PPT combinado (todos los volcanes) → se sube a GitHub Releases y se
+#   ELIMINA del filesystem antes del commit para que NUNCA entre en git.
+#   Siempre hay solo UN release con el último PPT combinado. Se descarga
+#   desde la sección "Releases" del repositorio (panel derecho).
 # Borra GIFs anteriores de timelapses_ppt/ antes de generar los nuevos.
 # ============================================================================
 
@@ -37,7 +42,7 @@ jobs:
 
       - name: Instalar dependencias
         run: |
-          pip install Pillow requests pandas python-pptx
+          pip install Pillow requests pandas python-pptx numpy
 
       - name: Verificar plantilla
         run: |
@@ -62,31 +67,81 @@ jobs:
           python timelapse_generator.py
 
       - name: Generar PPTs para todos los volcanes
+        env:
+          FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
+          FECHA_FIN: ${{ github.event.inputs.fecha_fin }}
         run: |
           echo "📊 Generando PPTs..."
           python ppt_generator.py
 
-      - name: Guardar resultados en GitHub
+      - name: Publicar PPT combinado en GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
+          FECHA_FIN: ${{ github.event.inputs.fecha_fin }}
+        run: |
+          PPT_FILE=$(find docs/reportes -name "Evaluacion_Completa_*.pptx" | head -1)
+
+          if [ -z "$PPT_FILE" ]; then
+            echo "⚠️  No se encontró PPT combinado, saltando release"
+          else
+            SIZE_MB=$(du -m "$PPT_FILE" | cut -f1)
+            echo "📦 PPT combinado: $PPT_FILE ($SIZE_MB MB)"
+
+            # Eliminar release anterior (siempre solo hay 1)
+            gh release delete "ppt-evaluacion-completa" --yes 2>/dev/null || echo "ℹ️  No había release anterior"
+
+            # Crear nuevo release con el PPT como asset descargable
+            gh release create "ppt-evaluacion-completa" "$PPT_FILE" \
+              --title "📊 PPT Evaluación Completa — $FECHA_INICIO → $FECHA_FIN" \
+              --notes "$(cat <<EOF
+          ## PPT Evaluación Completa — Todos los Volcanes
+
+          **Período:** $FECHA_INICIO → $FECHA_FIN
+          **Volcanes:** 43 volcanes activos de Chile
+          **Contenido:** 1 slide por volcán con timelapse RGB + ThermalFalseColor
+
+          ### Cómo descargar
+          Haz click en el archivo **.pptx** de abajo para descargarlo directamente.
+          EOF
+          )" \
+              --latest=false
+
+            echo "✅ PPT publicado en Releases"
+            echo "🔗 https://github.com/${{ github.repository }}/releases/tag/ppt-evaluacion-completa"
+
+            # ─── CLAVE: borrar el archivo ANTES del commit ───────────────────
+            # El PPT ya está en Releases. Si queda en el filesystem, git lo
+            # intentaría commitear. Borrándolo aquí es imposible que entre.
+            rm -f "$PPT_FILE"
+            echo "🗑️  PPT combinado eliminado del filesystem (ya está en Releases)"
+          fi
+
+      - name: Guardar GIFs e individual PPTs en GitHub
         run: |
           git config user.name "PPTCompletoBot"
           git config user.email "pptcompleto@copernicus.com"
 
-          git add docs/sentinel2/**/timelapses_ppt/*.gif || true
-          git add docs/sentinel2/**/reportes/*.pptx || true
-          git add docs/reportes/*.pptx || true
+          # Por seguridad: eliminar cualquier Evaluacion_Completa_*.pptx residual
+          rm -f docs/reportes/Evaluacion_Completa_*.pptx 2>/dev/null || true
+
+          # Agregar GIFs e individual PPTs (solo docs/sentinel2/)
+          git add docs/sentinel2/ 2>/dev/null || true
 
           if git diff --quiet --staged; then
             echo "⚠️ No hay archivos nuevos para guardar"
             exit 0
           fi
 
-          git commit -m "PPT Completo: ${{ github.event.inputs.fecha_inicio }} → ${{ github.event.inputs.fecha_fin }}"
+          git commit -m "PPT Completo: ${{ github.event.inputs.fecha_inicio }} → ${{ github.event.inputs.fecha_fin }} (GIFs + PPTs individuales)"
 
           max_retries=5
           retry_count=0
           while [ $retry_count -lt $max_retries ]; do
             echo "📤 Intento $((retry_count + 1))..."
+            git add docs/sentinel2/ 2>/dev/null || true
             git pull origin main --rebase -X ours || true
+            git add docs/sentinel2/ 2>/dev/null || true
             if git push origin main; then
               echo "✅ Push exitoso"
               exit 0

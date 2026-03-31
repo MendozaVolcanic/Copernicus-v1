@@ -59,7 +59,7 @@ def analizar_complejidad_visual(imagenes):
     
     return complejidad
 
-def calcular_parametros_compresion(imagenes, target_mb=1.2):
+def calcular_parametros_compresion(imagenes, target_mb=0.8):
     """
     Calcula parámetros óptimos de compresión según complejidad
     
@@ -130,7 +130,7 @@ def calcular_parametros_compresion(imagenes, target_mb=1.2):
     
     return params
 
-def comprimir_gif_inteligente(imagenes, output_path, duracion=1000, target_mb=1.2):
+def comprimir_gif_inteligente(imagenes, output_path, duracion=1000, target_mb=0.8):
     """
     Comprime GIF con parámetros adaptativos según contenido
     

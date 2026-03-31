@@ -10,6 +10,7 @@ import requests
 import os
 import pandas as pd
 from datetime import datetime, timedelta
+import time
 import pytz
 import json
 from pathlib import Path
@@ -35,44 +36,46 @@ from image_compression import save_compressed
 # =========================
 
 class SentinelHubAuth:
-    """Manejo de autenticacin OAuth2 con Copernicus"""
-    
+    """Manejo de autenticacin OAuth2 con Copernicus - con auto-refresh del token"""
+
     def __init__(self):
         validate_credentials()
         self.client_id = CLIENT_ID
         self.client_secret = CLIENT_SECRET
         self.token_url = TOKEN_URL
         self.access_token = None
-    
-    def get_token(self):
-        """Obtiene access token OAuth2"""
-        if self.access_token:
-            return self.access_token
-        
+        self.token_expiry = 0  # timestamp UNIX de expiración
+
+    def _fetch_token(self):
+        """Pide un token nuevo a la API y guarda su expiración"""
         print(" Autenticando con Copernicus OAuth...")
-        
+
         data = {
             'grant_type': 'client_credentials',
             'client_id': self.client_id,
             'client_secret': self.client_secret
         }
-        
-        try:
-            response = requests.post(self.token_url, data=data, timeout=30)
-            response.raise_for_status()
-            
-            token_data = response.json()
-            self.access_token = token_data['access_token']
-            
-            print(" Autenticacin exitosa")
-            return self.access_token
-            
-        except requests.exceptions.RequestException as e:
-            print(f" Error en autenticacin: {e}")
-            raise
-    
+
+        response = requests.post(self.token_url, data=data, timeout=30)
+        response.raise_for_status()
+
+        token_data = response.json()
+        self.access_token = token_data['access_token']
+
+        # expires_in suele ser 3600 s; renovamos 5 min antes para tener margen
+        expires_in = token_data.get('expires_in', 3600)
+        self.token_expiry = time.time() + expires_in - 300  # -5 min de margen
+
+        print(f" Token obtenido (expira en {expires_in//60} min, renovará en {(expires_in-300)//60} min)")
+
+    def get_token(self):
+        """Retorna token válido, renovándolo automáticamente si está por vencer"""
+        if not self.access_token or time.time() >= self.token_expiry:
+            self._fetch_token()
+        return self.access_token
+
     def get_headers(self):
-        """Retorna headers HTTP con Bearer token"""
+        """Retorna headers HTTP con Bearer token (siempre válido)"""
         token = self.get_token()
         return {
             'Authorization': f'Bearer {token}',
@@ -160,46 +163,56 @@ class SentinelHubSearcher:
                 }
             }
         
-        try:
-            response = requests.get(
-                self.catalog_url,
-                params=params,
-                headers=self.auth.get_headers(),
-                timeout=30
-            )
-            response.raise_for_status()
-            
-            data = response.json()
-            features = data.get('features', [])
-            
-            if not features:
-                return []
-            
-            results = []
-            for feature in features:
-                props = feature['properties']
-                
-                # VALIDACIN: Asegurar que fecha no est vaca
-                fecha = props.get('startDate', props.get('published', props.get('datetime', '')))[:10]
-                
-                if not fecha or len(fecha) != 10:
-                    print(f"    Imagen sin fecha vlida, saltando...")
+        for intento in range(2):  # 2 intentos: normal + retry si 401
+            try:
+                response = requests.get(
+                    self.catalog_url,
+                    params=params,
+                    headers=self.auth.get_headers(),
+                    timeout=30
+                )
+
+                if response.status_code == 401 and intento == 0:
+                    print(f"    Token expirado en búsqueda (401), renovando...")
+                    self.auth.access_token = None
+                    self.auth.token_expiry = 0
                     continue
-                
-                # FIX V3.1: Usar función detectar_satelite() para 2A/2B/2C
-                results.append({
-                    'date': fecha,
-                    'cloud_cover': props.get('cloudCover', props.get('eo:cloud_cover', 0)),
-                    'sensor': detectar_satelite(props.get('platform', ''))  # ← CAMBIO AQUÍ
-                })
-            
-            return results
-            
-        except requests.exceptions.RequestException as e:
-            print(f" Error en bsqueda: {e}")
-            if hasattr(e.response, 'text'):
-                print(f"   Detalle: {e.response.text[:200]}")
-            return []
+
+                response.raise_for_status()
+
+                data = response.json()
+                features = data.get('features', [])
+
+                if not features:
+                    return []
+
+                results = []
+                for feature in features:
+                    props = feature['properties']
+
+                    # VALIDACIN: Asegurar que fecha no est vaca
+                    fecha = props.get('startDate', props.get('published', props.get('datetime', '')))[:10]
+
+                    if not fecha or len(fecha) != 10:
+                        print(f"    Imagen sin fecha vlida, saltando...")
+                        continue
+
+                    # FIX V3.1: Usar función detectar_satelite() para 2A/2B/2C
+                    results.append({
+                        'date': fecha,
+                        'cloud_cover': props.get('cloudCover', props.get('eo:cloud_cover', 0)),
+                        'sensor': detectar_satelite(props.get('platform', ''))
+                    })
+
+                return results
+
+            except requests.exceptions.RequestException as e:
+                print(f" Error en bsqueda: {e}")
+                if hasattr(e, 'response') and e.response is not None:
+                    print(f"   Detalle: {e.response.text[:200]}")
+                return []
+
+        return []
 
 # =========================
 # DESCARGA DE IMGENES
@@ -255,42 +268,53 @@ class SentinelHubDownloader:
             "evalscript": evalscript
         }
         
-        try:
-            response = requests.post(
-                self.process_url,
-                headers=self.auth.get_headers(),
-                json=request_payload,
-                timeout=60
-            )
-            response.raise_for_status()
-            
-            if output_path:
-                Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-                
-                # Comprimir imagen
-                image = Image.open(BytesIO(response.content))
-                _, size_mb = save_compressed(image, output_path, compression_level='lossless')
-                
-                size_original_mb = len(response.content) / (1024 * 1024)
-                reduccion = ((size_original_mb - size_mb) / size_original_mb) * 100
-                
-                print(f"    {tipo}: {size_mb:.2f} MB ({reduccion:.0f}%)")
-                return True
-            
-            return False
-            
-        except requests.exceptions.RequestException as e:
-            print(f"    Error descarga {tipo}: {e}")
-            
-            # Logging detallado del error
-            if hasattr(e, 'response') and e.response is not None:
-                try:
-                    error_detail = e.response.json()
-                    print(f"       Detalle JSON: {error_detail}")
-                except:
-                    print(f"       Detalle texto: {e.response.text[:500]}")
-            
-            return False
+        for intento in range(2):  # 2 intentos: normal + retry si 401
+            try:
+                response = requests.post(
+                    self.process_url,
+                    headers=self.auth.get_headers(),
+                    json=request_payload,
+                    timeout=60
+                )
+
+                # Si 401, forzar renovación del token y reintentar una vez
+                if response.status_code == 401 and intento == 0:
+                    print(f"    Token expirado (401), renovando...")
+                    self.auth.access_token = None  # forzar re-fetch
+                    self.auth.token_expiry = 0
+                    continue
+
+                response.raise_for_status()
+
+                if output_path:
+                    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+
+                    # Comprimir imagen
+                    image = Image.open(BytesIO(response.content))
+                    _, size_mb = save_compressed(image, output_path, compression_level='lossless')
+
+                    size_original_mb = len(response.content) / (1024 * 1024)
+                    reduccion = ((size_original_mb - size_mb) / size_original_mb) * 100
+
+                    print(f"    {tipo}: {size_mb:.2f} MB ({reduccion:.0f}%)")
+                    return True
+
+                return False
+
+            except requests.exceptions.RequestException as e:
+                print(f"    Error descarga {tipo}: {e}")
+
+                # Logging detallado del error
+                if hasattr(e, 'response') and e.response is not None:
+                    try:
+                        error_detail = e.response.json()
+                        print(f"       Detalle JSON: {error_detail}")
+                    except:
+                        print(f"       Detalle texto: {e.response.text[:500]}")
+
+                return False
+
+        return False
 
 # =========================
 # LIMPIEZA DE IMGENES ANTIGUAS
