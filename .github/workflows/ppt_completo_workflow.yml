@@ -1,8 +1,8 @@
 # ============================================================================
 # WORKFLOW: PPT EVALUACIÓN COMPLETA (TODOS LOS VOLCANES)
 # ============================================================================
-# Genera PPTs individuales para TODOS los volcanes de un rango de fechas
-# Requiere que existan timelapses_ppt/ (ejecutar ppt_timelapses_workflow.yml primero)
+# Genera GIFs + PPTs para todos los volcanes en el rango de fechas indicado.
+# Borra GIFs anteriores de timelapses_ppt/ antes de generar los nuevos.
 # ============================================================================
 
 name: PPT Evaluación Completa (Todos los Volcanes)
@@ -13,213 +13,86 @@ on:
       fecha_inicio:
         description: 'Fecha inicio (YYYY-MM-DD)'
         required: true
-        default: '2026-02-01'
+        default: '2026-03-01'
       fecha_fin:
         description: 'Fecha fin (YYYY-MM-DD)'
         required: true
-        default: '2026-02-28'
+        default: '2026-03-30'
 
 permissions:
   contents: write
 
 jobs:
-  generar-ppts-completos:
+  generar-gifs-y-ppts:
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.10'
-      
+
       - name: Instalar dependencias
         run: |
-          pip install python-pptx Pillow requests python-dateutil
-      
+          pip install Pillow requests pandas python-pptx
+
       - name: Verificar plantilla
         run: |
           if [ ! -f "docs/plantillas/Cambios_morfologicos.pptx" ]; then
-            echo "❌ Plantilla NO encontrada"
+            echo "❌ Plantilla NO encontrada: docs/plantillas/Cambios_morfologicos.pptx"
             exit 1
           fi
           echo "✅ Plantilla encontrada"
-      
-      - name: Generar PPTs para todos los volcanes
+
+      - name: Limpiar GIFs anteriores de timelapses_ppt
+        run: |
+          echo "🗑️  Eliminando GIFs anteriores..."
+          find docs/sentinel2 -path "*/timelapses_ppt/*.gif" -delete 2>/dev/null || true
+          echo "✅ Limpieza completada"
+
+      - name: Generar timelapses para el rango seleccionado
         env:
           FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
           FECHA_FIN: ${{ github.event.inputs.fecha_fin }}
         run: |
-          python3 << 'EOFPY'
-          import os
-          import glob
-          from datetime import datetime
-          from pptx import Presentation
-          from PIL import Image
-          
-          # Lista 43 volcanes
-          VOLCANES = [
-              # ZONA NORTE
-              "Taapaca", "Parinacota", "Guallatiri", "Isluga", "Irruputuncu", 
-              "Ollague", "San Pedro", "Lascar",
-              # ZONA CENTRO
-              "Tupungatito", "San Jose", "Tinguiririca", "Planchon-Peteroa", 
-              "Descabezado Grande", "Tatara-San Pedro", "Laguna del Maule", 
-              "Nevado de Longavi", "Nevados de Chillan",
-              # ZONA SUR
-              "Antuco", "Copahue", "Callaqui", "Lonquimay", "Llaima", 
-              "Sollipulli", "Villarrica", "Quetrupillan", "Lanin", 
-              "Mocho-Choshuenco", "Carran - Los Venados", 
-              "Puyehue - Cordon Caulle", "Antillanca - Casablanca",
-              # ZONA AUSTRAL
-              "Osorno", "Calbuco", "Yate", "Hornopiren", "Huequi", 
-              "Michinmahuida", "Chaiten", "Corcovado", "Melimoyu", 
-              "Mentolat", "Cay", "Maca", "Hudson"
-          ]
-          
-          MESES_ES = {
-              1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril',
-              5: 'mayo', 6: 'junio', 7: 'julio', 8: 'agosto',
-              9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre'
-          }
-          
-          # FIX: Usar fecha_inicio y fecha_fin en lugar de mes/año
-          fecha_inicio = os.getenv('FECHA_INICIO')
-          fecha_fin = os.getenv('FECHA_FIN')
-          
-          print(f"{'='*80}")
-          print(f"PPT COMPLETO: {fecha_inicio} → {fecha_fin}")
-          print(f"{'='*80}")
-          
-          plantilla = "docs/plantillas/Cambios_morfologicos.pptx"
-          
-          procesados = 0
-          sin_datos = 0
-          
-          for volcan in VOLCANES:
-              print(f"\n🌋 {volcan}")
-              
-              carpeta_timelapses = f"docs/sentinel2/{volcan}/timelapses_ppt"
-              
-              if not os.path.exists(carpeta_timelapses):
-                  print(f"   ⚠️ Sin carpeta timelapses")
-                  sin_datos += 1
-                  continue
-              
-              # FIX: Buscar GIFs que coincidan con el rango de fechas
-              # Patrón: {Volcan}_{tipo}_{fecha_inicio}_{fecha_fin}.gif
-              pattern_rgb = f"{carpeta_timelapses}/{volcan}_RGB_{fecha_inicio}_{fecha_fin}.gif"
-              pattern_thermal = f"{carpeta_timelapses}/{volcan}_ThermalFalseColor_{fecha_inicio}_{fecha_fin}.gif"
-              
-              gifs_rgb = glob.glob(pattern_rgb)
-              gifs_thermal = glob.glob(pattern_thermal)
-              
-              if not gifs_rgb or not gifs_thermal:
-                  print(f"   ⚠️ Sin GIFs para rango {fecha_inicio} → {fecha_fin}")
-                  sin_datos += 1
-                  continue
-              
-              gif_rgb = gifs_rgb[0]
-              gif_thermal = gifs_thermal[0]
-              
-              print(f"   ✅ RGB: {os.path.basename(gif_rgb)}")
-              print(f"   ✅ Thermal: {os.path.basename(gif_thermal)}")
-              
-              # Cargar plantilla
-              prs = Presentation(plantilla)
-              slide = prs.slides[0]
-              
-              # Comprimir GIF si es muy grande
-              def comprimir_gif(input_path, max_mb=1.2):
-                  temp_path = f"/tmp/{os.path.basename(input_path)}"
-                  size_mb = os.path.getsize(input_path) / (1024 * 1024)
-                  
-                  if size_mb <= max_mb:
-                      import shutil
-                      shutil.copy2(input_path, temp_path)
-                      return temp_path
-                  
-                  img = Image.open(input_path)
-                  frames = []
-                  try:
-                      while True:
-                          frame = img.copy().convert('P', palette=Image.ADAPTIVE, colors=128)
-                          frames.append(frame)
-                          img.seek(img.tell() + 1)
-                  except EOFError:
-                      pass
-                  
-                  frames[0].save(temp_path, save_all=True, append_images=frames[1:],
-                                optimize=True, duration=img.info.get('duration', 1000), loop=0)
-                  return temp_path
-              
-              gif_rgb_comp = comprimir_gif(gif_rgb)
-              gif_thermal_comp = comprimir_gif(gif_thermal)
-              
-              # Reemplazar GIFs
-              shapes_img = [s for s in slide.shapes if s.shape_type == 13]
-              shapes_img.sort(key=lambda x: x.top)
-              
-              if len(shapes_img) >= 2:
-                  # RGB
-                  s = shapes_img[0]
-                  s.element.getparent().remove(s.element)
-                  slide.shapes.add_picture(gif_rgb_comp, s.left, s.top, s.width, s.height)
-                  
-                  # Thermal
-                  s = shapes_img[1]
-                  s.element.getparent().remove(s.element)
-                  slide.shapes.add_picture(gif_thermal_comp, s.left, s.top, s.width, s.height)
-                  
-                  print(f"   ✅ GIFs insertados")
-              
-              # Guardar PPT con rango de fechas en el nombre
-              os.makedirs(f"docs/sentinel2/{volcan}/reportes", exist_ok=True)
-              ppt_path = f"docs/sentinel2/{volcan}/reportes/{volcan}_Evaluacion_{fecha_inicio}_{fecha_fin}.pptx"
-              prs.save(ppt_path)
-              print(f"   💾 {ppt_path}")
-              
-              procesados += 1
-          
-          print(f"\n{'='*80}")
-          print(f"COMPLETADO")
-          print(f"   ✅ Procesados: {procesados}")
-          print(f"   ⚠️ Sin datos: {sin_datos}")
-          print(f"{'='*80}")
-          EOFPY
-      
-      - name: Commit PPTs
+          echo "🎬 Generando GIFs: $FECHA_INICIO → $FECHA_FIN"
+          python timelapse_generator.py
+
+      - name: Generar PPTs para todos los volcanes
+        run: |
+          echo "📊 Generando PPTs..."
+          python ppt_generator.py
+
+      - name: Guardar resultados en GitHub
         run: |
           git config user.name "PPTCompletoBot"
           git config user.email "pptcompleto@copernicus.com"
-          
-          git add docs/sentinel2/**/reportes/*.pptx
-          
+
+          git add docs/sentinel2/**/timelapses_ppt/*.gif || true
+          git add docs/sentinel2/**/reportes/*.pptx || true
+
           if git diff --quiet --staged; then
-            echo "⚠️ No hay PPTs nuevos"
+            echo "⚠️ No hay archivos nuevos para guardar"
             exit 0
           fi
-          
-          git commit -m "PPT Completo: ${{ github.event.inputs.fecha_inicio }} → ${{ github.event.inputs.fecha_fin }} (todos los volcanes)"
-          
-          # Push con retry
+
+          git commit -m "PPT Completo: ${{ github.event.inputs.fecha_inicio }} → ${{ github.event.inputs.fecha_fin }}"
+
           max_retries=5
           retry_count=0
-          
           while [ $retry_count -lt $max_retries ]; do
             echo "📤 Intento $((retry_count + 1))..."
             git pull origin main --rebase -X ours || true
-            
             if git push origin main; then
               echo "✅ Push exitoso"
               exit 0
             fi
-            
             retry_count=$((retry_count + 1))
             [ $retry_count -lt $max_retries ] && sleep $((retry_count * 3))
           done
-          
-          echo "❌ Push falló"
+
+          echo "❌ Push falló después de $max_retries intentos"
           exit 1

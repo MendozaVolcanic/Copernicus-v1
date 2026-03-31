@@ -140,10 +140,10 @@ class SentinelHubSearcher:
             "crs": "http://www.opengis.net/def/crs/OGC/1.3/CRS84"
         }
     
-    def search_images(self, lat, lon, start_date, end_date, max_cloud=MAX_CLOUD_COVER):
+    def search_images(self, lat, lon, start_date, end_date, max_cloud=MAX_CLOUD_COVER, buffer_km=BUFFER_KM):
         """Busca imgenes Sentinel-2 en rango de fechas"""
-        
-        bbox_data = self.create_bbox(lat, lon)
+
+        bbox_data = self.create_bbox(lat, lon, buffer_km)
         
         params = {
             'collections': ['sentinel-2-l2a'],
@@ -217,10 +217,10 @@ class SentinelHubDownloader:
         delta = buffer_km / 111.0
         return [lon - delta, lat - delta, lon + delta, lat + delta]
     
-    def download_image(self, lat, lon, fecha, tipo='RGB', output_path=None):
+    def download_image(self, lat, lon, fecha, tipo='RGB', output_path=None, buffer_km=BUFFER_KM):
         """Descarga imagen procesada con compresin automtica"""
-        
-        bbox = self.create_bbox(lat, lon)
+
+        bbox = self.create_bbox(lat, lon, buffer_km)
         evalscript = EVALSCRIPT_RGB if tipo == 'RGB' else EVALSCRIPT_THERMAL
         
         if tipo == 'RGB':
@@ -384,15 +384,17 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
     
     lat = config['lat']
     lon = config['lon']
-    
+    buffer_km = config.get('buffer_km', BUFFER_KM)
+
     # Buscar imgenes (ltimos 60 das)
     hoy = datetime.now(pytz.utc)
     hace_60_dias = hoy - timedelta(days=60)
-    
+
     resultados = searcher.search_images(
         lat, lon,
         start_date=hace_60_dias.strftime('%Y-%m-%d'),
-        end_date=hoy.strftime('%Y-%m-%d')
+        end_date=hoy.strftime('%Y-%m-%d'),
+        buffer_km=buffer_km
     )
     
     if not resultados:
@@ -425,7 +427,7 @@ def procesar_volcan(nombre_volcan, config, auth, searcher, downloader):
                 print(f"    {tipo}: Ya existe")
                 size_mb = os.path.getsize(output_path) / (1024 * 1024)
             else:
-                exito = downloader.download_image(lat, lon, fecha, tipo, output_path)
+                exito = downloader.download_image(lat, lon, fecha, tipo, output_path, buffer_km)
                 if not exito:
                     continue
                 size_mb = os.path.getsize(output_path) / (1024 * 1024)

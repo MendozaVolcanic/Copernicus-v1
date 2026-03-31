@@ -39,6 +39,12 @@ jobs:
         run: |
           pip install Pillow requests
       
+      - name: Limpiar GIFs anteriores de timelapses_ppt
+        run: |
+          echo "🗑️  Eliminando GIFs anteriores..."
+          find docs/sentinel2 -path "*/timelapses_ppt/*.gif" -delete 2>/dev/null || true
+          echo "✅ Limpieza completada"
+
       - name: Generar timelapses PPT para todos los volcanes
         env:
           FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
