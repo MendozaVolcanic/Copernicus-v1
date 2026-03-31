@@ -88,145 +88,145 @@ VOLCANES = {
         "id": "354010", "zona": "Norte", "activo": True
     },
     "Parinacota": {
-        "lat": -18.17126, "lon": -69.14534, "buffer_km": 3.0,
+        "lat": -18.17126, "lon": -69.14534, "buffer_km": 2.5,
         "id": "354020", "zona": "Norte", "activo": True
     },
     "Guallatiri": {
-        "lat": -18.42781, "lon": -69.08500, "buffer_km": 3.0,
+        "lat": -18.42781, "lon": -69.08500, "buffer_km": 2.5,
         "id": "354030", "zona": "Norte", "activo": True
     },
     "Isluga": {
-        "lat": -19.16737, "lon": -68.82225, "buffer_km": 4.0,
+        "lat": -19.16737, "lon": -68.82225, "buffer_km": 3.5,
         "id": "355030", "zona": "Norte", "activo": True
     },
     "Irruputuncu": {
-        "lat": -20.73329, "lon": -68.56041, "buffer_km": 3.0,
+        "lat": -20.73329, "lon": -68.56041, "buffer_km": 1.4,
         "id": "355040", "zona": "Norte", "activo": True
     },
     "Ollague": {
-        "lat": -21.30685, "lon": -68.17941, "buffer_km": 4.0,
+        "lat": -21.30685, "lon": -68.17941, "buffer_km": 3.5,
         "id": "355050", "zona": "Norte", "activo": True
     },
     "San Pedro": {
-        "lat": -21.88485, "lon": -68.40706, "buffer_km": 5.5,
+        "lat": -21.88485, "lon": -68.40706, "buffer_km": 4.5,
         "id": "355080", "zona": "Norte", "activo": True
     },
     "Lascar": {
-        "lat": -23.36726, "lon": -67.73611, "buffer_km": 3.0,
+        "lat": -23.36726, "lon": -67.73611, "buffer_km": 2.8,
         "id": "355100", "zona": "Norte", "activo": True
     },
 
     # ZONA CENTRO (9 volcanes)
     "Tupungatito": {
-        "lat": -33.40849, "lon": -69.82181, "buffer_km": 4.0,
+        "lat": -33.40849, "lon": -69.82181, "buffer_km": 3.5,
         "id": "357010", "zona": "Centro", "activo": True
     },
     "San Jose": {
-        "lat": -33.78682, "lon": -69.89732, "buffer_km": 3.0,
+        "lat": -33.78682, "lon": -69.89732, "buffer_km": 2.5,
         "id": "357020", "zona": "Centro", "activo": True
     },
     "Tinguiririca": {
-        "lat": -34.80794, "lon": -70.34917, "buffer_km": 3.5,
+        "lat": -34.80794, "lon": -70.34917, "buffer_km": 2.8,
         "id": "357030", "zona": "Centro", "activo": True
     },
     "Planchon-Peteroa": {
-        "lat": -35.24212, "lon": -70.57189, "buffer_km": 3.0,
+        "lat": -35.24212, "lon": -70.57189, "buffer_km": 1.3,
         "id": "357040", "zona": "Centro", "activo": True
     },
     "Descabezado Grande": {
-        "lat": -35.60431, "lon": -70.74830, "buffer_km": 7.5,
+        "lat": -35.60431, "lon": -70.74830, "buffer_km": 7.0,
         "id": "357050", "zona": "Centro", "activo": True
     },
     "Tatara-San Pedro": {
-        "lat": -35.99755, "lon": -70.84533, "buffer_km": 4.5,
+        "lat": -35.99755, "lon": -70.84533, "buffer_km": 3.5,
         "id": "357055", "zona": "Centro", "activo": True
     },
     "Laguna del Maule": {
-        "lat": -36.07100, "lon": -70.49828, "buffer_km": 10.0,
+        "lat": -36.07100, "lon": -70.49828, "buffer_km": 9.0,
         "id": "357058", "zona": "Centro", "activo": True
     },
     "Nevado de Longavi": {
-        "lat": -36.20001, "lon": -71.17010, "buffer_km": 6.5,
+        "lat": -36.20001, "lon": -71.17010, "buffer_km": 5.0,
         "id": "357065", "zona": "Centro", "activo": True
     },
     "Nevados de Chillan": {
-        "lat": -36.89042, "lon": -71.37554, "buffer_km": 3.5,
+        "lat": -37.41096, "lon": -71.35231, "buffer_km": 3.3,
         "id": "357070", "zona": "Centro", "activo": True
     },
 
     # ZONA SUR (13 volcanes)
     "Antuco": {
-        "lat": -37.41859, "lon": -71.34097, "buffer_km": 4.5,
+        "lat": -37.41859, "lon": -71.34097, "buffer_km": 3.0,
         "id": "357080", "zona": "Sur", "activo": True
     },
     "Copahue": {
-        "lat": -37.85715, "lon": -71.16836, "buffer_km": 3.0,
+        "lat": -37.85715, "lon": -71.16836, "buffer_km": 2.0,
         "id": "357090", "zona": "Sur", "activo": True
     },
     "Callaqui": {
-        "lat": -37.92554, "lon": -71.46113, "buffer_km": 5.5,
+        "lat": -37.92554, "lon": -71.46113, "buffer_km": 5.0,
         "id": "357095", "zona": "Sur", "activo": True
     },
     "Lonquimay": {
-        "lat": -38.38216, "lon": -71.58530, "buffer_km": 3.5,
+        "lat": -38.38216, "lon": -71.58530, "buffer_km": 3.0,
         "id": "357100", "zona": "Sur", "activo": True
     },
     "Llaima": {
-        "lat": -38.71238, "lon": -71.73447, "buffer_km": 4.5,
+        "lat": -38.71238, "lon": -71.73447, "buffer_km": 4.0,
         "id": "357110", "zona": "Sur", "activo": True
     },
     "Sollipulli": {
-        "lat": -38.98103, "lon": -71.51557, "buffer_km": 5.5,
+        "lat": -38.98103, "lon": -71.51557, "buffer_km": 5.0,
         "id": "357115", "zona": "Sur", "activo": True
     },
     "Villarrica": {
-        "lat": -39.42052, "lon": -71.93939, "buffer_km": 3.0,
+        "lat": -39.42052, "lon": -71.93939, "buffer_km": 1.5,
         "id": "357120", "zona": "Sur", "activo": True
     },
     "Quetrupillan": {
-        "lat": -39.53150, "lon": -71.70337, "buffer_km": 7.0,
+        "lat": -39.53150, "lon": -71.70337, "buffer_km": 5.5,
         "id": "357125", "zona": "Sur", "activo": True
     },
     "Lanin": {
-        "lat": -39.62762, "lon": -71.47923, "buffer_km": 6.0,
+        "lat": -39.62762, "lon": -71.47923, "buffer_km": 4.5,
         "id": "357130", "zona": "Sur", "activo": True
     },
     "Mocho-Choshuenco": {
-        "lat": -39.93439, "lon": -72.00281, "buffer_km": 6.5,
+        "lat": -39.93439, "lon": -72.00281, "buffer_km": 5.0,
         "id": "357135", "zona": "Sur", "activo": True
     },
     "Carran - Los Venados": {
-        "lat": -40.37922, "lon": -72.10509, "buffer_km": 7.0,
+        "lat": -40.37922, "lon": -72.10509, "buffer_km": 6.5,
         "id": "357143", "zona": "Sur", "activo": True
     },
     "Puyehue - Cordon Caulle": {
-        "lat": -40.54783, "lon": -72.14826, "buffer_km": 11.5,
+        "lat": -40.54783, "lon": -72.14826, "buffer_km": 10.0,
         "id": "357150", "zona": "Sur", "activo": True
     },
     "Antillanca - Casablanca": {
-        "lat": -40.76716, "lon": -72.15114, "buffer_km": 6.5,
+        "lat": -40.76716, "lon": -72.15114, "buffer_km": 5.5,
         "id": "357155", "zona": "Sur", "activo": True
     },
 
     # ZONA AUSTRAL (13 volcanes)
     "Osorno": {
-        "lat": -41.10453, "lon": -72.49271, "buffer_km": 5.0,
+        "lat": -41.10453, "lon": -72.49271, "buffer_km": 4.0,
         "id": "358060", "zona": "Austral", "activo": True
     },
     "Calbuco": {
-        "lat": -41.33035, "lon": -72.60399, "buffer_km": 4.0,
+        "lat": -41.33035, "lon": -72.60399, "buffer_km": 2.5,
         "id": "358070", "zona": "Austral", "activo": True
     },
     "Yate": {
-        "lat": -41.77750, "lon": -72.38678, "buffer_km": 5.5,
+        "lat": -41.77750, "lon": -72.38678, "buffer_km": 4.5,
         "id": "358080", "zona": "Austral", "activo": True
     },
     "Hornopiren": {
-        "lat": -41.88132, "lon": -72.43178, "buffer_km": 3.0,
+        "lat": -41.88132, "lon": -72.43178, "buffer_km": 2.5,
         "id": "358085", "zona": "Austral", "activo": True
     },
     "Huequi": {
-        "lat": -42.38094, "lon": -72.58103, "buffer_km": 3.0,
+        "lat": -42.38094, "lon": -72.58103, "buffer_km": 1.5,
         "id": "358090", "zona": "Austral", "activo": True
     },
     "Michinmahuida": {
@@ -234,31 +234,31 @@ VOLCANES = {
         "id": "358095", "zona": "Austral", "activo": True
     },
     "Chaiten": {
-        "lat": -42.83276, "lon": -72.65155, "buffer_km": 3.0,
+        "lat": -42.83276, "lon": -72.65155, "buffer_km": 2.7,
         "id": "358041", "zona": "Austral", "activo": True
     },
     "Corcovado": {
-        "lat": -43.19300, "lon": -72.78979, "buffer_km": 3.0,
+        "lat": -43.19300, "lon": -72.78979, "buffer_km": 2.5,
         "id": "358100", "zona": "Austral", "activo": True
     },
     "Melimoyu": {
-        "lat": -44.07612, "lon": -72.85073, "buffer_km": 8.5,
+        "lat": -44.07612, "lon": -72.85073, "buffer_km": 7.0,
         "id": "358110", "zona": "Austral", "activo": True
     },
     "Mentolat": {
-        "lat": -44.69272, "lon": -73.07507, "buffer_km": 4.0,
+        "lat": -44.69272, "lon": -73.07507, "buffer_km": 3.0,
         "id": "358120", "zona": "Austral", "activo": True
     },
     "Cay": {
-        "lat": -45.07068, "lon": -72.96318, "buffer_km": 4.5,
+        "lat": -45.07068, "lon": -72.96318, "buffer_km": 3.5,
         "id": "358130", "zona": "Austral", "activo": True
     },
     "Maca": {
-        "lat": -45.11210, "lon": -73.16908, "buffer_km": 4.5,
+        "lat": -45.11210, "lon": -73.16908, "buffer_km": 3.5,
         "id": "358140", "zona": "Austral", "activo": True
     },
     "Hudson": {
-        "lat": -45.90915, "lon": -72.96508, "buffer_km": 10.0,
+        "lat": -45.90915, "lon": -72.96508, "buffer_km": 8.0,
         "id": "358150", "zona": "Austral", "activo": True
     }
 }
