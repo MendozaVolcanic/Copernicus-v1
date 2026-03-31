@@ -16,6 +16,7 @@ import glob
 import requests
 from io import BytesIO
 import json
+from config_sentinel2 import VOLCANES, BUFFER_KM
 
 # =========================
 # NUEVO V3.1: IMPORTS CACHÉ Y OPTIMIZADOR
@@ -101,33 +102,21 @@ def crear_logo_copernicus_texto():
     return logo_img
 
 
-def agregar_escala_kilometros(img, escala_km=3, tipo='RGB'):
+def agregar_escala_kilometros(img, buffer_km=3, tipo='RGB'):
     """
-    Agrega escala de kilómetros CORRECTA y PROPORCIONAL
-    
-    FIX CRÍTICO:
-    - Buffer usado en descarga: 3 km
-    - Área total de imagen: 6 km × 6 km (2 × buffer)
-    - Escala mostrada: 3 km (mitad del área)
-    
+    Agrega escala de kilómetros correcta según el buffer real del volcán.
+
     Args:
         img: PIL Image
-        escala_km: Kilómetros a representar (3 km = buffer real)
+        buffer_km: Radio real del volcán (del config). La barra muestra este valor.
         tipo: 'RGB' o 'ThermalFalseColor'
     """
     draw = ImageDraw.Draw(img)
-    
+
     img_width, img_height = img.size
-    
-    # ========================================
-    # FIX CRÍTICO: CÁLCULO CORRECTO DE ESCALA
-    # ========================================
-    # Área física total: 6 km × 6 km (buffer 3 km en config)
-    # Ancho de imagen: 800px (tanto RGB como Thermal)
-    # Proporción: 800px / 6 km = 133.33 px/km
-    # Escala de 3 km: 3 km × 133.33 px/km = 400px
-    
-    area_fisica_km = 6.0  # Buffer 3km → área total 6km
+
+    area_fisica_km = buffer_km * 2  # área total = 2 × radio
+    escala_km = buffer_km           # la barra muestra el radio (mitad del área)
     pixels_por_km = img_width / area_fisica_km
     ancho_barra_px = int(pixels_por_km * escala_km)
     
@@ -173,15 +162,14 @@ def agregar_escala_kilometros(img, escala_km=3, tipo='RGB'):
     
     texto_escala = f"{int(escala_km)} km"
     draw.text((x_start + ancho_barra_px//2 - 20, y_pos - 20), texto_escala, fill=(255, 255, 255), font=font)
-    
+
     return img
 
 
-def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
+def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None, buffer_km=3):
     """
     Agrega overlay completo estilo Copernicus
     """
-    from PIL import ImageDraw, ImageFont
     
     img_copy = img.copy()
     
@@ -241,7 +229,7 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
     img_final = Image.alpha_composite(img_copy, overlay)
     
     # 4. ESCALA (abajo derecha) - DESPUÉS del composite
-    img_final = agregar_escala_kilometros(img_final, escala_km=3, tipo=tipo)
+    img_final = agregar_escala_kilometros(img_final, buffer_km=buffer_km, tipo=tipo)
     
     # Convertir de vuelta a RGB
     if img_final.mode == 'RGBA':
@@ -268,7 +256,7 @@ def cargar_config_fechas(volcan_nombre):
     return None, None
 
 
-def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=None, fecha_fin=None):
+def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=None, fecha_fin=None, buffer_km=None):
     """
     Genera GIF timelapse con rango de fechas configurable
     FILTRA imágenes con cobertura de nubes <= 30% para PPT
@@ -360,8 +348,8 @@ def generar_gif(volcan_nombre, tipo='RGB', logo_copernicus=None, fecha_inicio=No
             fecha = nombre_archivo.split('_')[0]
             fechas.append(fecha)
             
-            # Agregar overlay con escala CORREGIDA
-            img_con_overlay = agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus)
+            # Agregar overlay con escala correcta según buffer del volcán
+            img_con_overlay = agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus, buffer_km=buffer_km or 3)
             imagenes.append(img_con_overlay)
             
             print(f"       {fecha}")
@@ -462,8 +450,9 @@ def main():
         else:
             fecha_inicio, fecha_fin = cargar_config_fechas(volcan)
         
+        buf_km = VOLCANES.get(volcan, {}).get('buffer_km', BUFFER_KM)
         for tipo in ['RGB', 'ThermalFalseColor']:
-            resultado = generar_gif(volcan, tipo, logo_copernicus, fecha_inicio, fecha_fin)
+            resultado = generar_gif(volcan, tipo, logo_copernicus, fecha_inicio, fecha_fin, buffer_km=buf_km)
             if resultado:
                 gifs_generados.append(resultado)
     

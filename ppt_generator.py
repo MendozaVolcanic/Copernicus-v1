@@ -10,6 +10,7 @@ NUEVO V5.1:
 
 import os
 import glob
+import copy
 from datetime import datetime
 from pptx import Presentation
 from PIL import Image
@@ -289,26 +290,85 @@ def generar_ppt(volcan_nombre):
         print(f"    ❌ Error: {e}")
         return None
 
+def _copiar_slide_a_prs(ppt_origen_path, prs_destino):
+    """Copia el primer slide de un PPT (incluyendo imágenes) a otra presentación."""
+    prs_origen = Presentation(ppt_origen_path)
+    slide_origen = prs_origen.slides[0]
+
+    blank_layout = prs_destino.slide_layouts[6]  # layout en blanco
+    slide_nuevo = prs_destino.slides.add_slide(blank_layout)
+
+    # Limpiar shapes del slide en blanco
+    spTree = slide_nuevo.shapes._spTree
+    for child in list(spTree):
+        spTree.remove(child)
+
+    # Copiar shapes del slide origen
+    for child in slide_origen.shapes._spTree:
+        spTree.append(copy.deepcopy(child))
+
+    # Copiar relaciones de imágenes y actualizar rIds en el XML
+    NS_A = 'http://schemas.openxmlformats.org/drawingml/2006/main'
+    NS_R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships'
+
+    for rel in slide_origen.part.rels.values():
+        if 'image' in rel.reltype and not rel.is_external:
+            old_rId = rel.rId
+            new_rId = slide_nuevo.part.relate_to(rel.target_part, rel.reltype)
+            if old_rId != new_rId:
+                for blip in slide_nuevo._element.iter(f'{{{NS_A}}}blip'):
+                    if blip.get(f'{{{NS_R}}}embed') == old_rId:
+                        blip.set(f'{{{NS_R}}}embed', new_rId)
+
+
+def generar_ppt_combinado(ppts_generados, fecha_inicio, fecha_fin):
+    """Genera un PPT con todos los volcanes (1 slide por volcán)."""
+    if not ppts_generados:
+        print("⚠️  Sin PPTs individuales para combinar")
+        return None
+
+    print(f"\n{'='*80}")
+    print(f"📚 GENERANDO PPT COMBINADO ({len(ppts_generados)} volcanes)...")
+
+    # El primer PPT se usa como base
+    prs = Presentation(ppts_generados[0])
+
+    for ppt_path in ppts_generados[1:]:
+        try:
+            _copiar_slide_a_prs(ppt_path, prs)
+            print(f"   ✅ {os.path.basename(ppt_path)}")
+        except Exception as e:
+            print(f"   ❌ Error copiando {os.path.basename(ppt_path)}: {e}")
+
+    os.makedirs("docs/reportes", exist_ok=True)
+    output_path = f"docs/reportes/Evaluacion_Completa_{fecha_inicio}_{fecha_fin}.pptx"
+    prs.save(output_path)
+    size_mb = os.path.getsize(output_path) / (1024 * 1024)
+    print(f"✅ PPT combinado: {output_path} ({size_mb:.1f} MB)")
+    return output_path
+
+
 def main():
     print("="*80)
-    print("📊 PPT GENERATOR V5.1")
-    print("   NUEVO: Integración con sistema de caché")
+    print("📊 PPT GENERATOR V5.2")
+    print("   NUEVO: PPT combinado con todos los volcanes")
     print("="*80)
-    
+
     if not os.path.exists(PLANTILLA_PATH):
         print(f"\n❌ Plantilla no encontrada: {PLANTILLA_PATH}")
         return
-    
-    # Leer variables de entorno si existen (para workflow manual)
+
     volcan_env = os.getenv('VOLCAN')
-    
+    fecha_inicio_env = os.getenv('FECHA_INICIO')
+    fecha_fin_env = os.getenv('FECHA_FIN')
+
     if volcan_env:
         print(f"\n📋 MODO MANUAL: Procesando {volcan_env}")
         volcanes_a_procesar = [volcan_env]
     else:
         print("\n🤖 MODO AUTOMÁTICO: Procesando todos los volcanes")
         volcanes_a_procesar = VOLCANES_ACTIVOS
-    
+
     ppts = []
     for volcan in volcanes_a_procesar:
         try:
@@ -317,12 +377,23 @@ def main():
                 ppts.append(ppt)
         except Exception as e:
             print(f"❌ Error en {volcan}: {e}")
-    
+
     print("\n" + "="*80)
-    print(f"✅ {len(ppts)} PPTs generados")
+    print(f"✅ {len(ppts)} PPTs individuales generados")
     for ppt in ppts:
         size_mb = os.path.getsize(ppt) / (1024 * 1024)
         print(f"   📄 {os.path.basename(ppt)}: {size_mb:.2f} MB")
+
+    # Generar PPT combinado (solo si hay más de 1 volcán)
+    if len(ppts) > 1:
+        # Usar fechas de env vars, o derivar del primer GIF disponible
+        if not fecha_inicio_env or not fecha_fin_env:
+            # Extraer del nombre del primer PPT generado
+            partes = os.path.basename(ppts[0]).replace('.pptx', '').split('_')
+            fecha_inicio_env = partes[-2] if len(partes) >= 2 else 'fecha'
+            fecha_fin_env = partes[-1] if len(partes) >= 1 else 'fin'
+        generar_ppt_combinado(ppts, fecha_inicio_env, fecha_fin_env)
+
     print("="*80)
 
 if __name__ == "__main__":

@@ -73,6 +73,7 @@ jobs:
 
           git add docs/sentinel2/**/timelapses_ppt/*.gif || true
           git add docs/sentinel2/**/reportes/*.pptx || true
+          git add docs/reportes/*.pptx || true
 
           if git diff --quiet --staged; then
             echo "⚠️ No hay archivos nuevos para guardar"

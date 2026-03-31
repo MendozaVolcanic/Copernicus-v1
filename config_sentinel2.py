@@ -301,6 +301,3 @@ def count_by_zone():
         zones[zona] = zones.get(zona, 0) + 1
     return zones
 
-# Verificar al importar
-if __name__ != "__main__":
-    validate_credentials()

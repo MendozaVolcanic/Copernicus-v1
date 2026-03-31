@@ -11,6 +11,7 @@ import glob
 import requests
 from io import BytesIO
 import pytz
+from config_sentinel2 import VOLCANES, BUFFER_KM
 
 # =========================
 # CONFIGURACIN
@@ -67,12 +68,13 @@ def crear_logo_copernicus_texto():
     draw.text((10, 15), "COPERNICUS", fill=(255, 255, 255, 255), font=font)
     return logo_img
 
-def agregar_escala_kilometros(img, escala_km=3, tipo='RGB'):
-    """Agrega escala CORREGIDA"""
+def agregar_escala_kilometros(img, buffer_km=3, tipo='RGB'):
+    """Agrega escala correcta según el buffer real del volcán"""
     draw = ImageDraw.Draw(img)
-    
+
     img_width, img_height = img.size
-    area_fisica_km = 6.0
+    area_fisica_km = buffer_km * 2  # área total = 2 × radio
+    escala_km = buffer_km           # la barra muestra el radio (mitad del área)
     pixels_por_km = img_width / area_fisica_km
     ancho_barra_px = int(pixels_por_km * escala_km)
     
@@ -109,10 +111,10 @@ def agregar_escala_kilometros(img, escala_km=3, tipo='RGB'):
     
     texto_escala = f"{int(escala_km)} km"
     draw.text((x_start + ancho_barra_px//2 - 20, y_pos - 20), texto_escala, fill=(255, 255, 255), font=font)
-    
+
     return img
 
-def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
+def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None, buffer_km=3):
     """Agrega overlay completo"""
     img_copy = img.copy()
     
@@ -163,7 +165,7 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
     draw.text((x_tipo, y_tipo), tipo_texto, fill=(200, 200, 200), font=font_tipo)
     
     img_final = Image.alpha_composite(img_copy, overlay)
-    img_final = agregar_escala_kilometros(img_final, escala_km=3, tipo=tipo)
+    img_final = agregar_escala_kilometros(img_final, buffer_km=buffer_km, tipo=tipo)
     
     if img_final.mode == 'RGBA':
         fondo = Image.new('RGB', img_final.size, (0, 0, 0))
@@ -172,7 +174,7 @@ def agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus=None):
     
     return img_final
 
-def generar_gif_ultimos_30_dias(volcan_nombre, tipo='RGB', logo_copernicus=None):
+def generar_gif_ultimos_30_dias(volcan_nombre, tipo='RGB', logo_copernicus=None, buffer_km=None):
     """
     Genera GIF con LTIMOS 30 DAS para dashboard
     Automtico - no requiere configuracin manual
@@ -220,9 +222,9 @@ def generar_gif_ultimos_30_dias(volcan_nombre, tipo='RGB', logo_copernicus=None)
             fecha = nombre.split('_')[0]
             fechas.append(fecha)
             
-            img_con_overlay = agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus)
+            img_con_overlay = agregar_overlay_copernicus(img, fecha, tipo, logo_copernicus, buffer_km=buffer_km or 3)
             imagenes.append(img_con_overlay)
-            
+
             print(f"    {fecha}")
         except Exception as e:
             print(f"    Error: {e}")
@@ -292,9 +294,10 @@ def main():
     
     for volcan in VOLCANES_ACTIVOS:
         print(f"\n {volcan}")
-        
+        buf_km = VOLCANES.get(volcan, {}).get('buffer_km', BUFFER_KM)
+
         for tipo in ['RGB', 'ThermalFalseColor']:
-            gif_path = generar_gif_ultimos_30_dias(volcan, tipo, logo)
+            gif_path = generar_gif_ultimos_30_dias(volcan, tipo, logo, buffer_km=buf_km)
             if gif_path:
                 gifs_generados.append(gif_path)
     
