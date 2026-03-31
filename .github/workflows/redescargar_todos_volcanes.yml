@@ -94,17 +94,21 @@ jobs:
           # Push con retry (hasta 5 intentos)
           max_retries=5
           retry_count=0
-          
+
           while [ $retry_count -lt $max_retries ]; do
             echo "📤 Intento $((retry_count + 1)) de push..."
-            
+
+            # Stagear todo antes del pull para evitar "unstaged changes"
+            git add -A
+
             # Pull con rebase
             if git pull origin main --rebase -X ours; then
               echo "✅ Pull exitoso"
             else
               echo "⚠️ Pull falló, continuando..."
+              git add -A  # re-stagear por si el rebase deshizo el add
             fi
-            
+
             # Push
             if git push origin main; then
               echo "✅ Push exitoso"
