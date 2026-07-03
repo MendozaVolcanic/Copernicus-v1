@@ -47,6 +47,12 @@ def main() -> None:
         rel = path.relative_to(ROOT)
         suf = path.suffix.lower()
 
+        # NUNCA borrar plantillas: son codigo del proyecto (el ppt_builder las
+        # necesita), no reportes regenerables. Bug 2026-07: la purga borro
+        # Cambios_morfologicos.pptx y rompio el generador de PPT.
+        if "plantillas" in path.parts:
+            continue
+
         # 1) PPTX: borrar TODOS (decision usuario)
         if suf == ".pptx":
             size_mb = path.stat().st_size / 1024 / 1024
