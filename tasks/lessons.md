@@ -132,3 +132,13 @@ Spike de visor client-side (OpenLayers + COG público) descartado tras prueba ha
 - **Magnitud**: 10 volcanes nevados × ventana → 134 escenas (30d) / 258 (60d) / 541 (historia completa). Con cuentas de PU justas, esto importa.
 - **Decisión tomada**: NO re-renderizar histórico viejo. Las descargas nuevas ya salen con el evalscript corregido; re-render puntual de un mes solo si hace falta y hay PU.
 - **Meta-lección**: un subagente afirmó "cero PU, re-procesa desde .npz local" — era falso. Verificar siempre las afirmaciones de costo/PU de subagentes contra el código antes de actuar (regla "no adivinar valores instrumentales").
+
+## Purga del .git en disco lleno: NO usar git gc, borrar .git y re-clonar (2026-07-03)
+
+- **Contexto**: repo `.git` de 26 GB con el disco del sistema al 99%. La purga nuclear (`purgar_historico_completo.yml`, orphan-reset) reduce el REMOTO a ~3 GB corriendo en el runner (disco fresco), pero el clon LOCAL sigue en 26 GB.
+- **Trampa del gc**: `git gc --prune=now` para reclamar el espacio local **desempaqueta los objetos inalcanzables a loose antes de podarlos** (`repack -A`) → necesita ~tamaño-del-repo de scratch → en disco lleno explota a 0 bytes y falla dejando un `tmp_pack` parcial. **No correr gc para adelgazar en disco lleno.**
+- **Salida correcta**: como el remoto ya es chico y el working tree está intacto, `rm -rf .git` (libera los 26 GB al instante) + `git init` + `remote add` + `git fetch origin main` + `git checkout -f -B main origin/main`. Reconstruye un `.git` de ~2.6 GB. Cero pérdida (todo está en el orphan remoto + working tree). **Verificar el working tree ANTES de borrar `.git`.**
+- **Bug del script de purga**: `limpiar_imagenes_antiguas.py` borra TODOS los `.pptx`, incluida `docs/plantillas/Cambios_morfologicos.pptx` (que el ppt_builder NECESITA). Recuperada vía `raw.githubusercontent.com/<repo>/<sha-viejo>/...` (GitHub retiene objetos inalcanzables ~90d). Guard agregado al script.
+- **Coordinación**: pausar crons (`gh workflow disable`) antes del force-push, re-activarlos (`gh workflow enable`) después. NO olvidar el re-enable.
+- **`git add -A` del orphan respeta `.gitignore`**: los libs de `docs/lib/` (gif.js, gifenc) sobrevivieron SOLO porque estaban trackeados antes (el `--orphan` hereda el índice). Archivos force-added siguen tracked; untracked-gitignored se caen.
+- **Fetch lento**: sobre repo grande / red lenta, fetch/push timeoutean en foreground → usar `run_in_background`. NO mezclar `nohup` con el background del tool (queda sin trackear).
