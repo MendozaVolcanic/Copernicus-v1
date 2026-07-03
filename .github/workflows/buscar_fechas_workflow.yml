@@ -1,0 +1,238 @@
+name: Buscar Fechas Disponibles Copernicus
+
+# DESACTIVADO 2026-05-22: este workflow consultaba la API CDSE directamente
+# y regeneraba el JSON desde la respuesta. Cuando la API daba 403 (quota
+# vencida o token roto) escribia arrays vacios y PISABA el JSON correcto
+# generado por sentinel2_downloader.py (que escanea el filesystem).
+# Resultado: dashboard mostraba "sin datos" para todos los volcanes.
+# Ahora queda SOLO manual (workflow_dispatch).
+on:
+  workflow_dispatch:
+    inputs:
+      meses_atras:
+        description: 'Meses hacia atras'
+        required: false
+        default: '2'
+
+# FIX 2026-05-17: concurrency para evitar runs simultáneos que pisan commits
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  buscar_fechas:
+    runs-on: ubuntu-latest
+    # FIX 2026-05-17: timeout para evitar workflows colgados
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      
+      - name: Instalar dependencias
+        run: |
+          pip install requests python-dateutil
+      
+      - name: Ejecutar busqueda
+        env:
+          SH_CLIENT_ID: ${{ secrets.SH_CLIENT_ID }}
+          SH_CLIENT_SECRET: ${{ secrets.SH_CLIENT_SECRET }}
+          MESES_ATRAS: ${{ github.event.inputs.meses_atras || '2' }}
+        run: |
+          python3 << 'EOFPY'
+          import requests
+          import json
+          from datetime import datetime, timedelta
+          from dateutil.relativedelta import relativedelta
+          import os
+          import math
+          
+          VOLCANES = {
+              # ZONA NORTE
+              "Taapaca": {"lat": -18.10, "lon": -69.50},
+              "Parinacota": {"lat": -18.17, "lon": -69.15},
+              "Guallatiri": {"lat": -18.42, "lon": -69.09},
+              "Isluga": {"lat": -19.15, "lon": -68.83},
+              "Irruputuncu": {"lat": -20.73, "lon": -68.55},
+              "Ollague": {"lat": -21.30, "lon": -68.18},
+              "San Pedro": {"lat": -21.88, "lon": -68.40},
+              "Lascar": {"lat": -23.37, "lon": -67.73},
+              # ZONA CENTRO
+              "Tupungatito": {"lat": -33.40, "lon": -69.80},
+              "San Jose": {"lat": -33.78, "lon": -69.90},
+              "Tinguiririca": {"lat": -34.81, "lon": -70.35},
+              "Planchon-Peteroa": {"lat": -35.24, "lon": -70.57},
+              "Descabezado Grande": {"lat": -35.58, "lon": -70.75},
+              "Tatara-San Pedro": {"lat": -36.00, "lon": -70.80},
+              "Laguna del Maule": {"lat": -36.02, "lon": -70.60},
+              "Nevado de Longavi": {"lat": -36.19, "lon": -71.16},
+              "Nevados de Chillan": {"lat": -36.86, "lon": -71.38},
+              # ZONA SUR
+              "Antuco": {"lat": -37.41, "lon": -71.35},
+              "Copahue": {"lat": -37.85, "lon": -71.17},
+              "Callaqui": {"lat": -37.92, "lon": -71.45},
+              "Lonquimay": {"lat": -38.38, "lon": -71.58},
+              "Llaima": {"lat": -38.69, "lon": -71.73},
+              "Sollipulli": {"lat": -38.97, "lon": -71.52},
+              "Villarrica": {"lat": -39.42, "lon": -71.93},
+              "Quetrupillan": {"lat": -39.50, "lon": -71.70},
+              "Lanin": {"lat": -39.64, "lon": -71.50},
+              "Mocho-Choshuenco": {"lat": -39.93, "lon": -72.03},
+              "Carran - Los Venados": {"lat": -40.35, "lon": -72.07},
+              "Puyehue - Cordon Caulle": {"lat": -40.59, "lon": -72.12},
+              "Antillanca - Casablanca": {"lat": -40.77, "lon": -72.15},
+              # ZONA AUSTRAL
+              "Osorno": {"lat": -41.10, "lon": -72.49},
+              "Calbuco": {"lat": -41.33, "lon": -72.61},
+              "Yate": {"lat": -41.76, "lon": -72.40},
+              "Hornopiren": {"lat": -41.87, "lon": -72.43},
+              "Huequi": {"lat": -42.38, "lon": -72.58},
+              "Michinmahuida": {"lat": -42.79, "lon": -72.44},
+              "Chaiten": {"lat": -42.83, "lon": -72.65},
+              "Corcovado": {"lat": -43.18, "lon": -72.80},
+              "Melimoyu": {"lat": -44.08, "lon": -72.88},
+              "Mentolat": {"lat": -44.70, "lon": -73.08},
+              "Cay": {"lat": -45.07, "lon": -73.00},
+              "Maca": {"lat": -45.10, "lon": -73.17},
+              "Hudson": {"lat": -45.90, "lon": -72.97}
+          }
+          
+          CLIENT_ID = os.environ.get('SH_CLIENT_ID')
+          CLIENT_SECRET = os.environ.get('SH_CLIENT_SECRET')
+          BUFFER_KM = 3
+          
+          def get_access_token():
+              url = "https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token"
+              data = {
+                  "grant_type": "client_credentials",
+                  "client_id": CLIENT_ID,
+                  "client_secret": CLIENT_SECRET
+              }
+              response = requests.post(url, data=data, timeout=30)
+              return response.json()['access_token']
+          
+          def create_bbox(lat, lon, buffer_km=3):
+              delta = buffer_km / 111.0
+              return [lon - delta, lat - delta, lon + delta, lat + delta]
+          
+          def buscar_fechas_disponibles(volcan_nombre, lat, lon, fecha_inicio, fecha_fin, token):
+              bbox = create_bbox(lat, lon, BUFFER_KM)
+              
+              # CORREGIDO: Usar GET con params, no POST con json
+              url = "https://sh.dataspace.copernicus.eu/api/v1/catalog/1.0.0/search"
+              
+              headers = {
+                  "Authorization": f"Bearer {token}",
+                  "Content-Type": "application/json"
+              }
+              
+              params = {
+                  'collections': 'sentinel-2-l2a',
+                  'bbox': ','.join(map(str, bbox)),
+                  'datetime': f"{fecha_inicio.isoformat()}Z/{fecha_fin.isoformat()}Z",
+                  'limit': 100
+              }
+              
+              response = requests.get(url, params=params, headers=headers, timeout=30)
+              
+              if response.status_code != 200:
+                  print(f"Error {volcan_nombre}: {response.status_code}")
+                  try:
+                      print(f"   Detalle: {response.text[:200]}")
+                  except:
+                      pass
+                  return []
+              
+              data = response.json()
+              fechas = set()
+              for feature in data.get('features', []):
+                  fecha_str = feature['properties']['datetime'][:10]
+                  fechas.add(fecha_str)
+              
+              return sorted(list(fechas))
+          
+          def main():
+              print("="*80)
+              print("Buscando fechas disponibles en Copernicus")
+              print("="*80)
+              
+              try:
+                  token = get_access_token()
+                  print("Token obtenido")
+              except Exception as e:
+                  print(f"Error obteniendo token: {e}")
+                  return
+              
+              meses_atras = int(os.environ.get('MESES_ATRAS', '2'))
+              fecha_fin = datetime.now()
+              fecha_inicio = fecha_fin - relativedelta(months=meses_atras)
+              
+              print(f"Buscando desde {fecha_inicio.date()} hasta {fecha_fin.date()}")
+              
+              metadata = {}
+              
+              for volcan_nombre, coords in VOLCANES.items():
+                  print(f"\nProcesando: {volcan_nombre}")
+                  
+                  try:
+                      fechas = buscar_fechas_disponibles(
+                          volcan_nombre,
+                          coords['lat'],
+                          coords['lon'],
+                          fecha_inicio,
+                          fecha_fin,
+                          token
+                      )
+                      
+                      print(f"   {len(fechas)} fechas encontradas")
+                      metadata[volcan_nombre] = fechas
+                  
+                  except Exception as e:
+                      print(f"   Error: {e}")
+                      metadata[volcan_nombre] = []
+              
+              output_path = 'docs/fechas_disponibles_copernicus.json'
+              os.makedirs(os.path.dirname(output_path), exist_ok=True)
+              
+              with open(output_path, 'w') as f:
+                  json.dump(metadata, f, indent=2)
+              
+              print(f"\nMetadata guardada en: {output_path}")
+              print("="*80)
+          
+          if __name__ == "__main__":
+              main()
+          EOFPY
+      
+      - name: Commit JSON
+        run: |
+          git config user.name "CopernicusBot"
+          git config user.email "bot@copernicus.com"
+          
+          git add docs/fechas_disponibles_copernicus.json
+          
+          if git diff --quiet --staged; then
+            echo "No hay cambios en fechas disponibles"
+          else
+            git commit -m "Actualizar fechas disponibles Copernicus"
+            # FIX 2026-05-17: merge seguro en vez de "rebase -X ours"
+            git fetch origin main
+            if ! git merge --ff-only origin/main; then
+              echo "No fast-forward posible, rebase con preferencia a remoto..."
+              if ! git pull origin main --rebase -X theirs; then
+                echo "Conflicto detectado. Abortando para evitar perder cambios remotos."
+                git rebase --abort 2>/dev/null || true
+                exit 1
+              fi
+            fi
+            git push origin main
+            echo "Fechas actualizadas"
+          fi

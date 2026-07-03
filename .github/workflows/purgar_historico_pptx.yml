@@ -1,0 +1,132 @@
+name: Purgar historico PPTX (one-shot, libera ~16 GB del .git)
+
+# ⚠️ DESTRUCTIVO Y UNILATERAL ⚠️
+# Reescribe el historial del repo eliminando TODOS los *.pptx de TODOS
+# los commits + force push. Reduce ~19 GB → ~3 GB de una sola vez.
+#
+# Despues de correr:
+#   - Cualquier clone local existente queda inconsistente
+#   - Nicolas debe hacer: git fetch origin && git reset --hard origin/main
+#   - O re-clonar el repo
+#
+# NO toca PNG, GIF, JSON, MD, ni codigo — solo .pptx en TODA la historia.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmar:
+        description: 'Escribir PURGAR para confirmar (escribi PURGAR exacto)'
+        required: true
+        default: 'NO'
+
+permissions:
+  contents: write
+
+jobs:
+  purgar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Verificar confirmacion
+        run: |
+          if [ "${{ github.event.inputs.confirmar }}" != "PURGAR" ]; then
+            echo "❌ Debes escribir PURGAR exacto (en mayusculas)"
+            exit 1
+          fi
+          echo "✅ Confirmacion recibida"
+
+      - name: Checkout completo (todo el historial)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0          # clone con todo el historial
+          persist-credentials: true
+
+      - name: Tamaño antes
+        run: |
+          echo "📊 TAMAÑO ANTES:"
+          du -sh .git
+          echo "PPTX en HEAD:"
+          find . -name "*.pptx" -type f 2>/dev/null | wc -l
+          echo "Espacio PPTX en HEAD:"
+          find . -name "*.pptx" -type f -printf "%s\n" 2>/dev/null | awk '{s+=$1} END {printf "%.1f MB\n", s/1024/1024}'
+
+      - name: Instalar git-filter-repo
+        run: |
+          pip install git-filter-repo==2.47.0
+          git filter-repo --version
+
+      - name: Borrar PPTX del working tree (local del repo)
+        run: |
+          echo "🗑️ Borrando PPTX actuales del filesystem..."
+          # SOLO PPTX. Ningun otro archivo se toca.
+          find . -name "*.pptx" -type f -not -path "./.git/*" -print -delete
+          echo "✅ PPTX borrados del working tree"
+
+      - name: Purgar PPTX del historial (filter-repo)
+        run: |
+          echo "🔥 Reescribiendo TODO el historial para eliminar *.pptx..."
+          # --path-glob '*.pptx' + --invert-paths: mata los matches
+          # --force porque corremos desde un clone github (no fresh)
+          git filter-repo --path-glob '*.pptx' --invert-paths --force
+          echo "✅ Historial reescrito"
+
+      - name: Verificar que filter-repo no toco otros archivos
+        run: |
+          echo "📊 ARCHIVOS DESPUES DEL FILTER-REPO:"
+          echo "  PNGs:        $(find . -name '*.png' -not -path './.git/*' | wc -l)"
+          echo "  GIFs:        $(find . -name '*.gif' -not -path './.git/*' | wc -l)"
+          echo "  HTMLs:       $(find . -name '*.html' -not -path './.git/*' | wc -l)"
+          echo "  Python:      $(find . -name '*.py'  -not -path './.git/*' | wc -l)"
+          echo "  Markdown:    $(find . -name '*.md'  -not -path './.git/*' | wc -l)"
+          echo "  PPTX (debe ser 0): $(find . -name '*.pptx' -not -path './.git/*' | wc -l)"
+
+      - name: Tamaño despues (pre-gc)
+        run: |
+          echo "📊 TAMAÑO DESPUES FILTER-REPO (antes de gc):"
+          du -sh .git
+
+      - name: Garbage collect (sin --aggressive)
+        # filter-repo ya re-empaqueta los objetos; un gc normal + prune
+        # alcanza para limpiar lo orfanado. --aggressive sobre 19GB
+        # tardaba >30 min y nos timeaba.
+        run: |
+          git reflog expire --expire=now --all
+          git gc --prune=now
+
+      - name: Tamaño final
+        run: |
+          echo "📊 TAMAÑO FINAL:"
+          du -sh .git
+          echo ""
+          echo "🎯 Listo para force push"
+
+      - name: Force push (reescribir main)
+        run: |
+          # filter-repo elimina el remote por seguridad, lo restauramos
+          git remote add origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+          echo "🚀 Force push de main reescrito..."
+          git push origin main --force
+          # Tambien borrar refs viejos remotos si existen
+          git push origin --tags --force || true
+          echo "✅ Force push completado"
+
+      - name: Resumen final
+        run: |
+          echo "============================================================"
+          echo "✅ PURGA COMPLETADA"
+          echo "============================================================"
+          echo ""
+          echo "⚠️  ATENCION: Tu clone local de Copernicus-v1 quedo OBSOLETO."
+          echo ""
+          echo "Para sincronizar tu PC con el repo reescrito, ejecuta:"
+          echo ""
+          echo "  cd Copernicus-v1"
+          echo "  git fetch origin"
+          echo "  git reset --hard origin/main"
+          echo ""
+          echo "O alternativamente, re-clona desde cero:"
+          echo ""
+          echo "  rm -rf Copernicus-v1"
+          echo "  git clone https://github.com/${{ github.repository }}.git"
+          echo "============================================================"

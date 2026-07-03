@@ -1,0 +1,87 @@
+name: "📊 Solicitar PPT Individual"
+description: "Genera un PPT de evaluación Sentinel-2 para un volcán específico"
+title: "PPT: [VOLCAN] [FECHA_INICIO] → [FECHA_FIN]"
+labels: ["ppt-request"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Solicitud de PPT Individual
+        Completá el formulario y enviá el issue. El sistema generará el PPT automáticamente (3-5 min) y lo publicará como comentario en este issue.
+
+  - type: dropdown
+    id: volcan
+    attributes:
+      label: "Volcán"
+      description: "Seleccioná el volcán a evaluar"
+      options:
+        - Taapaca
+        - Parinacota
+        - Guallatiri
+        - Isluga
+        - Irruputuncu
+        - Ollague
+        - San Pedro
+        - Lascar
+        - Tupungatito
+        - San Jose
+        - Tinguiririca
+        - Planchon-Peteroa
+        - Descabezado Grande
+        - Tatara-San Pedro
+        - Laguna del Maule
+        - Nevado de Longavi
+        - Nevados de Chillan
+        - Antuco
+        - Copahue
+        - Callaqui
+        - Lonquimay
+        - Llaima
+        - Sollipulli
+        - Villarrica
+        - Quetrupillan
+        - Lanin
+        - Mocho-Choshuenco
+        - Carran - Los Venados
+        - Puyehue - Cordon Caulle
+        - Antillanca - Casablanca
+        - Osorno
+        - Calbuco
+        - Yate
+        - Hornopiren
+        - Huequi
+        - Michinmahuida
+        - Chaiten
+        - Corcovado
+        - Melimoyu
+        - Mentolat
+        - Cay
+        - Maca
+        - Hudson
+    validations:
+      required: true
+
+  - type: input
+    id: fecha_inicio
+    attributes:
+      label: "Fecha inicio"
+      description: "Formato YYYY-MM-DD"
+      placeholder: "2026-03-01"
+    validations:
+      required: true
+
+  - type: input
+    id: fecha_fin
+    attributes:
+      label: "Fecha fin"
+      description: "Formato YYYY-MM-DD"
+      placeholder: "2026-03-31"
+    validations:
+      required: true
+
+  - type: markdown
+    attributes:
+      value: |
+        ---
+        El PPT se descargará desde el comentario que el bot publicará en este issue una vez generado.
+        **Tiempo estimado:** 3-5 minutos.

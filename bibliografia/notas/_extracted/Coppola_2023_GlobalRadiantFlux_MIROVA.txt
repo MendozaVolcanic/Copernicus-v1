@@ -1,0 +1,818 @@
+                                                TYPE Original Research
+                                                PUBLISHED 06 October 2023
+                                                DOI 10.3389/feart.2023.1240107
+
+OPEN ACCESS                                 Global radiant flux from active
+                                            volcanoes: the
+EDITED BY                                   2000­2019 MIROVA database
+
+Nick Varley,                                D. Coppola1,2*, D. Cardone3, M. Laiolo1,2, S. Aveni1,4, A. Campus 1
+University of Colima, Mexico                and F. Massimetti1
+
+REVIEWED BY                                 1Dipartimento di Scienze della Terra, Università di Torino, Turin, Italy, 2Natrisk--Centro Interdipartimentale
+                                            sui Rischi Naturali in Ambiente Montano e Collinare, Torino, Italy, 3CNR--Consiglio Nazionale Ricerche,
+Muhammad Aufaristama,                       Torino, Italy, 4Dipartimento di Ingegneria Civile, Edile e Ambientale, Università Sapienza, Roma, Italy
+University of Twente, Netherlands
+Goutham Krishna Teja Gunda,                 Since 2000, the Moderate Resolution Imaging Spectroradiometer (MODIS) has
+Indian Institute of Remote Sensing, India   acquired infrared images of the Earth's surface daily. These data have made it
+Charley Hill-Butler,                        possible to measure the thermal energy radiated by the world's most famous
+Coventry University, United Kingdom         volcanoes and also to discover and track eruptions in remote and poorly
+Matthew Blackett,                           monitored regions. In this work, we present the database of Volcanic Radiative
+Coventry University, United Kingdom         Power (VRP, in W) time series, recorded by the MIROVA (Middle Infrared
+                                            Observation of Volcanic Activity) system over 2 decades of MODIS
+*CORRESPONDENCE                             observations (2000­2019) at 111 active volcanoes. The database reveals that
+                                            globally, the number of thermally active volcanoes each year varies between
+D. Coppola,                                 60 and 80, almost equally partitioned between volcanoes with a basic (50%) and
+  diego.coppola@unito.it                    intermediate (45%) composition, while only 5% is represented by volcanoes
+                                            erupting acidic lavas. Within the investigated period, the global-scale heat flux
+RECEIVED 14 June 2023                       was almost stationary, and occasionally punctuated by peaks associated with the
+ACCEPTED 19 September 2023                  largest effusive eruptions (e.g., Bardarbunga and Kilauea). The Volcanic Radiative
+PUBLISHED 06 October 2023                   Energy (VRE, in J) emitted by basic volcanoes (~1.8 × 1018 J) in 20 years constitutes
+                                            91% of the total, while intermediates and acids contribute only 8% (~1.8 × 1017 J)
+CITATION                                    and 1% (~1.7 × 1016 J), respectively. A comparison with the volume of lava erupted
+                                            effusively by the same volcanoes reveals that this difference is attributed to the
+Coppola D, Cardone D, Laiolo M, Aveni S,    lower efficiency in radiating thermal energy of increasingly acidic (viscous) lava
+Campus A and Massimetti F (2023),           bodies. Each compositional group is associated with a specific relationship
+Global radiant flux from active volcanoes:  between VRE and erupted volume which characterises most of the effusive
+the 2000­2019 MIROVA database.              volcanoes. On the other hand, some open-vent volcanoes reveal that much
+Front. Earth Sci. 11:1240107.               more heat is released than that theoretically radiated by the erupted lava. This
+doi: 10.3389/feart.2023.1240107             imbalance (hereby called excess radiation) is attributed to an additional heat
+                                            source, likely associated with an underlying convective magma column and/or
+COPYRIGHT                                   to outgassing through a permeable conduit. We are convinced that the database
+                                            presented in this work will be useful to support new emerging studies on global-
+© 2023 Coppola, Cardone, Laiolo, Aveni,     scale volcanism and will contribute to a better understanding of each volcanic
+Campus and Massimetti. This is an open-     system.
+access article distributed under the terms
+of the Creative Commons Attribution         KEYWORDS
+License (CC BY). The use, distribution or
+reproduction in other forums is             volcanic radiative power (VRP), MIROVA, global volcano activity, MODIS, database
+permitted, provided the original author(s)
+and the copyright owner(s) are credited
+and that the original publication in this
+journal is cited, in accordance with
+accepted academic practice. No use,
+distribution or reproduction is permitted
+which does not comply with these terms.
+
+Frontiers in Earth Science                  01  frontiersin.org
+Coppola et al.                                                               10.3389/feart.2023.1240107
+
+1 Introduction                                                                   However, it was only starting from 2000 that the potential of
+                                                                             thermal remote sensing, applied to volcanic monitoring, began to be
+    Thermal energy is the main form of energy released or                    exploited on a global scale. Since its launch into orbit aboard TERRA
+transformed during volcanic eruptions. It is typically estimated             and AQUA NASA's satellites in the early 2000s, the MODIS
+ex-post, based on the mass, composition, and temperature of the              (Moderate Resolution Imaging Spectroradiometer) sensor, has
+erupted products (e.g., Yokoyama, 1957; Pyle, 1995; Pyle, 2015).             acquired infrared images of our planet four times per day, with a
+Being related to the mass of the erupted materials and, to a lesser          spatial resolution of 1 km (Justice et al., 1998). These multi-day
+extent, to the heat transferred by magmatic gases, its measurement           datasets (two night-time and two day-time overpasses) allowed the
+has been often regarded as a proxy of the size of volcanic eruptions         development of the first, fully automatic systems (e.g., MODVOLC,
+(Heffington et al., 1977; Pyle, 2015). Approximately one-third of the        MIROVA, FIRMS), capable of detecting the presence of high-
+thermal energy of an eruption is lost by the cooling of magma above          temperature thermal anomalies on a global scale, including
+the solidification temperature (i.e., between about 750°C and                worldwide volcanic activity (Wright et al., 2002; Davies et al.,
+1,150°C), while the remaining two-thirds are released from                   2009; Coppola et al., 2016a).
+magma in the solid state between ambient temperature and
+around 750°C. Gas dissolved in the magma possesses about 4%                      MODVOLC (Wright et al., 2002; Wright et al., 2004), was the
+of the total thermal energy stored in a volcanic system (Heffington          primary automated hotspot detection system dedicated to
+et al., 1977). Some estimates put the thermal energy of eruptions as         volcanoes, allowing for the first time a direct estimation of the
+0.5%­2% of the energy released through the worldwide geothermal              heat flux radiated into the atmosphere by multiple eruptions and
+flux (Elder, 1976; Heffington et al., 1977; Verhoogen, 1980). Yet,           volcanoes. The earliest estimates were based on the analysis of
+these numbers are rather uncertain, being based on an independent            45 volcanoes that were active between 2001 and 2002 (Wright
+evaluation of the global magma output rate (Crisp, 1984; White               and Flynn, 2004). The dataset was later updated to 65 volcanoes,
+et al., 2006).                                                               for the period 2000­2006 (Wright and Pilger, 2008), and to
+                                                                             95 volcanoes for the period 2000­2013 (Wright et al., 2015).
+    Nonetheless, the thermal power released during eruptions                 According to Wright et al., 2015, the baseline level of subaerial
+(i.e., heat emitted per unit of time; in Watts) is a crucial                 volcanic activity radiates approximately 0.38­0.96 GW (1­2.5 ×
+parameter since it has proved to be intimately linked to the lava            1015 J per month, in the original papers), ~66% of which is
+discharge rate during effusive eruptions (Harris and Baloga, 2009),          produced by lava-flow forming eruptions. Wright et al., 2015 also
+to the height of ash plumes during explosive events (Wilson et al.,          underlined the great contribution produced by the Nyiragongo
+1978), or to the rate of gas emissions at persistently degassing             (Democratic Republic of Congo--DRC) lava lake alone (radiating
+volcanoes (Stevenson, 1993).                                                 25% of the total in 2013) and the role of large basaltic eruptions
+                                                                             (such as Bardarbunga (Iceland) and Tolbachik (Kamchatka)) which
+    Direct measurement of the thermal power during an                        can radiate more than 2 × 1016 J, in few months of activity. Based on
+ongoing eruption is challenging. It requires monitoring                      the most recent review from MODVOLC data, Kilauea (Hawaii),
+several volcanic phenomena that i) release very different                    Nyiragongo (DRC), Nyamulagira (DRC), and Etna (Italy) volcanoes
+kinds of erupted products (lava, ash, pyroclastic flows, gas,                are placed at the top of the ranking as the largest heat emitters in the
+etc.), ii) occur on highly variable spatial and temporal scales,             world.
+and iii) are characterised by multiple forms of heat transport
+(radiation, convection, conduction, advection). For example,                     The Middle Infrared Observations of Volcanic Activity
+basaltic eruptions are associated with widespread lava flows                 (MIROVA) system, developed in 2014 (Coppola et al.,
+which lose large amounts of heat through radiation and                       2016a), was born in the wake of MODVOLC and, although
+convection in the atmosphere (Dragoni, 1989; Harris and                      based on the same MODIS data, it differs from the latter in data
+Rowland, 2009). Conversely, explosive eruptions rapidly                      processing and in the algorithm for detecting hotspots. In
+transfer the heat to the air mass entrained in the buoyant                   particular, the MIROVA algorithm is built to detect thermal
+rising ash plumes (Wilson et al., 1978; Wilson, 1980).                       anomalies of lower temperatures (or smaller areas) than
+Volcanic gases also carry heat from the magmatic source to                   MODVOLC at the expense of greater computational
+the atmosphere and during their ascent may transfer part of this             requirements. For this reason, MIROVA is not a fully global
+heat through conduction into the low-conductivity host rocks                 system like MODVOLC, but the volcanic targets have been
+(Stevenson, 1993; Henley and Hughes, 2016). These factors                    selected (and are continuously updated) to include the most
+make it extremely complex to estimate the total thermal                      active volcanoes in the world (Coppola et al., 2020).
+power associated with an eruption.
+                                                                                 Notably, both systems are based on the measurement of
+    Since the 1960s, remote sensing techniques have shown the                electromagnetic radiation in the Middle InfraRed (MIR) and
+potential of being able to detect and measure at least a portion of the      provide an estimate of the Volcanic Radiative Power (VRP in
+thermal power sourced by volcanic activity (e.g., Harris, 2013;              Watts) released by an eruption. The VRP proved to be a robust
+Ramsey and Harris, 2013; Ramsey et al., 2021). In particular, it             proxy of the ongoing surface activity in very different volcanic
+has become increasingly evident that sub-pixel spatial elements with         contexts, as it is intimately linked to the rate of lava and/or gas
+temperatures above the background (called Volcanic Thermal                   emissions. In particular, the VRP has been correlated with the lava
+features--VTFs--by Oppenheimer et al., 1993), are easily and                 discharge rate of effusive eruptions (Coppola et al., 2016a;b), with
+safely detectable from space, making it possible to directly                 phases of rise and fall of lava lakes (Campion and Coppola, 2023),
+quantify their thermal radiation (Francis, 1989; Ramsey and                  with magma migration at open-vent volcanoes (Laiolo et al., 2019;
+Flynn, 2020).                                                                Naismith et al., 2019), with growth of lava domes and excess
+
+Frontiers in Earth Science                                               02  frontiersin.org
+Coppola et al.                                                                                 10.3389/feart.2023.1240107
+
+degassing at andesitic volcanoes (Coppola et al., 2022a; Valade et al.,            that all pixels represent a ground area of 1 km2, minimizing the effect
+2023), and with hydrothermal crises of fumarolic fields (Laiolo et al.,            of geometrical distortions and making the VRP calculation easier
+2017; Coppola et al., 2022b).                                                      (see Section 2.3). Once the scenes are geometrically corrected
+                                                                                   (i.e., pixels affected by bow-tie distortions are identified and
+    MIROVA is operational in Near-Real-Time (NRT) on more                          removed; Coppola et al., 2010), the MIR and TIR bands are
+than 200 volcanoes and supports volcano observatories in evaluating                employed to run the hotspot detection algorithm. The algorithm
+the state of activity and in maintaining situational awareness during              exploits spectral filters, such as the Normalized Thermal Index (NTI,
+eruptive crises (Coppola et al., 2020). Yet, one of MIROVA's goals is              Wright et al., 2004) and the Enhanced Thermal Index (ETI, Coppola
+also to build and update a multi-year database of infrared satellite               et al., 2016a), followed by a spatial/statistical analysis, to identify
+data at the most active volcanoes.                                                 thermally anomalous pixels in different regions of interest. In
+                                                                                   particular, in the summit area (5 × 5 km) slightly lower
+    In this work, we present the first version of the MIROVA                       thresholds are applied to detect the smallest thermal anomalies,
+Database (v.1.0) which includes the time series of VRP recorded                    such as the appearance of high-temperature fumaroles or hot cracks.
+at 111 volcanoes between March 2000 and December 2019. The                         At greater distances, the algorithm uses slightly higher thresholds
+database is structured in three parts and can be freely downloaded                 which reduce false alerts, while still allowing the prompt detection of
+from the website www.mirovaweb.it, or from a dedicated repository                  effusive activity on the flanks of the volcano (Coppola et al., 2016a).
+hosted at https://osf.io/zm62w/ (see Section 3).
+                                                                                   2.2 Calculation of the excess MIR radiance
+    In the next sections, after briefly explaining the used                        (LMIR)
+methodology and the limits of the database, we present an
+overview of the results on a global scale. This includes an                            Once a pixel contaminated by a hotspot has been detected, the
+analysis of the energies radiated in 20 years of volcanic subaerial                MIROVA algorithm firstly measures the excess of MIR radiance
+activity of different compositional groups and their relationship with             compared to the background. Very often, because the VTF is large
+the erupted lava volumes.                                                          enough or because of blurring of the satellite images (due to the
+                                                                                   sensor's point spread function), several adjacent pixels can be
+2 Materials and methods                                                            detected by the algorithm. This effect is very important to take
+                                                                                   into consideration because it means that even a punctiform VTF can
+2.1 MODIS-MIROVA                                                                   produce an excess of radiance that propagates not to one but to
+                                                                                   several pixels (Harris, 2013). Hence, the total excess radiance
+    MIROVA is an automatic volcanic hotspot detection system                       sourced by the whole VTF, LMIR, is calculated as:
+operating in real-time since 2014 (Coppola et al., 2016a). The
+system exploits thermal imageries acquired by the MODIS sensors                    LMIR  Npix  LMIR,hot(i) - LMIR,bk  (1)
+aboard NASA's platforms TERRA and AQUA, launched in March                                i1
+2000 and May 2002, respectively. Both satellites are placed in a sun-
+synchronous polar orbit, providing up to four images per day (at the               where Npix is the number of detected pixels, LMIR,hot is the pixel-
+equator) with a spatial resolution of 1 km (at nadir) (Justice et al., 1998).      integrated radiance of the ith pixels and LMIR,bk is the background
+Boasting a dual channel in the MIR portion of the spectrum (centred at             radiance, generally calculated from pixel(s) surrounding the
+3.959 µm) and featuring low/high gain settings to maximize the range of
+unsaturated data, MODIS instruments have been widely defined as one                anomaly (see Coppola et al., 2016a for details).
+of the most successful sensors for volcanological applications (Wright
+et al., 2002; Harris, 2013; Ramsey and Harris, 2013). MIROVA                       2.3 Calculation of volcanic radiative power
+processes in Near-Real-Time (NRT) the MODIS scenes for a list of                   (VRP) and its significance in different
+target volcanoes (>200), which have been chosen based on their recent/             volcanic contexts
+current activity, scientific interest, or following individual requests from
+volcanic observatories worldwide (see Coppola et al., 2020). For these                 With the anomalous pixels identified, and the total excess of
+targets, the time series of the VRP and the latest images are                      radiance calculated, the Volcanic Radiative Power (VRP) is retrieved
+continuously updated and published on the dedicated website (www.                  by applying the MIR method presented by Wooster et al. (2003) as:
+mirovaweb.it). For the same targets, the historical archive of MODIS
+data was also processed to reconstruct the time series of heat flux,               VRP Apix · 18.9 · LMIR             (2)
+starting from March 2000.
+                                                                                   where Apix is the area of the pixel in km2 (for resampled MODIS
+    MODIS Level 1B calibrated radiances data are elaborated                        image Apix = 106 m), 18.9 is a best-fit, wavelength-dependent
+following four principal steps, namely: 1) search and download                     regression coefficient, and LMIR represents the excess MIR
+of MODIS granules, 2) cropping and resampling, 3) hot-spot                         radiance calculated using Eq. (1). The VRP is calculated in Watts
+detection, and 4) calculation of VRP. The structure of the                         (W) and represents a combined measurement of the area of the VTF
+algorithm can be summarised as follows: the Middle InfraRed                        and its effective radiating temperature.
+(MIR--3.959 µm) and the Thermal InfraRed (TIR--12.02 µm)
+data matrices are first extracted from the original MODIS                              The MIR method was initially introduced by Wooster et al.
+granules, and then resampled to regular 51 × 51 UTM grids                          (2003) to estimate the Fire Radiative Power from satellite data, using
+centred on the volcano's summit, as per coordinates provided by                    a single band. According to the authors, this method estimates the
+the Global Volcanism Program. (2023). This step is crucial to ensure
+
+Frontiers in Earth Science                                                     03                                     frontiersin.org
+Coppola et al.                                                              10.3389/feart.2023.1240107
+
+radiant power of a hot source with an error of ±30%, provided that          that a linear trend exists between each consecutive VRP
+the hot emitter has an integrated temperature between 600 and               measurement (Coppola and Cigolini, 2013). This, however,
+1500 K. When applied to thermal anomalies of volcanic origin, this          requires a selection of suitable scenes to exclude those
+feature may appear to be a limitation since many VTFs can be colder         contaminated by clouds and/or volcanic plumes (Coppola et al.,
+or may have a large part of their surface below 600 K. For example, a       2013; Coppola et al., 2019). Considering the high number of scenes
+lava flow that has been emplacing for several days or weeks may have        from which the MIROVA database is made, a visual inspection/
+large parts of its surface at a temperature well below 600 K                classification of each image is essentially impractical. Yet, to ensure
+(Pinkerton et al., 2002). However, if the flow is still active, a           the best trade-off between the quality of the data provided and the
+portion of its surface will likely have temperatures above 600 K            time required to compile the database, two unsupervised methods
+for which Wooster's relationship holds. It has been previously              are here proposed.
+demonstrated that the MIR method provides an estimate of the
+VRP radiated by hot, younger surfaces, no older than 6­24 h                     Method-1 computes the average weekly VRP and integrates this
+(Coppola et al., 2010). In other words, lava surfaces that have             value over a consecutive time window of 7 days to obtain weekly energy
+cooled down for more than 1 day, emit a small MIR radiance                  values. This method has the advantage of being easily applicable, yet, it
+and therefore contribute very little to the VRP estimate. This              likely provides slightly underestimated energies as it takes into account
+reasoning can be equally applied to lava domes, in which a large            all the scenes, including those contaminated by clouds or acquired with
+part of the cooled carapace may likely be below 600 K (Hicks et al.,        unfavorable geometrical conditions, the latter proven to affect the
+2009; Sahetapy-Engel and Harris, 2009). In these cases, the VRP             accuracy of the retrieved VRP (Coppola et al., 2010).
+provides an estimate of the thermal power radiated mostly from the
+hotter (thermally younger) surfaces, eventually associated with new             Method-2, instead, attempts to provide a better representation of
+spines or lobes, hot cracks, or highly permeable zones that permit          the energy radiated from each volcano, by applying a local minima
+continuous outgassing (Shevchenko et al., 2021; Coppola et al.,             filter to the original VRP time series of each volcano. In this way,
+2022a). On fumarolic fields, the VRP has proved to be a robust              local VRP minima are removed from the weekly subset, before
+parameter for estimating the heat flux vented by high-temperature           performing the weekly energy calculation as per in Method-1. This
+fumaroles alone, while it is fundamentally insensitive to the diffuse       method tends to reduce the effect of cloud contamination and
+heat dispersed from the crater area at a few degrees above the              unfavourable acquisitions, but possibly provides overestimated
+background (zones of diffuse degassing; Coppola et al., 2022b).             values, especially during eruptive activity that changes abruptly.
+
+    It is therefore important to emphasize that the VRP does not                Regardless of the method, the weekly energies are then summed
+represent the total radiant power of a VTF, but only a fraction of it,      yearly to obtain the annual VRE trends (in J y-1), and cumulated on
+that is the one associated with the high-temperature components.            a 20-year scale, to obtain the cumulative total VRE (see Section 3.2).
+What the exact limit is, depends on the temperature distribution of
+the VTF, but the lower bounds of the MODIS-MIROVA system can                2.5 Supervision of the dataset
+be used to define the thresholds under which a VTF is not detectable.
+In the case of MODIS with a resolution of 1 km, accurate values of              The current version of the MIROVA database (v.1) consists
+VRP can be detected above ~1 MW (Coppola et al., 2016a), which              exclusively of night-time data, amounting to more than 150,000 hot-
+corresponds to a VTF with a radius of ~1.5 m and an integrated              spot contaminated MODIS images, for the set 111 analysed volcanoes. As
+temperature of 1,000°C, or a VTF with a radius of ~6.9 m and a              specified in Coppola et al., 2020, the VRP data provided by MIROVA are
+temperature of 330°C. Thus, these two scenarios can be roughly              provided "as-are", i.e., without atmospheric corrections and cloud fraction
+considered the limiting characteristics that a VTF must have to be          estimates accompanying the measurement. This choice is due to the
+detected by the MODIS-MIROVA database.                                      difficulties of implementing these corrections in NRT without
+                                                                            compromising the latency time with which the data is distributed on
+    For low-temperature VTFs, which have large areas but no                 the website. Work in progress is underway to implement these
+components at high temperatures (crater lakes or extensive                  improvements which may eventually be included in future versions of
+fumarolic fields but at lower temperatures), the MIR method                 the database. On the other hand, the entire dataset has been supervised to
+returns underestimated values for the total radiant flux. However,          remove obvious "non-volcanic" thermal features. This step was done
+although quantitatively inaccurate, the trend defined by the VRP for        manually by checking the time series and removing data points related to
+these cases is still sensitive to potential variations in the area or       fires or false alerts, based on visual inspection of the images or based on
+temperature of the VTF, being the latter embedded in the value of           fact-checking within volcanic activity reports, or news available on the
+the pixel-integrated radiance (Eq. (1)).                                    web. However, some errors (alerts of non-volcanic origin) can be still
+                                                                            present in the database but without compromising the statistical analysis
+2.4 Calculation of volcanic radiative                                       of the data, or the eruptive trends.
+energy (VRE)
+                                                                            3 MIROVA database v.1
+    The Volcanic Radiative Energy VRE (in Joules) is the energy
+radiated by a VTF, as calculated by using two or more consecutive           3.1 Volcanoes and compositional groups
+VRP measurements. Quantification of the VRE produced by each
+volcano over an entire eruption (or period) can be obtained as the              The 111 volcanoes constituting the database were divided into
+trapezoidal integration of the VRP time series, under the assumption        four compositional groups based on the silica content of the erupted
+
+Frontiers in Earth Science                                              04  frontiersin.org
+Coppola et al.                                                           10.3389/feart.2023.1240107
+
+FIGURE 1
+Volcanoes included in the MIROVA Database v. 1.0 subdivided by composition groups (Acid: >65 wt% SiO2; Basic: 55 wt% SiO2; Intermediate: 55 to
+65 wt% SiO2; Other: Carbonatite). The pie chart illustrates the proportion of each group within the dataset. See the file "Global_Annual_VRE_v1.xls for
+details (https://osf.io/zm62w/)".
+
+lavas (Figure 1). Where possible, the chemical compositions (listed             (in W) recorded daily at each volcano from 1 March 2000,
+in "Global_Annual_VRE_v1.xls"--see next section) refer to                       to 31 December 2019. We refer to this value as VRPday. In the
+chemical analyses of recent volcanic products as published by                   absence of thermal anomalies over an entire day, the VRP is set
+specific works. In other cases, reference composition was                       to NaN (Not a Number).
+obtained using the GEOROCK database (https://georoc.eu/ and                  · VolcanoName_MIROVA_Database_v1. csv: Single volcano
+references therein), by taking into account the more recent                     version of the database containing the list of all night-time
+analysis. Based on this classification, between 2000 and 2019 we                thermal anomalies detected by MIROVA from 1 March 2000,
+distinguished: 62 active volcanoes (56%) with a basic composition               to 31 December 2019. Each thermal detection is accompanied
+(55 wt% SiO2); 42 active volcanoes (38%) with intermediate                      by a list of associated parameters as reported in Table 1.
+composition (55 < wt% SiO2  65); 5 active volcanoes (4%) with
+acid composition (SiO2 > 65 wt%) and only 1 volcano having other             In addition, for each volcano, we presented a synthesis of the database
+composition (the carbonatitic composition of Ol Doinyo Lengai-           in the form of a graphical panel (named VolcanoName_MODIS_VRE_
+Tanzania).                                                               2000_2019.png) constituted by four subplots (Figure 2). The first plot
+                                                                         (upper left) represents the annual VRE time-series (calculated with the
+3.2 Structure of the database                                            two methods described in section 2.4) on which it is possible to appreciate
+                                                                         the long-term trend. The second plot (upper right) shows the cumulative
+    The database is stored and downloadable from the dedicated           VRE including the total value of radiated energy in the 20 years analysed.
+OSF data repository (https://osf.io/zm62w/) as well as from the          The third plot (lower left) is instead the time series of the VRP on a
+MIROVA website (https://www.mirovaweb.it/). It is composed of            logarithmic scale.
+three datasets characterised by different time resolutions:
+                                                                             On the background of the time series, the thermal levels of VRP are
+    · Global_Annual_VRE_v1.xls. Global annual version of the             reported as defined by Coppola et al., 2016a, i.e.: Low, Medium, High,
+       database. The file contains 111 rows (corresponding to            Very High, and Extreme. Finally, the last plot (lower right) shows the
+       volcanoes) and 20 columns providing the annual Volcanic           frequency histogram of the log-transformed VRP data. These graphical
+       Radiative Energy (VRE, in J y-1) recorded from 2000 to            panels can be viewed for each volcano on the dedicated page of www.
+       2019 and calculated using Method-2. In the absence of             mirovaweb.it or from the data repository (https://osf.io/zm62w/).
+       thermal anomalies over the course of an entire year the
+       VRE value is set to 0. The table includes the compositional       4 Results
+       group and the SiO2 content (wt%) attributed to each volcano
+       according to the indicated bibliographic reference.               4.1 Global volcanic radiative power
+
+    · Global_Daily_VRP_v1.xls: Global daily version of the                   The global VRP value was obtained by summing the VRPday of
+       database. The file contains 111 rows (corresponding to            each active volcano on that given day. The result is shown in
+       volcanoes) and 7,245 columns giving the maximum VRP               Figure 3, both in logarithmic and linear scale. Overall, the global
+
+Frontiers in Earth Science                                           05  frontiersin.org
+Coppola et al.                                                                                       10.3389/feart.2023.1240107
+
+TABLE 1 List of parameters distributed for each volcano. MIROVA Database v1.
+
+Parameter       unit                 Definition
+
+UTC             dd/mm/yyyy hh:mm:ss  Date and time of the satellite acquisition (all times are UTC)
+Dayflag         adim                 Daytime flag: 0 = nighttime; 1 = daytime
+Sensor          adim                 Sensor flag: 1 = MODIS/Terra; 2 = MODIS/Aqua
+
+Resolution      meters               Nominal spatial resolution of the sensor (pixel size)
+SatZen          degrees              satellite zenith: the angle between the direction of the satellite and the local zenith. (satezen = 0°: satellite is at nadir)
+SatAzi          degrees              satellite azimuth, the angle from the North (north clockwise-positive from 0° to 360°)
+
+Npix            adim                 number of alerted pixel
+Tot_Lmir_hot    W m-2 sr-1 mm-1      Sum of MIR radiance from all alerted pixels
+Tot_Lmir_bk     W m-2 sr-1 mm-1      Sum of MIR background radiance from all alerted pixels
+
+VRP             Watts                Volcanic Radiative Power calculated using MIR method
+
+Lat             degrees              Latitude of the hottest alerted pixel
+
+Lon             degrees              Longitude of the hottest alerted pixel
+
+max Dist        meters               Distance of the alerted pixel furthest from the volcano summit
+
+FIGURE 2
+Example of the Yasur volcano (Vanuatu) graphical abstract. Upper left -Time series of the annual Volcanic Radiative Energy (VRE), calculated with the
+two methods described in the text; Upper right - Cumulative curve of the VRE; Lower Left - Volcanic Radiative Power (VRP) time series plotted on a
+logarithmic scale. The coloured bands are created at the thermal levels defined by Coppola et al., 2016a; Lower Right - Frequency histogram of VRP (log-
+transformed) values recorded in the period 2000­2019. This plot illustrates the statistical distribution of thermal data to graphically display the
+maximum, minimum and modal VRP values for each volcano.
+
+Frontiers in Earth Science                       06                                                  frontiersin.org
+Coppola et al.                                                              10.3389/feart.2023.1240107
+
+FIGURE 3
+Global VRP from 111 subaerial volcanoes between 2000 and 2020. (A) Logarithmic scale; The growth of the Nyiragongo (DRC) lava lake (orange line
+in a) is reflected in an apparent increase in global heat flux between 2002 and 2010. As of 2010, Nyiragongo alone constitutes about 50% of the global
+VRP. (B) linear scale. The main basaltic effusive eruptions at the origin of the VRP peaks are indicated. The grey fields indicate the period with only one
+MODIS sensor.
+
+VRP value fluctuates between 107 and 1011 W, with an average value          4.2 Number of active (hot) volcanoes
+of 1.9 × 109 W (Figure 3A).
+                                                                                In the period sampled by both MODIS sensors (Terra and Aqua
+    The growth of global VRP observed between 2000 and the                  were operative between 2002­2019) the number of volcanoes that
+first half of 2002 is an artefact due to the launch of the second           every year showed some kind of thermal activity fluctuated between
+MODIS sensor (on board Aqua) in May 2002, which doubled the                 60 and 80, with an average of 67.3 ± 6.1 (±1; Figure 4A). These
+number of acquisitions. However, between 2003 and 2010, an                  numbers practically halve when weekly intervals are considered,
+increasing trend is still recognizable on global VRP but, as noted          bringing the number of active (hot) volcanoes each week ranging
+by Wright. (2016), this is caused by the Nyiragongo volcano                 between 25 and 40, with an average of 32.5 ± 4.6 (±1). Of these
+(Democratic Republic of Congo--DRC) alone (orange line in                   16.2 ± 2.7 (50%) are volcanoes with an intermediate composition,
+Figure 3A), and the gradual rising of its lava lake (Burgi et al.,          14.4 ± 2.9 (45%) are volcanoes with a basic composition, and only
+2020). Notably, the VRP released by Nyiragongo between                      1.5 ± 0.7 (5%) are volcanoes with an acid composition (Figure 4A).
+2010 and 2020 was more stable and constituted almost 50% of
+the global VRP of the same period.                                              The persistence of thermal activity at each volcano (Figures
+                                                                            4B,C) has been calculated as the percentage of active weeks (weeks
+    From Figure 3 it becomes evident that the general trend of global       with at least one thermal alert) out of the total duration of the
+VRP is punctuated by several peaks with values rising above 1010 W.         analysed period. Among the 15 most persistent volcanoes (with
+These peaks correspond to the most powerful effusive eruptions of           persistence >70%; Global_Annual_VRE_v1. xls) we recognized: i)
+basaltic volcanoes which emplaced large lava flows in relatively short      6 cases (40%), with basic composition and including lava lakes (Erta
+periods. The most important of these eruptions are labelled in              Ale (Ethiopia), Nyiragongo (DRC), Ambrym (Vanuatu)), open-vent
+Figure 3B where it is possible to note, on a linear scale, the              and lava-flow-forming volcanoes (Kilauea (Hawaii), Etna (Italy),
+major impact that the two largest lava-flow-forming eruptions of            Fuego (Guatemala)); ii) 8 cases (53%) with intermediate
+the last decades had on the global VRP (Bardarbunga (Iceland) in            composition, including lava domes (Semeru (Indonesia),
+2014­2015 and Kilauea (Hawaii) in 2018; Bonny et al., 2018; Patrick         Popocatépetl (Mexico), Shiveluch and Bezymianny (Kamchatka)),
+et al., 2020).
+
+Frontiers in Earth Science                                              07  frontiersin.org
+Coppola et al.                                                          10.3389/feart.2023.1240107
+
+FIGURE 4
+(A) Time series of the number of active (hot) volcanoes broken down by compositional groups (see inset in c). The two black lines refer to the number
+calculated on a weekly or annual basis; (B) Global bubble map showing the persistence of thermal activity at each volcano. Bubble's colour refer to distinct
+compositional groups; bubble' size refer to the persistence (%) of thermal activity; (C) Ranking of volcanoes sorted by the persistence of activity
+(calculated as a percentage of the number of weeks with at least one thermal alert, divided by the total number of weeks).
+
+viscous lava flows (Bagana (Papua New Guinea), Santa Maria              short eruptive events interspersed with long periods of pause,
+(Guatemala)), open-vent (Yasur (Vanuatu)) and degassing plug            typical of closed-vent volcanoes.
+(Lascar (Chile)); and iii) 1 case (7%) with acidic composition
+related to the rhyolitic dome-coulee of Ibu volcano (Indonesia).        4.3 Volcanic radiative power of
+                                                                        compositional groups
+    On the other hand, poorly persistent volcanoes (17 cases with
+persistence <5%; Figure 4C), whose activity was short and sporadic          For each compositional group (excluding the carbonatitic one),
+during the 20 years analysed, seem to be more represented by            we summed the VRPday (Global_Daily_VRP_v1.xls) to obtain three
+volcanoes with basic composition (13 cases - 76%, including             distinct time series which added together, give the global VRP
+Lopevi (Vanuatu), Dalafilla (Ethiopia), Bardarbunga (Iceland),          (Figure 5). This grouping outlines that the global VRP is
+among others), followed by intermediate (3 cases, 18%; Paluweh          dominated by basic volcanoes which radiate overall at a time
+(Indonesia), Augustine (Alaska), and Kelut (Indonesia)) and acids       average rate of about ~1.69 × 109 W (see also next section). As
+(1 case, 6%; Pago (Papua New Guinea)) compositions. These
+volcanoes are characterised by having had few and relatively
+
+Frontiers in Earth Science                                          08  frontiersin.org
+Coppola et al.                                                                 10.3389/feart.2023.1240107
+
+FIGURE 5
+(A) Time series of total VRP (weekly mean) irradiated by each compositional group; Labels refer to the only 5 volcanoes of acidic composition and
+related eruptions; (B) Bubble chart showing the spatial distribution of VRPmax among the target volcanoes; the size of the bubbles refers to the VRP max
+recorded at each volcano; (C) Ranking of volcanoes sorted by VRPmax value detected over the 20 years.
+
+previously described, the time series of the basic volcanoes (red line in          Volcanoes of intermediate compositions (blue line in Figure 5A)
+Figure 5A) is biased by Nyiragongo activity, and is punctuated by              radiate globally with a time-average value of ~0.17 × 109 W, which is
+evident peaks associated with major lava flow-forming basaltic                 about 10% of the basic volcanoes. Furthermore, unlike the latter, the
+eruptions (cf. Figure 3B) which reach maximum VRP values                       total VRP radiated by this group is much more constant and does not
+higher than 1010 W. Taking into consideration the maximum VRP                  show several sudden variations as in the case of basalts. The VRP peaks
+(VRPmax) detected at each volcano (Figure 5C), we note that first              reached by these volcanoes exceed 109 W only in a few volcanoes,
+12 positions in the rank are all occupied by basaltic volcanoes that           namely, Krakatau (Indonesia), Soufriére Hills (Caribbean), Karymsky
+have produced the most intense effusive activity in recent years               (Kamchatka), Popocatèpetl (Mexico), Anathan (United States),
+(Global Volcanism Program., 2023), namely,: Kilauea (Hawaii),                  Kizimen (Kamchatka), Augustine (Alaska), Colima (Mexico),
+Bardarbunga (Iceland), Nyamulagira (DRC), Dalafilla (Ethiopia),                Shiveluch (Kamchatka), and Tungurahua (Equador) (Figure 5B). In
+Etna (Italy), Wolf (Equador), Sierra Negra (Equador), Cerro Azul               all these cases the volcanic activity associated with the highest VRP was
+(Equador), Nabro (Eritrea), Erta Ale (Ethiopia), Tolbachik                     related to the growth/destruction of lava domes or by the emplacement
+(Kamchatka) and Piton de la Fournaise (Réunion Island). It                     of viscous flows accompanied by violent explosive activity (Global
+should also be noted that of the first 50 volcanoes sorted by                  Volcanism Program, 2023). Finally, the group of acidic volcanoes (green
+VRPmax, 37 have a basic composition (~74% of the total; Figure 5C).            line in Figure 5A) radiates at a time-average rate of only ~0.03 × 109 W,
+
+Frontiers in Earth Science                                                 09  frontiersin.org
+Coppola et al.                                                                    10.3389/feart.2023.1240107
+
+FIGURE 6
+(A) Time series of cumulative VRE irradiated by each compositional group; the pie chart (inset) shows the large proportion of energy radiated by
+volcanoes with basic composition (91%); (B) Bubble chart showing the spatial distribution of VREtot among the target volcanoes; the size of the bubbles
+refers to the value of VREtot measured at each volcano; (C) Ranking of volcanoes sorted by total VRE released in 20 years of activity.
+
+or just over 2% of the basic group alone. Only 5 volcanoes belong to this         fumarolic fields, such as Gorely (Kamchatka) (Aiuppa et al., 2012),
+group (Puyehue-Cordón Caulle (Chile), Chaitén (Chile), Pago (Papua                Turrialba (Costa Rica) (Rouwet et al., 2021), Asosan (Japan) (Cigolini
+New Guinea), Mt. St. Helens (United States), and Ibu (Indonesia))                 et al., 2018), Pagan (Mariana Islands) (Global Volcanism Program,
+whose eruptions lasted several months to years (Global Volcanism                  2023), Ijen (Indonesia) (Caudron et al., 2015), Poás (Costa Rica) (Fisher
+Program., 2023) and produced the pattern visible in Figure 5B. The                et al., 2015), White Island (New Zeland) (Caudron et al., 2021).
+thermal activity of these 5 silicic volcanoes has been always sourced by
+the emplacement of viscous flows or lava domes. In the most powerful              4.4 Volcanic radiative energy of
+cases (Chaitén volcano, and Puyehue-Cordón Caulle) the lava extrusion             compositional groups
+was accompanied by intense explosive activity (Major and Lara, 2013;
+Tuffen et al., 2013). On the contrary, for Mt. St. Helens, Ibu, and Pago              The thermal energy radiated in 20 years by all the 111 volcanoes
+volcanoes the lava extrusion occurred in the absence of major explosive           amounts (Figure 6A) to ~2.0 × 1018 J, which corresponds to a time-
+activity (Sherrod et al., 2008; Rothery et al., 2005; Saing and Bani, 2014).      averaged emission equal to ~1.9 × 109 W. Of this ~91% (~1.8 ×
+It is interesting to note that at the bottom of the rank (lowest VRPmax)          1018 J) is produced by volcanoes with basic composition,
+are all volcanoes that have been characterised by high-temperature
+
+Frontiers in Earth Science                                                    10  frontiersin.org
+Coppola et al.                                                              10.3389/feart.2023.1240107
+
+~8% (~1.8 × 1017 J) by volcanoes with an intermediate composition           intermediate and acidic composition, respectively). The different
+and only ~1% (~1.7 × 1016 J) from acid volcanoes.                           crad values imply that for the same erupted volume, the VRE will
+                                                                            gradually become lower as one passes from basic to intermediate and
+    Notably, ~66% of the total radiated energy globally was released        acidic compositions. Therefore, it is plausible that the difference in
+by only 6 basaltic volcanoes hosting lava lakes and/or producing            the global thermal flux of the individual compositional groups does
+voluminous effusive activity through one or multiple eruptions              not reflect a real difference in erupted volumes, but is due to the
+(Global Volcanism Program, 2023; Figures 6B,C). These are                   different crad coefficients of the associated lavas.
+(Figures 6B,C): Kilauea (~4.2 × 1017 J), Nyiragongo (~3.4 ×
+1017 J), Bardarbunga (~1.7 × 1017 J), Nyamuragira (~1.3 × 1017 J),              We assess the robustness/validity of these coefficients on a far
+Etna (~1.2 × 1017 J) and Piton de la Fournaise (~1.1 × 1017 J).             greater number of cases and 20 years of data, by comparing the VRE
+                                                                            radiated between 2000 and 2019 with the volume of lava erupted in
+    Amongst the volcanoes with an intermediate composition,                 the same period and recently published by Galetto et al., 2023
+Shiveluch (~2.9 × 1016 J) and Soufriére Hills (~1.6 × 1016 J), both         (Figure 7). In doing so, for each volcano we have considered only the
+characterised by dome-forming eruptions (Wadge et al., 2014;                mass erupted uniquely in the form of lava flows or lava domes, thus
+Shevchenko et al., 2015), were those producing the most                     excluding the mass associated with pyroclastic deposits and ash (two
+energetic thermal activity (Figure 6C). Chaitén (~6.2 × 1015 J)             eruptive products that do not radiate a significant amount of heat) or
+and Puyehue-Cordón Caulle (~5.8 × 1015 J) were the acid                     from the unclassified origin (see Galetto et al., 2023). The mass of
+volcanoes that emitted the most energy and, and were associated             lava that erupted effusively was then converted into an erupted
+to viscous lava domes and flows coupled with explosive activity             volume (Vol) using an average density equal to  = 2,600 kg/m3
+(Major and Lara, 2013; Tuffen et al., 2013). Also in this case, at the      (Galetto et al., 2023). This selection resulted in a subset of
+end of the rank (Figure 6C) are the less energetic volcanoes that have      74 volcanoes for which estimates of lava erupted over the
+recently shown high-temperature fumarolic activity, often at the            2 decades are available together with MIROVA-derived VRE.
+edge of crater lakes (Santa Ana (El Salvador), White Island (New
+Zeland), Gaua (Vanuatu), Poas (Costa Rica), Pagan (Mariana                      In Figure 7A the data of 74 volcanoes, classified by
+Islands))                                                                   compositional groups, are plotted together showing an overall
+                                                                            moderate correlation between VRE and Vol (R2 = 0.75). The
+5 Discussion--on the relationship                                           points are spread over several orders of magnitude with VRE
+between VRE and erupted lava                                                ranging from 1014 to >1017 J and erupted lava volumes ranging
+volume (Vol)                                                                from 106 to > 109 m3. The three compositional groups are
+                                                                            distinguishable, indicating the general tendency of basaltic
+    The analysis of 20-year-long satellite thermal data reveals that        volcanoes to radiate more thermal energy, although the point
+the global sub-aerial volcanic activity is characterised by a steady-       clouds are partially overlapping. This is not surprising since, in
+state thermal emission (~1.91 GW; cf. Figure 6A), dominated by              addition to the lava composition, the relationship between VRE and
+basic composition volcanoes, and episodically perturbed by large            erupted lava volume can be strongly influenced by other factors such
+effusive basaltic eruptions (e.g., Bardarbunga, 2014 and Kilauea,           as the type of activity, and errors/omissions of both VRE and the
+2018). There is an order-of-magnitude difference in the long-term           volume databases over a 20-year-long time series. The type of
+global VRP measured across the three compositional groups                   activity is decisive in determining the VRE/Vol ratio since Eq.
+(~1.69 GW, ~0.17 GW, and ~0.03 GW for basic, intermediate,                  (3) only holds for effusive eruptions. Heat sources, not associated
+and acid volcanoes, respectively) which however, is not related to          with the lava effusion (e.g., fumaroles, degassing vents, convective
+the number of active volcanoes (cf. Figure 4A). The difference could        lava lakes) can destroy this correlation since the VRE is not related to
+be ascribed to the tendency of basaltic volcanism to be                     any erupted lava volume (which can be zero). Also, the emplacement
+volumetrically dominant over the other groups (White et al.,                of crypto lava domes may alter the correlation since the volumetric
+2006) but also to the different efficiency that the three                   growth of the dome does not produce sufficient heat to be detected
+compositional groups have in radiating thermal energy through               from space. It should be kept in mind that the data refer to
+high-temperature VTFs (Coppola et al., 2013).                               cumulative values over a 20-year time frame during which the
+                                                                            activity of each volcano has changed, eventually passing from a
+    It has been suggested that the rheology of erupted lavas, being         degassing state to an effusive one (and vice versa), several times. This
+linked to the temperature, area, and thickness of active lava bodies,       variability undoubtedly introduces complexity in the relationship
+plays a fundamental role in controlling the VRP (Coppola et al.,            between VRE and erupted volume, especially when long time
+2013). According to the authors, during effusive eruptions, the             windows are considered. Moreover, some short eruptions that
+radiant energy (VRE) and erupted lava volume (Vol) are                      were reported in the Galetto et al., 2023 database, may have been
+proportionally related by:                                                  undetected by MODIS as they occurred in a period of cloud cover.
+                                                                            On the contrary, some eruptions could have been detected by
+                            VRE Vol · crad  (3)                             MODIS, but not reported, or misclassified in the Galetto et al.,
+                                                                            2023 database. All of these factors affect the VRE/Vol ratio of each
+being crad (in J m-3) an empirical parameter reflecting the                 volcano producing the point dispersion visible in Figure 7A.
+appropriate spreading and cooling processes of the erupted lavas.
+                                                                                The correlation however strongly improves when selected
+Based on the analysis of 44 eruptions Coppola and co-authors                volcanoes of each compositional group are considered separately
+                                                                            (Figures 7B­D). For example, for a subgroup of 19 basaltic cases (red
+(2013) estimated that basic lavas have the highest observed crad            squares in Figure 7B), which include lava-flow-forming volcanoes
+(1­4 × 108 J m-3), while intermediate and acidic lavas show gradually
+lower coefficients (1.5­9 × 107 J m-3 and 2 to 10 × 106 J m-3 for
+
+Frontiers in Earth Science                                              11  frontiersin.org
+Coppola et al.                                                              10.3389/feart.2023.1240107
+
+FIGURE 7
+
+VRE vs. Vol relationships for all volcanoes together (A), and for selected volcanoes of each compositional group: (B) basic, (C) intermediate (D) acid.
+For basaltic lava-flow-forming volcanoes (red squares in b) the VRE is directly proportional to the volume erupted according to a conversion coefficient
+(crad =1.2 x 108 J m-3) typical of basic composition. Conversely, lava lakes such as Nyiragongo, Erta Ale, and Ambrym (black triangles), deviate from this
+relationship, showing an excess of VRE (upward red arrows) compared to the erupted volume. A linear relationship between VRE and Vol is also
+observed at several volcanoes of intermediate composition (crad = 2.8 x 107 J m-3) although some open-vent andesitic domes (Nevado del Ruiz
+(Colombia), Nevados de Chillàn (Chile), Sabancaya (Peru), Popocatepetl (Mexico)) clearly show an excess of VRE compared to the erupted volume
+(upward blue arrows). Acid volcanoes are characterised by the lowest VRE/Vol ratio (crad =7.5 × 106 J m-3), except for Ibu, whose deviation from the linear
+trend could be related to an excess of VRE, or an underestimation of the erupted lava volume. VRE data are from file "Global_Annual_VRE_v1. xls" (see
+data repository). Volumes data are from Galetto et al., 2023 (see text for explanation). The error bars in (A) are indicative of uncertainty in the estimates of
+
+VRE and Vol equal to +- 50%.
+
+encompassing 3 orders of magnitude lava volumes (such as Kilauea,           deviate above the straight line of the lava-flow-forming eruption
+Bardarbunga, Etna, Piton de la Fournaise, Kliuchevskoi                      (note that Nyiragongo, Erta Ale and Ambrym produced lateral lava
+(Kamchatka), Sierra Negra, Wolf, Fogo (Cape Verde), Pavlov                  flows that drained their respective lava lakes). This "excess"
+(Alaska), among others) the relationship works well with a best-            radiation (upward red arrows in Figure 7B) is likely attributed to
+fit coefficient crad equal to 1.26 × 108 J m-3 (R2 = 0.97). This value      a large amount of heat radiated by the convective lava lake at the
+falls perfectly within the range of values found by Coppola et al.,         expense of a modest erupted volume (Harris et al., 1999; Palma et al.,
+2013, suggesting that the VRP of these volcanoes (virtually all the         2011; Burgi et al., 2014; Campion and Coppola, 2023). It is therefore
+volcanoes that caused major VRP peaks on a global scale; cf.                clear that the exposure of a convective magma column, as occurs in
+Figure 3B) is effectively controlled by their lava discharge rate.          lava lakes (Kazahaya et al., 1994; Stevenson and Blake, 1998)
+On the other hand, basic volcanoes that were characterised by lava          provides the additional heat source that causes an increase in
+lake activity over most of the two analysed decades (such as                VRE/Vol ratio of these representative open-vent volcanoes
+Nyiragongo, Erta Ale, Ambrym (Vanuatu); black triangles in                  (Vergniolle and Mètrich, 2022).
+Figure 7B) show an excess of thermal energy (VRE) compared to
+the volume that has been erupted (Vol), which is why their points               On the other hand, as previously stated, Figure 7 provides a
+                                                                            "snapshot" of a twenty-year-long eruptive history of each volcano,
+
+Frontiers in Earth Science                                              12  frontiersin.org
+Coppola et al.                                                                     10.3389/feart.2023.1240107
+
+which may have been complex and characterised by switching between                     Finally, four of the five volcanoes with acidic composition
+different types of eruptive regime (for example, both effusive and open-           (Puyehue-Cordón Caulle, Chaitén, Pago, and Mt. St. Helens),
+vent activity). The case of Stromboli is emblematic in this sense as its           show a good correlation between VRE and Vol (Figure 7D), with
+VRE/Vol ratio falls on the linear relationship of lava-flow-forming                a coefficient equal to crad =7.2 × 106 J m-3 (R2 = 0.93) in agreement
+basaltic volcanoes (thus showing no signs of excess radiation;                     with the previous works on silicic flows/domes (Coppola et al.,
+Figure 7B), although this volcano is considered an archetype of open-              2013). The good correlation is quite surprising since their eruptions
+vent activity. From a thermal point of view, this datum is indicative of the       have been characterised by very different emplacement styles (Major
+fact that between 2000 and 2019 Stromboli's VRE was largely produced               and Lara, 2013; Tuffen et al., 2013). Nevertheless, our results suggest
+by the occurrence of 4 major lava flows (Laiolo et al., 2022), while only a        that the energy radiated by these events is somehow proportional to
+small fraction of thermal energy was sourced by the characteristic open-           the volume of lava erupted and there is no evidence of excess
+vent strombolian activity. Similarly, Kilauea plots on the line of lava-flow-      radiation for these eruptions. On the contrary, the Ibu volcano
+forming volcanoes (Figure 7B), although a lava lake in Halemauma'u                 shows a clear deviation from the linear trend (Figure 7D) that could
+crater has been fed for over 10 years (Patrick et al., 2021). In this case,        result in both a phenomenon of excess radiation (as in the case of the
+most of the heat released by Kilauea was produced by the voluminous and            open-vent andesitic volcanoes described above) but also from an
+continuous effusive activity of the Pu'u `' (Poland et al., 2014) to which         underestimation of the erupted volume. In fact, is important to stress
+is added more recently the lateral eruption along the Lower East Rift Zone         that some deviations from the linear trend of each group may also be
+(Patrick et al., 2020).                                                            due to errors in the estimation of VRE and/or Vol. For example,
+                                                                                   unreported eruptions throughout the analysed period, or volume
+    Similar considerations emerge for volcanoes with an intermediate               underestimation in the Galetto et al. (2023) database, produce an
+composition (Figure 7C). In fact, also in this compositional group we              apparent high VRE/Vol ratio which can be wrongly interpreted as
+recognize a subgroup of volcanoes whose relationship between VRE                   excess radiation. On the contrary, overestimations of the volume, or
+and Vol is linear and represented by the best-fit coefficient crad =2.6 ×          underestimations of the VRE (for example, due to the non-detection
+107 J m-3 (R2 = 0.97), which is appropriate for the effusion of                    of paroxysmal phases of an eruption) can cause points that are below
+intermediate lavas, more viscous than the basaltic ones (cf. Coppola               the curves shown in Figures 7B­D. Further studies to precisely
+et al., 2013). Volcanoes such as Shiveluch, Bagana, Kizimen, Colima,               determine the volumes of erupted lava and the gas flux of Ibu
+Bezymianny, Augustin, and Galeras belong to this subgroup (among                   volcano will help shed light on this enigmatic case.
+others; Figure 7C) and are thus characterised by a VRE that is
+proportional to the volume of erupted lava. Such a linear                              The cases presented above are therefore to be taken as general
+relationship suggests that at these volcanoes the heat flux recorded               illustrations of the global relationship between VRE and Vol, but a more
+in 20 years was essentially provided by the emplacement of the                     correct evaluation of crad should be made on a case-by-case basis, trying to
+respective andesitic lava bodies, without any substantial contribution             minimize any errors in the estimation of thermal energies and the erupted
+from other heat sources. This cannot be said for other open-vent, lava-            volumes (Coppola et al., 2013; Coppola et al., 2020).
+dome-forming volcanoes such as Popocatépetl, Sabancaya, Nevados del
+Ruiz, and Nevados del Chillán, which are positioned above the                      6 Conclusion
+compositional-dependent relationship between VRE and Vol (black
+triangles in Figure 7C). This suggests an excess of VRE compared to the                Together with the NRT processing, the availability of historical
+volume of lava extruded by these andesitic volcanoes. From an analysis             MODIS data through NASA's LAADS DAAC archive, enabled the
+of the volumes erupted explosively from these volcanoes (Galetto et al.,           reconstruction of a 20-year thermal database for 111 volcanoes
+2023) we can exclude that this imbalance (excess of heat) is sourced by            currently monitored by MIROVA (Coppola et al., 2020). The global
+the ash or pyroclastic density current deposits (whose volume is not               analysis reveals that the heat flux over 20 years of data is essentially
+considered here). On the other hand, recent studies suggested that these           stationary (with a long-term rate of about ~1.9 GW) and sourced by the
+lava domes are characterised by a large excess degassing (Shinohara,               annual contribution of 60­80 volcanoes, 45% of which are of basic
+2008) that may enhance the transport of heat at the surface of these               composition, 50% are of intermediate composition, and only 5% are of
+volcanic bodies (Coppola et al., 2022a; Valade et al., 2023). Shallow              acid composition. However, global emission is dominated by volcanoes
+magma convection and fluxing of deep-derived exsolved volatiles                    with a basic composition (91%) while only 8% is produced by volcanoes
+through the conduit may effectively provide additional heat at the                 with an intermediate composition. The remaining 1% was produced by
+surface of the dome (Shinohara, 2008; Edmonds et al., 2022), a process             just 5 acidic volcanoes that erupted from 2000 to 2019. These large
+which is likely at the origin of the excess radiation recorded at these            differences are likely due to the different efficiency of basalts, andesites,
+volcanoes (upward arrows in Figure 7C). Therefore, it seems that also              and rhyolites to radiate thermal energy, as previously suggested by
+for some open-vent andesitic volcanoes, the VRE measured at the                    Coppola et al. (2013). A preliminary analysis of the relationships
+surface is not simply sourced by the emplacement of a viscous lava                 between radiant energy (VRE) and erupted lava volume (Vol; from
+dome, but can be additionally supplied by an underlying convective                 Galetto et al., 2023) revealed that for many effusive volcanoes of each
+magma column and/or by a gas flow through a permeable conduit                      compositional group, there is an excellent correlation (R2 > 0.92; cf.
+(Shinohara, 2008; Edmonds et al., 2022). The particular stationary long-           Figure 7) valid over several orders of magnitude. However, this
+term VRP trend shown by intermediate composition volcanoes                         relationship is not valid for some open-vent volcanoes that show a
+(Figure 5A) could result from this phenomenon by which the                         clear excess of heat compared to that radiated by the erupted magma.
+effective amount of VRE associated with open-vent andesitic                        Volcanoes that have shown persistent lava lake activity, or lava domes,
+volcanoes is somehow "buffered" by a persistent heat emission                      which are characterised by large excess degassing, belong to this group,
+associated with significant outgassing.
+
+Frontiers in Earth Science                                                     13  frontiersin.org
+Coppola et al.                                                                                        10.3389/feart.2023.1240107
+
+for which the additional heat source is likely associated with a convective                           Civile (DPC) as part of the DEVnet Program (2014­2016) that
+magma column or gas flow through a permeable conduit.                                                 includes a collaborative project between the Earth Sciences
+                                                                                                      departments of the University of Florence and the University of
+    Further deeper analyses can be conducted on a case-by-case                                        Turin. This research was partially supported by the Italian Ministry
+basis from the comparison with geophysical and geochemical data                                       for Universities and Research (MIUR).
+recorded on every single volcano (e.g., seismicity, outgassing,
+deformation), or globally thanks to the integration of our                                            Acknowledgments
+database with other emerging global databases, such as the
+WOVOdat global volcano unrest database (Costa et al., 2019),                                              We thank the 4 reviewers who critically revised the
+the subaerial erupted masses database (Galetto et al., 2023) or the                                   manuscript and allowed us to improve the presentation of the
+Sulfur Dioxide (SO2) Catalogue (Fioletov et al., 2023).                                               work through their constructive criticism. We acknowledge the
+                                                                                                      LANCE-MODIS system (https://lance-modis.eosdis.nasa.gov/)
+    By allowing a direct comparison between the current thermal                                       for providing Level 1B MODIS data in near-real time. We
+emission of a volcano with its baseline, this 20-year-long database is                                thank many collaborators and students of the University of
+also a valuable tool for volcano hazard evaluations and to establish whether                          Turin who have contributed to the development and
+the volcanic system is deviating from its long-term ordinary activity.                                maintenance of the MIROVA system.
+
+    In the coming years, we plan to implement this first version of
+the database (v.1) by gradually updating the VRP time series at each
+volcano, but also by adding new sensors (e.g., VIIRS), and new
+targets (e.g., low-temperature fumarolic fields).
+
+Data availability statement                                                                           Conflict of interest
+
+    Publicly available datasets were analyzed in this study. This data                                    The authors declare that the research was conducted in the
+can be found here: https://osf.io/zm62w/.                                                             absence of any commercial or financial relationships that could be
+                                                                                                      construed as a potential conflict of interest.
+Author contributions
+                                                                                                          The Reviewer CH-B declared that, in the past, they were the Co-
+    DCo conceived and wrote the work. DCa, ML, and DCo built                                          Supervisor for Author SA's Master by Research, as well as the
+and analysed the database; DCo, ML, SA, AC, and FM have                                               previous course director for the undergraduate degree of Author SA.
+contributed to the development and maintenance of the
+MIROVA system. All authors contributed to the article and                                                 The handling editor NV declared a past co-authorship with the
+approved the submitted version.                                                                       author DC.
+
+Funding                                                                                               Publisher's note
+
+    This research has benefited from funding provided by the Italian                                      All claims expressed in this article are solely those of the authors
+Presidenza del Consiglio dei Ministri, Dipartimento della Protezione                                  and do not necessarily represent those of their affiliated
+                                                                                                      organizations, or those of the publisher, the editors and the
+                                                                                                      reviewers. Any product that may be evaluated in this article, or
+                                                                                                      claim that may be made by its manufacturer, is not guaranteed or
+                                                                                                      endorsed by the publisher.
+
+References
+
+  Aiuppa, A., Giudice, G., Liuzzo, M., Tamburello, G., Allard, P., Calabrese, S., et al.                Caudron, C., Syahbana, D. K., Lecocq, T., Van Hinsberg, V., McCausland, W.,
+(2012). First volatile inventory for Gorely volcano, Kamchatka. Geophys. Res. Lett. 39,               Triantafyllou, A., et al. (2015). Kawah ijen volcanic activity: A review. Bull. Volcanol. 77,
+L06307. doi:10.1029/2012GL051177                                                                      16. doi:10.1007/s00445-014-0885-8
+
+  Bonny, E., Thordarson, T., Wright, R., Höskuldsson, A., and Jónsdóttir, I. (2018). The                Cigolini, C., Coppola, D., Yokoo, A., and Laiolo, M. (2018). The thermal signature of
+volume of lava erupted during the 2014 to 2015 eruption at holuhraun, Iceland: A                      Aso Volcano during unrest episodes detected from space and ground-based
+comparison between satellite- and ground-based measurements. J. Geophys. Res. Solid                   measurements. Earth Planets Space 70, 67. doi:10.1186/s40623-018-0831-7
+Earth 123 (7), 5412­5426. doi:10.1029/2017JB015008
+                                                                                                        Coppola, D., Barsotti, S., Cigolini, C., Laiolo, M., Pfeffer, M., and Ripepe, M. (2019).
+  Burgi, P. Y., Boudoire, G., Rufino, F., Karume, K., and Tedesco, D. (2020). Recent activity of      Monitoring the time-averaged discharge rates, volumes and emplacement style of large
+Nyiragongo (democratic republic of Congo): new insights from field observations and                   lava flows by using MIROVA system: the case of the 2014­2015 eruption at holuhraun
+numerical modeling. Geophys. Res. Lett. 47 (17), e2020GL088484. doi:10.1029/2020GL088484              (Iceland). Ann. Geophys. 61, 52. doi:10.4401/ag-7749
+
+  Burgi, P-Y., Darrah, T. H., Tedesco, D., and Eymold, W. K. (2014). Dynamics of the                    Coppola, D., and Cigolini, C. (2013). Thermal regimes and effusive trends at
+mount Nyiragongo lava lake. J. Geophys Res. Solid Earth 119, 4106­4122. doi:10.1002/                  Nyamuragira volcano (DRC) from MODIS infrared data. Bull. Volcanol. 75, 744.
+2013JB010895                                                                                          doi:10.1007/s00445-013-0744-z
+
+  Campion, R., and Coppola, D. (2023). Classification of lava lakes based on their heat                 Coppola, D., James, M. R., Staudacher, T., and Cigolini, C. (2010). A comparison of
+and SO2 emission: implications for their formation and feeding processes. Front. Earth                field- and satellite-derived thermal flux at Piton de la Fournaise: implications for the
+Sci. 11, 1040199. doi:10.3389/feart.2023.1040199                                                      calculation of lava discharge rate. Bull. Volcanol. 72 (3), 341­356. doi:10.1007/s00445-
+                                                                                                      009-0320-8
+  Caudron, C., Girona, T., Jolly, A., Christenson, B., Kane Savage, M., Carniel, R., et al.
+(2021). A quest for unrest in multiparameter observations at Whakaari/White Island                      Coppola, D., Laiolo, M., Campus, A., and Massimetti, F. (2022b). Thermal unrest of a
+volcano, New Zealand 2007­2018. Earth Planets Space 73, 195. doi:10.1186/s40623-021-                  fumarolic field tracked using VIIRS imaging bands: the case of La fossa crater (vulcano
+01506-0                                                                                               Island, Italy). Front. Earth Sci. 10, 964372. doi:10.3389/feart.2022.964372
+
+Frontiers in Earth Science                                                                        14  frontiersin.org
+Coppola et al.                                                                                    10.3389/feart.2023.1240107
+
+  Coppola, D., Laiolo, M., Cigolini, C., Donne, D. D., and Ripepe, M. (2016a).                      Kazahaya, G., Shinohara, H., and Saito, G. (1994). Excessive degassing of izu-oshima
+"Enhanced volcanic hot-spot detection using MODIS IR data: results from the                       volcano: magma convection in a conduit. Bull. Volcanol. 56, 207­216. doi:10.1007/
+MIROVA system," in Detecting, modelling and responding to effusive eruptions.                     BF00279605
+Editors A. J. L. Harris, T. De Groeve, F. Garel, and S. A. Carn (London: Geological
+Society), 181­205. doi:10.1144/sp426.5                                                              Laiolo, M., Coppola, D., Barahona, F., Benítez, J. E., Cigolini, C., Escobar, D., et al.
+                                                                                                  (2017). Evidences of volcanic unrest on high-temperature fumaroles by satellite thermal
+  Coppola, D., Laiolo, M., Cigolini, C., Massimetti, F., Delle Donne, D., Ripepe, M., et al.      monitoring: the case of Santa Ana volcano, El Salvador. J. Volcanol. Geotherm. Res. 340,
+(2020). Thermal remote sensing for global volcano monitoring: experiences from the                170­179. doi:10.1016/j.jvolgeores.2017.04.013
+MIROVA system. Front. Earth Sci. 7, 362. doi:10.3389/feart.2019.00362
+                                                                                                    Laiolo, M., Delle Donne, D., Coppola, D., Bitetto, M., Cigolini, C., Della Schiava, M.,
+  Coppola, D., Laiolo, M., Lara, L. E., Cigolini, C., and Orozco, G. (2016b). The                 et al. (2022). Shallow magma dynamics at open-vent volcanoes tracked by coupled
+2008 "silent" eruption of Nevados de Chillán (Chile) detected from space: effusive rates          thermal and SO2 observations. Earth Planet. Sci. Lett. 594, 117726. doi:10.1016/j.epsl.
+and trends from the MIROVA system. J. Volcanol. Geotherm. Res. 327, 322­329. doi:10.              2022.117726
+1016/j.jvolgeores.2016.08.016
+                                                                                                    Laiolo, M., Ripepe, M., Cigolini, C., Coppola, D., Della Schiava, M., Genco, R., et al.
+  Coppola, D., Laiolo, M., Piscopo, D., and Cigolini, C. (2013). Rheological control on           (2019). Space- and ground-based geophysical data tracking of magma migration in
+the radiant density of active lava flows and domes. J. Volcanol. Geotherm. Res. 249,              shallow feeding system of mount Etna volcano. Remote Sens. 11 (10), 1182. doi:10.3390/
+39­48. doi:10.1016/j.jvolgeores.2012.09.005                                                       rs11101182
+
+  Coppola, D., Valade, S., MasiasLaiolo, P. M., Massimetti, F., and Campus, A. (2022a).             Major, J. J., and Lara, L. E. (2013). Overview of Chaitén volcano, Chile, and its 2008-
+Shallow magma convection evidenced by excess degassing and thermal radiation during               2009 eruption. Andean Geol. 40 (2), 196­215. doi:10.5027/andgeoV40n2-a01
+the dome-forming Sabancaya eruption (2012­2020). Bull. Volcanol. 84, 16. doi:10.1007/
+s00445-022-01523-1                                                                                  Naismith, A. K., Matthew Watson, I., Escobar-Wolf, R., Chigna, G., Thomas, H.,
+                                                                                                  Coppola, D., et al. (2019). Eruption frequency patterns through time for the current
+  Costa, F., Widiwijayanti, C., Win, N. T. Z., Fajiculay, E., Espinosa-Ortega, T., and            (1999­2018) activity cycle at volcán de Fuego derived from remote sensing data:
+Newhall, C. G. (2019). WOVOdat ­ The global volcano unrest database aimed at                      evidence for an accelerating cycle of explosive paroxysms and potential implications
+improving eruption forecasts. Disaster Prev. Manag. 28 (6), 738­751. doi:10.1108/                 of eruptive activity. J. Volcanol. Geotherm. Res. 371, 206­219. doi:10.1016/j.jvolgeores.
+DPM-09-2019-0301                                                                                  2019.01.001
+
+  Crisp, J. A. (1984). Rates of magma emplacement and volcanic output. J. Volcanol.                 Oppenheimer, C., Francis, P. W., Rothery, D. A., Carlton, R. W., and Glaze, L. S.
+Geotherm. Res. 20 (3­4), 177­211. doi:10.1016/0377-0273(84)90039-8                                (1993). Infrared Image Analysis of volcanic thermal features: Láscar volcano, Chile,
+                                                                                                  1984-1992. J. Geophys. Res. Solid Earth 98 (B3), 4269­4286. doi:10.1029/92jb02134
+  Davies, D. K., Ilavajhala, S., Wong, M. M., and Justice, C. O. (2009). Fire information
+for resource management system: archiving and distributing modis active fire data.                  Palma, J. L., Blake, S., and Calder, E. S. (2011). Constraints on the rates of degassing
+IEEE Trans. Geosci. Remote Sens. 47, 72­79. doi:10.1109/tgrs.2008.2002076                         and convection in basaltic open-vent volcanoes. Geochem. Geophys. Geosyst. 12,
+                                                                                                  Q11006. doi:10.1029/2011GC003715
+  Dragoni, M. (1989). A dynamical model of lava flows cooling by radiation. Bull.
+Volcanol. 51, 88­95. doi:10.1007/BF01081978                                                         Patrick, M., Orr, T., Swanson, D., Houghton, B., Wooten, K., Desmither, L.,
+                                                                                                  et al. (2021). "Klauea's 2008­2018 summit lava lake--chronology and eruption
+  Edmonds, M., Liu, E., and Cashman, K. (2022). Open-vent volcanoes fuelled by                    insights," in The 2008­2018 summit lava lake at Klauea Volcano, Hawai'i.
+depth-integrated magma degassing. Bull. Volcanol. 84, 28. doi:10.1007/s00445-021-                 Editors M. Patrick, T. Orr, D. Swanson, and B. Houghton (U.S. Geological
+01522-8                                                                                           Survey). doi:10.3133/pp1867A
+
+  Elder, J. (1976). The bowels of the Earth. Oxford: Oxford University Press.                       Patrick, M. R., Houghton, B. F., Anderson, K. R., Poland, M. P., Montgomery-Brown,
+                                                                                                  E., Johanson, I., et al. (2020). The cascading origin of the 2018 Klauea eruption and
+  Fioletov, V., McLinden, C. A., Griffin, D., Abboud, I., Krotkov, N., Leonard, P. J. T.,         implications for future forecasting. Nat. Commun. 11, 5646. doi:10.1038/s41467-020-
+et al. (2023). Version 2 of the global catalogue of large anthropogenic and volcanic              19190-1
+SO2 sources and emissions derived from satellite measurements. Earth Syst. Sci. Data 15
+(1), 75­93. doi:10.5194/essd-15-75-2023                                                             Pinkerton, H., James, M., and Jones, A. (2002). Surface temperature measurements of
+                                                                                                  active lava flows on Kilauea volcano, Hawaii. Hawaii. J. Volcanol. Geotherm. Res. 113
+  Fischer, T., Ramírez, C., Mora-Amador, R., Hilton, D., Barnes, J., Sharp, Z., et al.            (1-2), 159­176. doi:10.1016/S0377-0273(01)00257-8
+(2015). Temporal variations in fumarole gas chemistry at Poás volcano, Costa Rica.
+J. Volcanol. Geotherm. Res. 294, 56­70. doi:10.1016/j.jvolgeores.2015.02.002                        Poland, M. P., Miklius, A., and Montgomery-Brown, E. K. (2014). "Magma supply,
+                                                                                                  storage, and transport at shield-stage Hawaiian volcanoes," in Characteristics of
+  Francis, P. W. (1989). Remote sensing of volcanoes. Adv. Space Res. 9 (1), 89­92.               Hawaiian volcanoes. Editors M. P. Poland, T. J. Takahashi, and C. M. Landowski
+doi:10.1016/0273-1177(89)90471-7                                                                  (U.S. Geological Survey), 179­234. doi:10.3133/pp18015
+
+  Galetto, F., Pritchard, M. E., Hornby, A. J., Gazel, E., and Mahowald, N. M. (2023).              Pyle, D. M. (1995). Mass and energy budgets of explosive volcanic eruptions. Geophys.
+Spatial and temporal quantification of subaerial volcanism from 1980 to 2019: solid               Res. Lett. 22, 563­566. doi:10.1029/95GL00052
+products, masses, and average eruptive rates. Rev. Geophys. 61, e2022RG000783. doi:10.
+1029/2022RG000783                                                                                   Pyle, D. M. (2015). "Sizes of volcanic eruptions," in Encyclopedia of volcanoes. Editors
+                                                                                                  H. Sigurdsson, B. F. Houghton, S. R. McNutt, H. Rymer, and J. Stix (NewYork, NY:
+  Global Volcanism Program (2023). Volcanoes of the world (v. 5.0.3; 1 mar 2023).                 Academic Press), 257­264. doi:10.1016/B978-0-12-385938-9.00013-4
+Distributed by smithsonian institution. Washington, DC: Smithsonian Institution.
+doi:10.5479/si.GVP.VOTW5-2022.5.0                                                                   Ramsey, M. S., and Flynn, I. (2020). The spatial and spectral resolution of aster
+                                                                                                  infrared image data: A paradigm shift in volcanological remote sensing. Remote Sens. 12
+  Harris, A. J. L., and Baloga, S. M. (2009). Lava discharge rates from satellite-measured        (4), 738. doi:10.3390/rs12040738
+heat flux. Geophys. Res. Lett. 36 (19), L19302. doi:10.1029/2009gl039717
+                                                                                                    Ramsey, M. S., and Harris, A. J. L. (2013). Volcanology 2020: how will thermal remote
+  Harris, A. J. L., Flynn, L. P., Rothery, D. A., Oppenheimer, C., and Sherman, S. B.             sensing of volcanic surface activity evolve over the next decade? J. Volcanol. Geotherm.
+(1999). Mass flux measurements at active lava lakes: implications for magma recycling.            Res. 249, 217­233. doi:10.1016/j.jvolgeores.2012.05.011
+J. Geophys. Res. 104, 7117­7136. doi:10.1029/98JB02731
+                                                                                                    Ramsey, M. S., Harris, A. J. L., and Watson, I. M. (2021). Volcanology 2030: will an
+  Harris, A. J. L., and Rowland, S. K. (2009). "Effusion rate controls on lava flow length        orbital volcano observatory finally become a reality? Bull. Volcanol. 84 (1), 6. doi:10.
+and the role of heat loss: A review," in Studies in Volcanology: The legacy of george             1007/s00445-021-01501-z
+walker. Editors T. Thordarson, S. Self, G. Larsen, S. K. Rowland, and A. Hoskuldsson
+(London: Special Publications of IAVCEI. Geological Society), 33­51. doi:10.1144/                   Rothery, D., Coppola, D., and Saunders, C. (2005). Analysis of volcanic activity
+IAVCEl002.3                                                                                       patterns using MODIS thermal alerts. Bull. Volcanol. 67, 539­556. doi:10.1007/s00445-
+                                                                                                  004-0393-3
+  Harris, A. J. L. (2013). Thermal remote sensing of active volcanoes. Cambridge:
+Cambridge University Press. doi:10.1017/cbo9781139029346                                            Rouwet, D., Mora-Amador, R., Ramírez, C., González, G., Baldoni, E., Pecoraino, G.,
+                                                                                                  et al. (2021). Response of a hydrothermal system to escalating phreatic unrest: the case
+  Heffington, W. M., Kline, J. M., and Rottman, J. W. (1977). Volcanoes as a source of            of Turrialba and irazú in Costa Rica (2007­2012). Earth Planets Space 73, 142. doi:10.
+geothermal energy. Energy 2 (4), 457­459. doi:10.1016/0360-5442(77)90008-1                        1186/s40623-021-01471-8
+
+  Henley, R. W., and Hughes, G. O. (2016). SO 2 flux and the thermal power of volcanic              Sahetapy-Engel, S. T., and Harris, A. J. L. (2009). Thermal structure and heat loss at
+eruptions. J. Volcanol. Geotherm. Res. 324, 190­199. doi:10.1016/j.jvolgeores.2016.               the summit crater of an active lava dome. Bull. Volcanol. 71, 15­28. doi:10.1007/s00445-
+04.024                                                                                            008-0204-3
+
+  Hicks, P. D., Matthews, A. J., and Cooker, M. J. (2009). Thermal structure of a gas-              Saing, U. B., and Bani, P. (2014). Ibu volcano, a center of spectacular dacite dome
+permeable lava dome and timescale separation in its response to perturbation.                     growth and long-term continuous eruptive discharges. Journal of Volcanology and
+J. Geophys. Res. Solid Earth 114 (B7), B07201. doi:10.1029/2008JB006198                           Geothermal Research 282, 36­42. doi:10.1016/j.jvolgeores.2014.06.011
+
+  Justice, C. O., Vermote, E., Townshend, J. R. G., Defries, R., Roy, D. P., Hall, D. K.,           Sherrod, D. R., Scott, W. E., and Stauffer, P. H. (2008). A volcano rekindled; the
+et al. (1998). The moderate resolution imaging spectroradiometer (MODIS): land                    renewed eruption of Mount St. Helens, 2004-2006. U.S. Geological Survey. doi:10.3133/
+remote sensing for global change research. IEEE Trans. Geosc. Rem. Sens. 36 (4),                  pp1750
+1228­1249. doi:10.1109/36.701075
+
+Frontiers in Earth Science                                                                    15  frontiersin.org
+Coppola et al.                                                                                     10.3389/feart.2023.1240107
+
+  Shevchenko, A., Dvigalo, V., and Svirid, I. (2015). Airborne photogrammetry and                    Wilson, L. (1980). Relationships between pressure, volatile content and ejecta velocity
+geomorphological analysis of the 2001­2012 exogenous dome growth at Molodoy                        in three types of volcanic explosion. J. Volcanol. Geotherm. Res. 8, 297­313. doi:10.1016/
+Shiveluch Volcano, Kamchatka. J. Volcanol. Geotherm. Res. 304, 94­107. doi:10.1016/j.              0377-0273(80)90110-9
+jvolgeores.2015.08.013
+                                                                                                     Wilson, L., Sparks, R. S. J., Huang, T. C., and Watkins, N. D. (1978). The control of
+  Shevchenko, A. V., Dvigalo, V. N., Zorn, E. U., Vassileva, M. S., Massimetti, F., Walter,        volcanic column heights by eruption energetics and dynamics. J. Geophys. Res. Solid
+T. R., et al. (2021). Constructive and destructive processes during the                            Earth 83, 1829­1836. doi:10.1029/JB083iB04p01829
+2018­2019 eruption episode at Shiveluch volcano, kamchatka, studied from satellite
+and aerial data. Front. Earth Sci. 9. doi:10.3389/feart.2021.680051                                  Wooster, M. J., Zhukov, B., and Oertel, D. (2003). Fire radiative energy for
+                                                                                                   quantitative study of biomass burning: derivation from the BIRD experimental
+  Shinohara, H. (2008). Excess degassing from volcanoes and its role on eruptive and               satellite and comparison to MODIS fire products. Remote Sens. Environ. 86, 83­107.
+intrusive activity. Rev. Geophys. 46 (4), 244. doi:10.1029/2007RG000244                            doi:10.1016/S0034-4257(03)00070-1
+
+  Stevenson, S. (1993). Physical models of fumarolic flow. J. Volcanol. Geotherm. Res. 57            Wright, R., Blackett, M., and Hill-Butler, C. (2015). Some observations regarding the
+(3­4), 139­156. doi:10.1016/0377-0273(93)90009-G                                                   thermal flux from Earth's erupting volcanoes for the period of 2000 to 2014. Geophys
+                                                                                                   Res. Lett. 42, 282­289. doi:10.1002/2014GL061997
+  Stevenson, D., and Blake, S. (1998). Modelling the dynamics and thermodynamics of
+volcanic degassing. Bull. Volcanol. 60, 307­317. doi:10.1007/s004450050234                           Wright, R., Flynn, L. P., Garbeil, H., Harris, A. J. L., and Pilger, E. (2002). Automated
+                                                                                                   volcanic eruption detection using MODIS. Remote Sens. Environ. 82, 135­155. doi:10.
+  Tuffen, H., James, M., Castro, J., and Schipper, I. (2013). Exceptional mobility of an           1016/S0034-4257(02)00030-5
+advancing rhyolitic obsidian flow at Cordón Caulle volcano in Chile. Nat. Commun. 4,
+2709. doi:10.1038/ncomms3709                                                                         Wright, R., Flynn, L. P., Garbeil, H., Harris, A. J. L., and Pilger, E. (2004). Modvolc:
+                                                                                                   near-real-time thermal monitoring of global volcanism. J. Volcanol. Geotherm. Res. 135,
+  Valade, S., Coppola, D., Campion, R., Ley, A., Boulesteix, T., Taquet, N., et al. (2023).        29­49. doi:10.1016/j.jvolgeores.2003.12.008
+Lava dome cycles reveal rise and fall of magma column at Popocatépetl volcano. Nat.
+Commun. 14, 3254. doi:10.1038/s41467-023-38386-9                                                     Wright, R., and Flynn, L. P. (2004). Space-based estimate of the volcanic heat
+                                                                                                   flux into the atmosphere during 2001 and 2002. Geology 32, 189­192. doi:10.
+  Vergniolle, S., and Métrich, N. (2022). An interpretative view of open-vent volcanoes.           1130/G20239.1
+Bull. Volcanol. 84, 83. doi:10.1007/s00445-022-01581-5
+                                                                                                     Wright, R. (2016). "Modvolc: 14 years of autonomous observations of effusive
+  Verhoogen, J. (1980). Energetics of the Earth national research council. Washington,             volcanism from space," in Detecting, modelling and responding to effusive eruptions.
+DC: The National Academies Press. doi:10.17226/9579                                                Editors A. J. L. Harris, T. De Groeve, F. Garel, and S. A. Carn (London: Geological
+                                                                                                   Society, London, Sp. Pub.), 23­54. doi:10.1144/SP426.12
+  Wadge, G., Voight, B., Sparks, R. S. J., Cole, P. D., Loughlin, S. C., and Robertson, R. E.
+A. (2014). "An overview of the eruption of soufriere Hills volcano, Montserrat from                  Wright, R., and Pilger, E. (2008). Radiant flux from Earth's subaerially
+2000 to 2010," in The eruption of soufriere Hills volcano, Montserrat from 2000 to 2010.           erupting volcanoes. Int. J. Remote Sens. 29, 6443­6466. doi:10.1080/
+Editors G. Wadge and R. E. A. Robertson (London: Geological Society of London), 1­40.              01431160802168210
+
+  White, S. M., Crisp, J. A., and Spera, F. J. (2006). Long-term volumetric eruption rates           Yokoyama, I. (1957). Energetics in active volcanoes. Bull. Earthq. Res. Inst. Tokyo 35,
+and magma budgets. Geochem. Geophys. Geosyst. 7 (3), Q03010. doi:10.1029/                          75­97. doi:10.15083/0000033960
+2005GC001002
+
+Frontiers in Earth Science                                                                     16  frontiersin.org
+

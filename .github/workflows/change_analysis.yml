@@ -1,0 +1,132 @@
+name: Change Analysis (Experimental)
+
+on:
+  schedule:
+    - cron: '30 22 * * *'  # 22:30 UTC diario (después de spectral_indices a 22:00)
+  workflow_dispatch:
+
+# FIX 2026-05-17: concurrency para evitar runs simultáneos que pisan commits
+# FIX 2026-06-14: grupo COMPARTIDO 'push-main' (ver copernicus.yml) para serializar
+# todos los workflows que pushean a main y evitar que se pisen entre si.
+concurrency:
+  group: push-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  analizar-cambios:
+    runs-on: ubuntu-latest
+    # FIX 2026-05-17: timeout para evitar workflows colgados
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: pip install numpy Pillow
+
+      - name: Checkout Landsat-v1 (segundo sensor)
+        uses: actions/checkout@v5
+        with:
+          repository: MendozaVolcanic/Landsat-v1
+          path: _landsat_data
+          sparse-checkout: docs/landsat
+          sparse-checkout-cone-mode: false
+        continue-on-error: true
+
+      - name: Checkout NHI-Tool (cross-ref)
+        uses: actions/checkout@v5
+        with:
+          repository: MendozaVolcanic/NHI-v1
+          path: _nhi_data
+          sparse-checkout: docs/nhi_data
+          sparse-checkout-cone-mode: false
+        continue-on-error: true
+
+      - name: Checkout Mirova (cross-ref)
+        uses: actions/checkout@v5
+        with:
+          repository: MendozaVolcanic/Mirova-v1
+          path: _mirova_data
+          sparse-checkout: monitoreo_satelital/registro_vrp_maestro_publicable.csv
+          sparse-checkout-cone-mode: false
+        continue-on-error: true
+
+      - name: Ajustar paths cross-ref
+        run: |
+          # change_analysis.py busca:
+          #   Landsat en ../Landsat-v1/docs/landsat
+          #   NHI en ../NHI-Tool/docs/nhi_data
+          #   Mirova en ../Mirova-v1/monitoreo_satelital/
+          mkdir -p ../Landsat-v1/docs
+          mkdir -p ../NHI-Tool/docs
+          mkdir -p ../Mirova-v1/monitoreo_satelital
+          if [ -d "_landsat_data/docs/landsat" ]; then
+            cp -r _landsat_data/docs/landsat ../Landsat-v1/docs/
+            echo "Landsat data copiada: $(find ../Landsat-v1/docs/landsat -name '*.png' | wc -l) PNGs"
+          else
+            echo "Landsat data no disponible"
+          fi
+          if [ -d "_nhi_data/docs/nhi_data" ]; then
+            cp -r _nhi_data/docs/nhi_data ../NHI-Tool/docs/
+            echo "NHI data copiada"
+          else
+            echo "NHI data no disponible"
+          fi
+          if [ -f "_mirova_data/monitoreo_satelital/registro_vrp_maestro_publicable.csv" ]; then
+            cp _mirova_data/monitoreo_satelital/registro_vrp_maestro_publicable.csv ../Mirova-v1/monitoreo_satelital/
+            echo "Mirova data copiada"
+          else
+            echo "Mirova data no disponible"
+          fi
+
+      - name: Ejecutar Change Analysis
+        run: python change_analysis.py
+
+      - name: Commit resultados
+        run: |
+          git config user.name "ChangeAnalysisBot"
+          git config user.email "change@copernicus.com"
+          git add docs/change_detection/change_results.json docs/change_detection/change_history.json 2>/dev/null || true
+          if git diff --quiet --staged 2>/dev/null; then
+            echo "Sin cambios en resultados"
+          else
+            git commit -m "change-analysis: $(date +'%Y-%m-%d')"
+            # FIX 2026-05-17: merge seguro en vez de "rebase -X ours"
+            git fetch origin main
+            if ! git merge --ff-only origin/main; then
+              echo "No fast-forward posible, rebase con preferencia a remoto..."
+              if ! git pull origin main --rebase -X theirs; then
+                echo "Conflicto detectado. Abortando para evitar perder cambios remotos."
+                git rebase --abort 2>/dev/null || true
+                exit 1
+              fi
+            fi
+            git push origin main || true
+          fi
+
+      - name: Resumen diario
+        run: |
+          python - <<'EOF'
+          import json, os
+          path = "docs/change_detection/change_results.json"
+          if not os.path.exists(path):
+              print("Sin resultados disponibles")
+              exit(0)
+          with open(path) as f:
+              data = json.load(f)
+          volcanes = data.get("volcanes", {})
+          alertas = [v for v, d in volcanes.items() if d.get("estado") == "ALERTA"]
+          atenciones = [v for v, d in volcanes.items() if d.get("estado") == "ATENCION"]
+          print(f"=== RESUMEN {data.get('fecha_analisis','')[:10]} ===")
+          print(f"ALERTA ({len(alertas)}): {', '.join(alertas) or 'ninguno'}")
+          print(f"ATENCION ({len(atenciones)}): {', '.join(atenciones) or 'ninguno'}")
+          EOF

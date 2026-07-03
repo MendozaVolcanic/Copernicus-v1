@@ -1,0 +1,409 @@
+
+
+=== PAGE 1 ===
+Early Radiometric Performance of  
+ 
+ 
+Landsat-9 Thermal Infrared Sensor 
+Julia A. Barsi *a, Matthew Montanaro b, Kurtis L. Thome c, Nina G. Raqueno b, Simon Hook d,  
+Cody H. Anderson e, Esad Micijevic e 
+a SSAI, NASA/GSFC Biospheric Sciences Laboratory, Greenbelt, MD, USA 20771;  
+b Rochester Institute of Technology, Rochester, NY 14623; c NASA/GSFC Biospheric Sciences 
+Laboratory, Greenbelt, MD, USA 20771; d NASA/Jet Propulsion Laboratory, Pasadena, CA 21109;  
+e USGS/EROS ECCOE, Sioux Falls, SD, USA 57198 
+ABSTRACT  
+Landsat-9, launched on September 27, 2021, carries the Thermal Infrared Sensor (TIRS).  The Landsat-9 TIRS is a close 
+copy of the Landsat-8 TIRS instrument; it is a two spectral-band, pushbroom sensor with three Sensor Chip Assemblies 
+(SCAs) that cover the 15-degree field-of-view. The primary radiometric change between the instruments is the addition of 
+baffling in the Landsat-9 TIRS telescope to mitigate the stray light issue that has impacted the radiometric quality of 
+Landsat-8 TIRS. 
+The on-orbit radiometric performance is monitored using the on-board variable temperature blackbody and views of deep 
+space.  Maneuvers to look at and around the moon have provided an assessment of the stray light. The absolute calibration 
+is monitored by vicarious calibration techniques by teams at NASA/Jet Propulsion Lab and the Rochester Institute of 
+Technology. 
+Landsat-9 completed a three-month commissioning phase in January 2022 and has been operational since February 2022.  
+The instrument has demonstrated excellent radiometric performance, as assessed from the on-orbit measurements. The 
+TIRS instrument is radiometrically stable to 0.1% within a power cycle, and has noise levels below 0.1K. The lunar scans 
+and the vicarious calibration data provide evidence that the stray light has been effectively mitigated. 
+Keywords: Landsat-9, TIRS, thermal band, radiometric calibration 
+ 
+1. INTRODUCTION  
+The Thermal Infrared Sensor (TIRS), on board the Landsat-9 satellite, is the latest in the Landsat series of thermal imagers.  
+Launched on September 27, 2021, the Landsat-9 TIRS instrument is a close copy of Landsat-8 TIRS; it is a pushbroom 
+focal plane with two spectral bands in the long-wave infrared spectral region. Landsat-9 TIRS maintains continuity with 
+previous Landsat instruments in its swath width, scene framing, and geometric accuracy and precision.  The Landsat-8 and 
+Landsat-9 spacecraft are orbiting in the same 705km orbit, with an 8-day offset in their revisit time. Both spacecraft include 
+an Operational Land Imager on board, but this paper only details the radiometric performance of Landsat-9 TIRS since 
+launch. 
+  
+1.1 The Landsat-9 TIRS Instrument 
+TIRS is a pushbroom-design instrument with a focal plane that consists of three separate Sensor Chip Assemblies (SCAs), 
+each 512 x 640 detectors to cover the 185km swath width (Figure 1) [Reuter, 2015].  The spectral interference filters each 
+cover about 30 rows of detectors on each chip, though only select detectors are read for each band to generate the standard 
+image product. The filters were designed to provide bandpasses suitable for use with a split-window atmospheric correction 
+algorithm.  The band-average spectral responses are shown in Figure 2. 
+ 
+ 
+* julia.barsi@nasa.gov; phone 1 301 614-6667 
+
+
+=== PAGE 2 ===
+ 
+ 
+ 
+       
+ 
+ 
+ 
+ 
+ 
+ 
+                
+                 
+ 
+ 
+ 
+ 
+ 
+ 
+640 columns
+512 rows
+Along Track
+Direction
+12.0 um band
+12.0 um band
+10.9 um band
+10.9 um band
+SCA3
+~28 detector 
+overlap
+~28 detector 
+overlap
+Dark band
+Dark band
+SCA2
+SCA1
+Figure 1. The focal plane design of the TIRS instruments.  
+The 15° field-of-view is covered by three SCAs, each 
+512x640 arrays of Quantum Well Infrared Photodetectors 
+(QWIP) detectors.   
+Figure 2. The spectral response of both Landsat-8 and 
+Landsat-9 TIRS bands.  The bandpasses were originally 
+chosen to optimize a split-window atmospheric correction.  
+ 
+Figure 3. TIRS optical diagram. The SSM rotates between 
+the nadir viewport, blackbody and deep space viewport to 
+provide calibration data.  
+ 
+Figure 4. Cross-section of the Landsat-9 TIRS telescope 
+indicating the locations of the new baffles meant to reduce 
+the amount of scattering inside the telescope. 
+ 
+
+
+=== PAGE 3 ===
+ 
+ 
+ 
+The instrument has a four-lens refractive optic telescope, with a mirror at the end of the telescope to change the view from 
+the earth-viewing nadir port to the internal calibrator components (Figure 3). The Scene Select Mechanism (SSM) rotates 
+between pointing at the nadir port, the internal blackbody and the deep-space view port.  
+1.2 Internal Calibration System 
+The blackbody and deep-space view constitute the internal calibration system. The variable temperature blackbody can be 
+adjusted between 270 and 320K, though it is nominally kept at 295K.  Twice an orbit, as the spacecraft is moving out of 
+sunlight and just before it enters sunlight, TIRS images the blackbody and deep space port for regular characterization.  
+Additional special calibration acquisitions are made periodically throughout the year for more complete characterization 
+and calibration. This paper will focus on results from the data acquired at 295K. 
+2 STRAY LIGHT ARTIFACT 
+2.1 On Landsat-8 TIRS 
+Stray light was detected in the Landsat-8 TIRS imagery soon after launch.  There was banding across the imagery that 
+wasn’t consistent from image to image and wasn’t correctable using the normal on-board normalization tools.  An on-orbit 
+maneuver to scan the moon across an area thought to be outside the nominal field-of-view confirmed that energy from a 
+zone about 13° off the optical axis was reaching the detectors [Montanaro, 2014].  This was later confirmed by high-
+fidelity optical modeling, which also revealed a weaker stray light feature from a zone about 22° off-axis.  The reverse 
+ray-trace modeling tracked the source of the stray light to reflections off the mounts that held lenses in place inside the 
+telescope. 
+An algorithm was developed to remove the effect of the stray light in Landsat-8 TIRS data.  It was implemented into the 
+USGS processing system in 2016 and all Collection-1 and Collection-2 processed data include the correction for stray 
+light. 
+2.2 Mitigation Efforts for Landsat-9 TIRS 
+The Landsat-9 TIRS telescope closely followed the design of the Landsat-8 TIRS telescope, though it included new baffles 
+in front of the third lens to reduce the source of stray light (Figure 4).  The Landsat-8 TIRS prelaunch tests for stray light 
+were redesigned to more rigorously investigate possible stray light.  Landsat-9 TIRS test measurements indicated that 
+overall scattering was greatly reduced as compared to Landsat-8; the residual scattering at 13° was reduced from 0.4% on 
+Landsat-8 TIRS to 0.03% in the Landsat-9 TIRS and from 0.024% to 0.01% for the 22° stray light feature [Montanaro, 
+2018].  The results from the prelaunch testing, along with the optical model, provided evidence that the total stray light 
+would be greatly reduced, but there was still some uncertainty in the overall improvement due to the limited nature of the 
+testing. 
+Once on-orbit, Landsat-9 performed an updated version of the lunar scans to verify the lack of stray light.  The scans were 
+tuned to establish that the magnitude and location of the stray light sources matched the prelaunch optical model.  Figure 
+5 compares a sample of scattering from the 13° off-axis zone for Landsat-8 TIRS and Landsat-9 TIRS.  In the Landsat-8 
+TIRS telescope, the worst-case scattering was ~0.4% (Figure 5, left).  When the moon was in that same location during 
+the Landsat-9 TIRS lunar scans, there was no discernable stray light (Figure 5, center).  The worst-case stray light came 
+from a smaller lobe at about 13°, which was predicted by the optical model, of <0.01% (Figure 5, right). The stray light 
+from the zone about 22° off-axis was found to be 0.007%, as opposed to the 0.024% seen in Landsat-8 TIRS. 
+These on-orbit measurements clearly demonstrate the improvements in the Landsat-9 TIRS telescope.  The magnitude of 
+the stray light was reduced by more than ten times, and it was decided that the algorithm to correct the image products for 
+stray light did not have to be applied to Landsat-9 TIRS data. Figure 6 illustrates the impact of the stray light correction 
+algorithm for Landsat-8 and uncorrected image from Landsat-9. 
+ 
+ 
+ 
+
+
+=== PAGE 4 ===
+ 
+ 
+ 
+ 
+Figure 5. Image samples from the TIRS focal plane during the lunar scans.  The top series of images shows the full TIRS 
+focal plane for Landsat-8 TIRS (left) and Landsat-9 TIRS (center and right) for one lunar scan.  The lower images show 
+only one module, SCA-A.  In the left-hand Landsat-8 TIRS sample, the moon is approximately 12° off-axis and there is a 
+ghost of the moon in the SCA-A of about 0.4%.  In the middle, moon is in the same location but in the Landsat-9 TIRS 
+image, there is no discernable ghost.  The moon is slightly further off-axis in the Landsat-9 TIRS image on the right, and 
+there is a hint of the moon in SCA-A, but the total effect is less than 0.01%. 
+ 
+ 
+Figure 6. The stray light impacted the earth image data by creating banding, vertical nonuniformities, across the image, most 
+obvious when looking large uniform areas, like this image of the Red Sea.  On the left, the Landsat-8 TIRS image, which 
+was processed without the stray light correction, the affect of the stray light is clear; there are vertical bands across the 
+image that make the uniform water body appear very nonuniform.  The center image shows the same Landsat-8 image, 
+processed with the stray light correction algorithm; there are still artifacts of the stray light apparent, but it is much more 
+uniform. The Landsat-9 TIRS image on the right is processed without the stray light correction; though the clouds make the 
+image less uniform, there is no discernable trace of vertical banding. 
+ 
+
+
+=== PAGE 5 ===
+ 
+ 
+ 
+3 ON-ORBIT RADIOMETRIC PERFORMANCE 
+Radiometric performance is monitored using regular observations of the internal calibration system.  Here, the instrument 
+stability and noise are evaluated by looking at the instrument response to the nominal 295K blackbody over time.  Other 
+on-orbit characterization using the special calibration collects can be found in [Pearlman, 2022]. 
+3.1 Responsivity 
+The responsivity of the instrument is monitored by calculating an internal responsivity metric (r) from the paired 
+acquisitions of blackbody and deep space: 
+ 
+𝑟=
+("!!#""#)
+(%!!#%"#) 
+(1) 
+where QBB is the instrument response to the blackbody, QDS is the instrument response to deep space, LBB is the radiance 
+of the internal blackbody as calculated from the thermistor on the blackbody and LDS is the radiance of deep space (a 4K 
+blackbody).  The responsivity metric is calculated per-detector but only band-average metrics are presented here. 
+Prior to March 2022, the Landsat-9 TIRS instrument was stable to better than 0.05% in Band 10 and 0.2% in Band 11.  On 
+March 12, 2022, the TIRS Cryocooler Electronics (CCE) reset suddenly and resulted in the powering down of the 
+instrument and loss of thermal control.  After powering back on and once thermal control was recovered, the internal 
+responsivity metric indicated that the response has changed by about 0.2% in both bands.  The calibration parameters were 
+updated using blackbody temperature sweep data [Pearlman, 2022].   
+This change in Landsat-9 TIRS responsivity is transparent to users of Level-1 and Level-2 products because the calibration 
+parameters were updated. 
+After the CCE reset, the responsivity metric is stable to better than 0.05% in both bands over time. Figure 7 shows the 
+responsivity change over time before the calibration parameter update (left) and the current calibration trend which 
+considers that the calibration was updated at the CCE reset (right).  
+ 
+ 
+Figure 7. Responsivity change over time for both spectral bands of Landsat-9 TIRS. On the left, the trend indicates the 
+magnitude of the change in responsivity after the CCE reset in March 2022, with trending through early May 2022.  On the 
+right, the trend has been revised to consider the updated calibration parameters.  Both bands are stable to better than 0.05% 
+since the CCE reset. 
+ 
+ 
+
+
+=== PAGE 6 ===
+ 
+ 
+ 
+3.2 Response to Deep Space 
+The response to deep space is monitored overtime as an indicator of the stability of the instrument bias.  Figure 8 shows 
+the change in response to the deep space over time for both bands.  There is a small level of drift, but it is within +/- 2DN 
+(<0.2%).  The March 2022 CCE reset appears to have reset the drift.  
+The instrument bias used by the processing system is calculated per orbit using the response to deep space. 
+ 
+ 
+Figure 8. Change in reponse to deep space change over time for both spectral bands of Landsat-9 TIRS. There appears to be 
+a slow drift over time that was reset at the CCE reset.  
+ 
+3.3 Noise Performance 
+The noise performance is tracked by modeling the Noise Equivalent Delta-Temperature (NEDT) for five different 
+temperatures using a subset of data acquired over one month of paired blackbody and deep space acquisitions (typically 
+about 120 intervals total). The model is calculated per-detector to verify that there are no outliers. The median detector is 
+trended over time to track stability. 
+For the period of July 2022, the NEDT is better than 0.05K at 300K for Band 10 and 0.07K at 300K for Band 11 (Figure 
+9).  The NEDT is consistent to better than 1mK across all detectors in both bands.  Figure 10 illustrates the stability of the 
+median detector NEDT over time.  Both bands are stable to within 2mk since the start of nominal operations in Feb 2022. 
+ 
+     
+ 
+ 
+Figure 9. The modelled per-detector NEDT at 300K for the 
+month of July 2022. The Band 10 NEDT is better than 0.05K 
+and Band 11 is better than 0.07K for all detectors. 
+ 
+Figure 10. The modelled median detector’s NEDT at 300K 
+over time.  The NEDT is stable to within 2mK (1-sigma) in 
+both bands since the start of operations in Feb 2022.   
+ 
+
+
+=== PAGE 7 ===
+ 
+ 
+ 
+ 
+3.4 Uniformity 
+In a pushbroom instrument with almost 2000 detectors across the focal plane in a single band, the per-detector 
+normalization is an important step to minimizing visible stripes in the image products.  The responsivity of individual 
+detectors relative to the mean, also referred to as relative gains, are monitored using the blackbody data.  It was found in 
+Landsat-8 TIRS that the relative gains were changing slowly over time, but these changes were not being accounted for in 
+the processing system.  This resulted in an increasing level of striping, vertical nonuniformity due to individual detectors. 
+The striping was getting worse over time.  With the implementation of the Collection-2 processing system in 2020, the 
+USGS added a quarterly calibration update to reduce striping in the Landsat-8 TIRS bands [USGS, 2021].   
+Though the relative gains of all detectors contribute to striping, the radiometric stability of individual detectors with 
+specific change characteristics are flagged and are used as representative samples of detector performance.  Individual 
+detectors which display a relative responsivity that has changed by 0.5% or more in one transition are referred to as 
+jumpers.  Individual detectors which display a relative responsivity that has changed by 0.25% over time or more are 
+referred to as drifters.  Figure 11 is an example of two such detectors on Landsat-9 TIRS Band 10.  Detector 944 exhibits 
+several large jumps greater than 0.5%, while Detector 1127 is slowly changing over time with a cumulative change since 
+launch of about 0.5% after about 0.45 years on orbit.  The impact of both detectors’ changes is small error in absolute 
+calibration for this detector and a visible stripe in the image, if left uncorrected.  To date, there have been 10 total jumpers 
+in Landsat-9 TIRS and 12 total drifters.  
+The images of the blackbody are used to update the relative gains in the Calibration Parameter File on a quarterly basis.  
+The average response of TIRS to the blackbody over the quarter is used to determine every detector’s new relative gain; 
+every detector gets a new relative gain every quarter. This means the effect of the changes in responsivity -- the jumpers 
+and the drifters as well as the less significant responsivity changes -- should be corrected for in the image products within 
+a quarter of the change occurring. Figure 12 shows a small subset of an image of a very uniform desert area; there are 
+stripes visible in the June 20, 2022 image which are not apparent in the July 6, 2022 image due to the update of the relative 
+gains on July 1, 2022.  However, at least one new stripe has appeared between the image acquisition times; the responsivity 
+of detector 944 (from Figure 11) increased by about 1% and results in a bright white stripe. 
+ 
+ 
+Figure 11. Plot illustrates the change in responsivity over time of two Landsat-9 Band 10 detectors. These two are 
+representative of the jumper (sudden change of 0.5% or more) and drifter (slow cumulative change of 0.25% or more) 
+behavior. 
+ 
+
+
+=== PAGE 8 ===
+ 
+ 
+ 
+    
+ 
+Figure 12. This pair of Landsat-9 TIRS Band 10 images illustrates the improvement in the uniformity across the image as a 
+result of updating the relative gains, and the effect of jumpers. Both images are scaled to the same radiance range. The top 
+image was acquired in June 2022, just before an update of the relative gains in the processing system. The bottom image 
+was acquired in July 2002, just after the relative gain update. There are stripes apparent in this Level-1R detector-oriented 
+image from June that have been corrected in the July image.  However, one significant new stripe has appeared; the D944 
+responsivity jumped between the two images as is shown in Figure 11.  
+ 
+ 
+4 VICARIOUS CALIBRATION 
+The absolute calibration of the Landsat-9 TIRS is verified by vicarious calibration methods over large water bodies by two 
+teams, one at NASA/Jet Propulsion Laboratory (JPL) and one at the Rochester Institute of Technology (RIT). Water is the 
+ideal target for vicarious calibration in the thermal portion of the electromagnetic spectrum; it has well known and high 
+emissivity, it is uniform in composition and it can exhibit low surface temperature variation over large areas.  The JPL 
+team operates a network of instrumented buoys on Lake Tahoe (CA/NV) and the Salton Sea. The typical range of 
+temperatures covers 4-35C and both day and night data are used. The RIT team mines the data from the network of NOAA 
+National Data Buoy Center buoys. The typical temperature range for the RIT data is 3-30C and only data acquired during 
+the day are used. 
+The teams use different methods to get to surface-leaving radiance, but once they have estimated surface-leaving radiance 
+(eLT) from their measurements, they can compare top-of-atmosphere radiance (LTOA) directly to the radiance reported by 
+TIRS: 
+ 
+ 
+(2) 
+where e is emissivity [unitless], t is the atmospheric transmission in the spectral bandpass [unitless], Lu is the upwelling 
+radiance of the atmosphere, Ld is the downwelling transmission of the atmosphere and all radiances are in terms of [W/m2 
+sr /µm].  The atmospheric parameters are generated by using radiance propagation code.   
+ 
+!!"# = !"!! + !! + !! 1 −! ! 
+
+
+=== PAGE 9 ===
+ 
+ 
+ 
+The Landsat-9 TIRS band-average absolute calibration is currently based on the prelaunch calibration [Pearlman, 2022] 
+with an adjustment made for the 0.2% change in responsivity for data acquired after the March 2022 CCE reset (Figure 
+7).  When comparing the vicarious water-based calibration to the instrument calibration, there is very good agreement. 
+Figure 13 shows the 1:1 agreement between the top-of-atmosphere radiance predicted from the surface-leaving radiance 
+and the radiance measured by TIRS.  The difference between the two radiances is show in Figure 14.  In both bands, there 
+is a small indication of residual calibration error in offset; 0.16K in Band 10 and 0.61K in Band 11.  The residual error 
+from data acquired between Nov 2021 and April 2022 appears to be constant over time and is not dependent signal level. 
+There does not appear to be any seasonal dependency, though this is still not a large dataset and does not yet cover a whole 
+year.  Both problems were present in the Landsat-8 TIRS vicarious calibration results and were likely an impact of the 
+stray light. 
+The uncertainty of the vicarious calibration method has also gotten significantly better with the reduction in the stray light 
+in the Landsat-9 TIRS telescope.  The uncertainties are 0.3K for Band 10 and 0.5K in Band 11. 
+The residual errors reported by the vicarious calibration teams is based on a small dataset but are statistically significant.  
+There has been no action to correct the radiometric calibration to date.  If a calibration update is deemed necessary, it will 
+likely be implemented in the USGS processing system in late 2022. 
+ 
+ 
+ 
+ 
+Figure 13. The collected vicarious calibration data from both JPL and RIT for Landsat-9, through April 2022. The 
+comparison between the predicted top-of-atmosphere radiance and the image radiance is very good at this level. The data sit 
+along the 1:1 line with very little scatter. 
+ 
+ 
+
+
+=== PAGE 10 ===
+ 
+ 
+ 
+ 
+Figure 14. The residual radiometric calibration over time for data through April 2022. The average residual error for the 
+whole dataset is plotted along with the individual RIT and JPL datapoints. The residual error appears to be independent of 
+time and signal changes. 
+ 
+5 SUMMARY AND CONCLUSIONS 
+The Landsat-9 TIRS radiometric performance has been excellent to date.  The stray light that affected the Landsat-8 TIRS 
+radiometric accuracy was mitigated by baffles added to the telescope.  The results from on-orbit lunar scans match the 
+prelaunch tests for stray light. The overall impacts of stray light have been reduced by greater than 10 times.   
+The on-board calibrator system indicates that the instrument stability is better to 0.1% within a power cycle and the noise 
+is better than 0.07K for both spectral bands. 
+The vicarious calibration results through April 2022 indicate there may be a small calibration error, of less than 0.2K in 
+Band 10 and 0.65K in Band 11.  The uncertainties for Landsat-9 are significantly better than the Landsat-8 TIRS 
+uncertainties due to the reduction on the stray light. 
+ 
+REFERENCES 
+[1] NASA, “TIRS-2 Relative Spectral Response”, Sept 2021, https://landsat.gsfc.nasa.gov/satellites/landsat-9/landsat-9-
+instruments/tirs-2-design/tirs-2-relative-spectral-response/ 
+[2] Reuter, D.C.; Richardson, C.M.; Pellerano, F.A.; Irons, J.R.; Allen, R.G.; Anderson, M.; Jhabvala, M.D.; Lunsford, 
+A.W.; Montanaro, M.; Smith, R.L.; Tesfaye, Z.; Thome, K.J. The Thermal Infrared Sensor (TIRS) on Landsat 8: 
+Design 
+Overview 
+and 
+Pre-Launch 
+Characterization. Remote 
+Sens. 2015, 7, 
+1135-1153. 
+https://doi.org/10.3390/rs70101135 
+[3] Montanaro, M.; Gerace, A.; Lunsford, A.; Reuter, D. Stray Light Artifacts in Imagery from the Landsat 8 Thermal 
+Infrared Sensor. Remote Sens. 2014, 6, 10435-10456. https://doi.org/10.3390/rs61110435 
+[4] M. Montanaro et al., “Landsat 9 thermal infrared sensor 2 preliminary stray light assessment,” in Proc. IEEE Int. 
+Geosci. Remote Sens. Symp. (IGARSS), Jul. 2018, pp. 8853–8856.  
+[5] 
+USGS, 
+“Landsat 
+Collection 
+2 
+Level-1 
+Data,” 
+July 
+2021, 
+https://www.usgs.gov/core-science-
+systems/nli/landsat/landsat-collection-2-level-1-data 
+
+
+=== PAGE 11 ===
+ 
+ 
+ 
+ 

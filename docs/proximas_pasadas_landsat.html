@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Próximas pasadas Landsat 8/9 — Copernicus-v1</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #f0a35e;
+    --green: #7ee787; --orange: #f97316; --red: #f85149;
+    --l8: #e67e22; --l9: #f0b070;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+  }
+  header {
+    background: linear-gradient(90deg, #7c3a0f 0%, #e67e22 100%);
+    padding: 22px 30px; border-bottom: 1px solid var(--border);
+  }
+  header h1 { margin: 0; font-size: 1.5em; }
+  header p { margin: 4px 0 0; color: rgba(255,255,255,0.9); font-size: 0.9em; }
+  .toolbar {
+    background: var(--surface); padding: 14px 30px;
+    border-bottom: 1px solid var(--border);
+    display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  }
+  .toolbar label { color: var(--muted); font-size: 0.9em; }
+  .toolbar select, .toolbar input {
+    background: #1c2128; color: var(--text);
+    border: 1px solid var(--border); padding: 6px 10px; border-radius: 6px;
+  }
+  main { max-width: 1300px; margin: 0 auto; padding: 24px; }
+  .legend {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px 18px; margin-bottom: 18px;
+    display: flex; gap: 24px; flex-wrap: wrap; font-size: 0.9em;
+  }
+  .legend .item { display: flex; align-items: center; gap: 8px; }
+  .pill {
+    display: inline-block; padding: 2px 10px; border-radius: 12px;
+    font-size: 0.8em; font-weight: 600; margin-left: 6px;
+  }
+  .pill-l8 { background: var(--l8); color: #1a1a1a; }
+  .pill-l9 { background: var(--l9); color: #1a1a1a; }
+  .countdown {
+    font-weight: 700; font-size: 0.9em;
+    padding: 2px 8px; border-radius: 6px;
+  }
+  .cd-now { background: var(--red); color: white; }
+  .cd-soon { background: var(--orange); color: white; }
+  .cd-later { background: #1c2128; color: var(--muted); }
+  .cd-pub { background: #b45309; color: white; }        /* pasada ocurrida, L2 publicandose */
+  .cd-done { background: #238636; color: white; }       /* imagen ya disponible */
+  .cd-late-pub { background: #9e6a03; color: #ffedd5; } /* publicacion demorada (>P95) */
+  .row.pasada-completa { opacity: 0.55; }               /* pasada cuya imagen ya llego */
+  .grid {
+    display: grid; gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 360px), 1fr));
+  }
+  .stale-banner {
+    background: rgba(248,81,73,0.12); border: 1px solid var(--red);
+    border-left: 4px solid var(--red); color: var(--red);
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 18px;
+    font-size: 0.92em; font-weight: 600;
+  }
+  .badge-stale {
+    display: inline-block; margin-left: 8px; padding: 1px 8px;
+    border-radius: 10px; font-size: 0.72em; font-weight: 600;
+    background: rgba(249,115,22,0.18); color: var(--orange);
+    border: 1px solid var(--orange);
+  }
+  @media (max-width: 480px) {
+    .grid { grid-template-columns: 1fr; }
+    main { padding: 12px; }
+    header { padding: 18px; }
+    .toolbar { padding: 12px 18px; }
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px;
+    display: flex; flex-direction: column;
+  }
+  .card-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 10px;
+  }
+  .card-head h3 { margin: 0; color: var(--accent); font-size: 1.1em; }
+  .zona { font-size: 0.75em; color: var(--muted); }
+  .row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px dashed #21262d;
+    font-size: 0.85em;
+  }
+  .row:last-child { border-bottom: none; }
+  .fecha { font-family: 'Consolas', monospace; }
+  .hora { color: var(--muted); font-size: 0.85em; margin-left: 6px; }
+  .info-extra {
+    margin-top: 10px; padding-top: 10px;
+    border-top: 1px solid var(--border);
+    font-size: 0.8em; color: var(--muted);
+  }
+  .meta {
+    color: var(--muted); font-size: 0.8em; text-align: center;
+    margin-top: 20px;
+  }
+  .back {
+    display: inline-block; color: var(--accent);
+    text-decoration: none; padding: 8px 14px;
+    border: 1px solid var(--accent); border-radius: 6px;
+  }
+  .back:hover { background: rgba(240,163,94,0.1); }
+  .summary-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-bottom: 18px;
+  }
+  .summary-box h3 { margin: 0 0 10px; color: var(--accent); }
+  .summary-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0;
+  }
+  .next-volcanoes { font-size: 0.9em; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛰️ Próximas pasadas — Landsat 8/9 sobre volcanes chilenos</h1>
+  <p>Predicción basada en el ciclo orbital observado (16 días por satélite, 2 satélites combinados ~4-8 días)</p>
+</header>
+
+<div class="toolbar">
+  <a href="index.html" class="back">← Dashboard</a>
+  <a href="proximas_pasadas.html" class="back">🛰️ Ver Sentinel-2</a>
+  <label>Filtrar zona:
+    <select id="filtro-zona">
+      <option value="">Todas</option>
+      <option>Norte</option>
+      <option>Centro</option>
+      <option>Sur</option>
+      <option>Austral</option>
+    </select>
+  </label>
+  <label>Buscar:
+    <input id="filtro-nombre" type="text" placeholder="ej: villarrica">
+  </label>
+  <label>Ordenar por:
+    <select id="orden">
+      <option value="fecha">Próxima pasada (más cercana primero)</option>
+      <option value="nombre">Nombre alfabético</option>
+      <option value="zona">Zona (Norte → Austral)</option>
+    </select>
+  </label>
+</div>
+
+<main>
+
+<div id="stale-banner" class="stale-banner" style="display:none;"></div>
+
+<div class="summary-box" id="summary-box">
+  <h3>⏱️ Próximas pasadas en las siguientes 48 horas</h3>
+  <div id="proxima-24h" class="next-volcanoes">Cargando...</div>
+</div>
+
+<div class="legend">
+  <div class="item"><span class="pill pill-l8">L8</span> Landsat-8</div>
+  <div class="item"><span class="pill pill-l9">L9</span> Landsat-9</div>
+  <div class="item">📅 Cada satélite revisita el mismo punto cada <strong>16 días</strong></div>
+  <div class="item">⏰ Hora real de paso: <strong>~10:45 hora Chile</strong> (~14:45 UTC)</div>
+  <div class="item">📦 Publicación L2 (Collection 2, USGS): <strong>mediana ~44h, P95 ~48h</strong> tras el paso</div>
+</div>
+
+<div class="note" style="background:rgba(230,126,34,0.08); border-left:3px solid #e67e22; padding:10px 14px; margin:14px 0; font-size:0.92em; line-height:1.5;">
+  <strong>📊 Cadencia y latencia Landsat:</strong> Landsat 8 y 9 orbitan desfasados 8 días en el mismo
+  patrón de 16 días, así que un punto se fotografía cada <strong>~4-8 días</strong> (más espaciado que
+  Sentinel-2). El producto <strong>L2 (Collection 2)</strong> de USGS aparece con mediana ~44h tras el paso
+  (~1,5-2 días).
+  <ul style="margin: 6px 0 0 0; padding-left: 22px;">
+    <li>El pipeline de descarga usa el híbrido <strong>L1-RT</strong> (Real-Time, ~1 día) que se reemplaza
+        silenciosamente por la L2 final cuando USGS la publica.</li>
+    <li>Por eso la imagen suele aparecer antes (~1 día) que la cota L2 de este contador.</li>
+  </ul>
+</div>
+
+<div id="grid" class="grid"></div>
+
+<div class="meta" id="meta"></div>
+
+</main>
+
+<script>
+// Los datos de Landsat viven en el repo externo Landsat-v1 (raw.githubusercontent),
+// igual que las imagenes. Esta pagina se sirve desde Copernicus-v1/docs pero debe
+// fetchear el JSON desde el repo Landsat, NO con ruta relativa.
+const REPO_LANDSAT_BASE = 'https://raw.githubusercontent.com/MendozaVolcanic/Landsat-v1/master';
+const JSON_URL = REPO_LANDSAT_BASE + '/docs/proximas_pasadas_landsat.json';
+
+const ZONAS_ORDEN = { 'Norte': 1, 'Centro': 2, 'Sur': 3, 'Austral': 4 };
+let datos = null;
+
+async function cargar() {
+  try {
+    const r = await fetch(JSON_URL + '?t=' + Date.now());
+    datos = await r.json();
+    document.getElementById('meta').textContent =
+      'Datos generados: ' + new Date(datos.generado_utc).toLocaleString('es-CL') +
+      ' · ' + Object.keys(datos.volcanes).length + ' volcanes monitoreados';
+    render();
+    renderProxima24h();
+    renderStaleBanner();
+  } catch (e) {
+    document.getElementById('grid').textContent = 'Error cargando datos: ' + e;
+  }
+}
+
+// Re-render countdowns y caja 48h cada 30s.
+setInterval(() => {
+  if (!datos) return;
+  render();
+  renderProxima24h();
+  renderStaleBanner();
+}, 30000);
+
+// Re-fetch del JSON cada ~20 min: si el cron regenero los datos (cambia
+// generado_utc), recarga sin recargar la pagina.
+setInterval(async () => {
+  try {
+    const r = await fetch(JSON_URL + '?t=' + Date.now());
+    const nuevo = await r.json();
+    if (!datos || nuevo.generado_utc !== datos.generado_utc) {
+      datos = nuevo;
+      document.getElementById('meta').textContent =
+        'Datos generados: ' + new Date(datos.generado_utc).toLocaleString('es-CL') +
+        ' · ' + Object.keys(datos.volcanes).length + ' volcanes monitoreados';
+      render();
+      renderProxima24h();
+      renderStaleBanner();
+    }
+  } catch (e) { /* red intermitente: reintenta en el proximo ciclo */ }
+}, 20 * 60 * 1000);
+
+// Banner si los datos estan viejos. Landsat: el ciclo es mas lento (16d/sat), pero
+// el cron del JSON corre con la misma frecuencia; >30h sin regenerar es sospechoso.
+function renderStaleBanner() {
+  const cont = document.getElementById('stale-banner');
+  if (!cont) return;
+  while (cont.firstChild) cont.removeChild(cont.firstChild);
+  if (!datos || !datos.generado_utc) return;
+  const horas = (Date.now() - new Date(datos.generado_utc).getTime()) / 3600000;
+  if (horas < 30) { cont.style.display = 'none'; return; }
+  cont.style.display = 'block';
+  const span = document.createElement('span');
+  span.textContent = '⚠️ Datos desactualizados hace ' + Math.round(horas) +
+    'h — la predicción puede no reflejar la órbita actual.';
+  cont.appendChild(span);
+}
+
+// Instante ABSOLUTO de la pasada desde la hora UTC del JSON (DST-safe: la hora UTC
+// es la fuente de verdad, el countdown es resta de dos Date absolutos).
+function fechaHoraCard(volcanInfo, fechaISO) {
+  const horaUTC = volcanInfo.hora_utc_estimada || '14:45';
+  return new Date(fechaISO + 'T' + horaUTC + ':00Z');
+}
+
+function horaChilePasada(volcanInfo, fechaISO, horaChilePass) {
+  if (horaChilePass) return horaChilePass;
+  return fechaHoraCard(volcanInfo, fechaISO).toLocaleString('es-CL', {
+    timeZone: 'America/Santiago', hour: '2-digit', minute: '2-digit', hour12: false
+  });
+}
+
+function fmtDur(seg) {
+  seg = Math.max(0, seg);
+  const d = Math.floor(seg / 86400);
+  const h = Math.floor((seg % 86400) / 3600);
+  const m = Math.floor((seg % 3600) / 60);
+  if (d > 0) return d + 'd ' + h + 'h';
+  if (h > 0) return h + 'h ' + m + 'm';
+  return m + 'm';
+}
+
+// Estado de una pasada: futura (countdown a la pasada) / ya ocurrida pero imagen
+// no publicada (countdown de PUBLICACION L2 con el modelo de latencia Landsat) /
+// imagen ya disponible. El JSON Landsat trae el modelo en `latencia_l2`.
+function estadoPasada(fechaISO, info) {
+  const lat = (datos && datos.latencia_l2) || { mediana_h: 44, p95_h: 48 };
+  const dt = fechaHoraCard(info, fechaISO);         // instante de la pasada (UTC)
+  const ahora = new Date();
+
+  // Imagen de esa fecha YA descargada -> pasada completa.
+  if (info.ultima_imagen && fechaISO <= info.ultima_imagen) {
+    return { txt: '✓ imagen disponible', cls: 'cd-done', completa: true };
+  }
+
+  const diff = (dt - ahora) / 1000;                 // seg hasta la pasada
+  if (diff >= 0) {
+    let cls = 'cd-later';
+    if (diff < 24 * 3600) cls = 'cd-now';
+    else if (diff < 7 * 24 * 3600) cls = 'cd-soon';
+    return { txt: 'en ' + fmtDur(diff), cls, completa: false };
+  }
+
+  // Pasada ya ocurrio, imagen NO publicada -> countdown de PUBLICACION L2.
+  const hAtras = (Math.abs(diff) / 3600).toFixed(1);
+  const esperada = dt.getTime() + lat.mediana_h * 3600000;  // publicacion esperada (mediana)
+  const limite = dt.getTime() + lat.p95_h * 3600000;        // cota P95
+  const segEsperada = (esperada - ahora.getTime()) / 1000;
+  if (segEsperada > 0) {
+    return { txt: 'pasó hace ' + hAtras + 'h · 📦 imagen en ~' + fmtDur(segEsperada), cls: 'cd-pub', completa: false };
+  }
+  if (ahora.getTime() < limite) {
+    return { txt: 'pasó hace ' + hAtras + 'h · 📦 publicándose (L2)', cls: 'cd-pub', completa: false };
+  }
+  return { txt: 'pasó hace ' + hAtras + 'h · ⚠️ publicación demorada', cls: 'cd-late-pub', completa: false };
+}
+
+function makeSatPill(sat) {
+  const span = document.createElement('span');
+  const num = (sat || '').slice(-1);   // 'Landsat-8' -> '8'
+  span.className = 'pill ' + (num === '8' ? 'pill-l8' : 'pill-l9');
+  span.textContent = 'L' + num;
+  return span;
+}
+
+function render() {
+  const grid = document.getElementById('grid');
+  while (grid.firstChild) grid.removeChild(grid.firstChild);
+
+  const filtroZona = document.getElementById('filtro-zona').value;
+  const filtroNombre = document.getElementById('filtro-nombre').value.toLowerCase();
+  const orden = document.getElementById('orden').value;
+
+  let entradas = Object.entries(datos.volcanes);
+  if (filtroZona) entradas = entradas.filter(([n, v]) => v.zona === filtroZona);
+  if (filtroNombre) entradas = entradas.filter(([n]) => n.toLowerCase().includes(filtroNombre));
+
+  if (orden === 'nombre') {
+    entradas.sort((a, b) => a[0].localeCompare(b[0]));
+  } else if (orden === 'zona') {
+    entradas.sort((a, b) => (ZONAS_ORDEN[a[1].zona] || 99) - (ZONAS_ORDEN[b[1].zona] || 99) || a[0].localeCompare(b[0]));
+  } else {
+    entradas.sort((a, b) => {
+      const fa = (a[1].proxima_combinada[0] || {}).fecha || '9999';
+      const fb = (b[1].proxima_combinada[0] || {}).fecha || '9999';
+      return fa.localeCompare(fb);
+    });
+  }
+
+  entradas.forEach(([nombre, info]) => {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const head = document.createElement('div');
+    head.className = 'card-head';
+    const h3 = document.createElement('h3');
+    h3.textContent = nombre;
+    head.appendChild(h3);
+
+    // Badge si no hay imagen reciente. Landsat revisita cada ~4-8 días combinados,
+    // así que el umbral de incertidumbre es mayor que en S2 (>30 días).
+    const ultimas = Object.values(info.satelites || {})
+      .map(d => d.ultima_observacion).filter(Boolean).sort();
+    if (ultimas.length) {
+      const masReciente = new Date(ultimas[ultimas.length - 1] + 'T00:00:00Z');
+      const diasSin = Math.floor((Date.now() - masReciente.getTime()) / 86400000);
+      if (diasSin > 30) {
+        const badge = document.createElement('span');
+        badge.className = 'badge-stale';
+        badge.textContent = 'sin imagen ' + diasSin + 'd — incierta';
+        h3.appendChild(badge);
+      }
+    }
+
+    const z = document.createElement('div');
+    z.className = 'zona';
+    z.textContent = (info.zona || '') + ' · ~' + info.hora_chile_estimada + ' Chile';
+    head.appendChild(z);
+    card.appendChild(head);
+
+    info.proxima_combinada.slice(0, 5).forEach(p => {
+      const row = document.createElement('div');
+      row.className = 'row';
+
+      const left = document.createElement('div');
+      const fechaSpan = document.createElement('span');
+      fechaSpan.className = 'fecha';
+      fechaSpan.textContent = p.fecha;
+      left.appendChild(fechaSpan);
+      const horaSpan = document.createElement('span');
+      horaSpan.className = 'hora';
+      horaSpan.textContent = ' ' + horaChilePasada(info, p.fecha, p.hora_chile);
+      left.appendChild(horaSpan);
+      left.appendChild(makeSatPill(p.sat));
+
+      const cd = estadoPasada(p.fecha, info);
+      if (cd.completa) row.classList.add('pasada-completa');
+      const right = document.createElement('span');
+      right.className = 'countdown ' + cd.cls;
+      right.textContent = cd.txt;
+
+      row.appendChild(left);
+      row.appendChild(right);
+      card.appendChild(row);
+    });
+
+    const extra = document.createElement('div');
+    extra.className = 'info-extra';
+    const lineas = [];
+    Object.entries(info.satelites).forEach(([sat, d]) => {
+      lineas.push('L' + sat.slice(-1) + ': última ' + d.ultima_observacion);
+    });
+    extra.textContent = lineas.join(' · ');
+    card.appendChild(extra);
+
+    grid.appendChild(card);
+  });
+}
+
+function renderProxima24h() {
+  const items = [];
+  const ahora = new Date();
+  const limite48 = ahora.getTime() + 48 * 3600 * 1000;
+
+  Object.entries(datos.volcanes).forEach(([nombre, info]) => {
+    // Primera pasada NO completa = la "activa".
+    let activa = null;
+    for (const p of info.proxima_combinada) {
+      const est = estadoPasada(p.fecha, info);
+      if (!est.completa) { activa = { p, est }; break; }
+    }
+    if (!activa) return;
+    const dt = fechaHoraCard(info, activa.p.fecha);
+    const publicando = activa.est.cls === 'cd-pub' || activa.est.cls === 'cd-late-pub';
+    const cercana = dt >= ahora && dt.getTime() <= limite48;
+    if (publicando || cercana) {
+      items.push({ nombre, sat: activa.p.sat, fecha: activa.p.fecha, est: activa.est, orden: dt.getTime() });
+    }
+  });
+
+  const cont = document.getElementById('proxima-24h');
+  while (cont.firstChild) cont.removeChild(cont.firstChild);
+
+  if (items.length === 0) {
+    cont.textContent = 'Sin pasadas previstas en las próximas 48 horas. La siguiente está más adelante.';
+    return;
+  }
+
+  items.sort((a, b) => a.orden - b.orden);
+  items.slice(0, 8).forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'summary-row';
+
+    const izq = document.createElement('span');
+    const strong = document.createElement('strong');
+    strong.textContent = p.nombre;
+    izq.appendChild(strong);
+    izq.appendChild(makeSatPill(p.sat));
+
+    const der = document.createElement('span');
+    der.appendChild(document.createTextNode(p.fecha + ' '));
+    const badge = document.createElement('span');
+    badge.className = 'countdown ' + p.est.cls;
+    badge.textContent = p.est.txt;
+    der.appendChild(badge);
+
+    div.appendChild(izq);
+    div.appendChild(der);
+    cont.appendChild(div);
+  });
+}
+
+document.getElementById('filtro-zona').addEventListener('change', render);
+document.getElementById('filtro-nombre').addEventListener('input', render);
+document.getElementById('orden').addEventListener('change', render);
+
+cargar();
+</script>
+
+</body>
+</html>

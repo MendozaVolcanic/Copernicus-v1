@@ -1,0 +1,1083 @@
+                                                            ORIGINAL RESEARCH
+                                                        published: 27 January 2020
+                                                     doi: 10.3389/feart.2019.00362
+
+                                                Thermal Remote Sensing for Global
+                                                Volcano Monitoring: Experiences
+                                                From the MIROVA System
+
+                                   Edited by:   Diego Coppola1,2*, Marco Laiolo1,2, Corrado Cigolini1,2, Francesco Massimetti1,
+                                  Fidel Costa,  Dario Delle Donne3, Maurizio Ripepe4, Hidran Arias5, Sara Barsotti6,
+     Nanyang Technological University,          Claudia Bucarey Parra7, Riky Gustavo Centeno8, Sandrine Cevuard9, Gustavo Chigna10,
+                                                Carla Chun10, Esline Garaebiti9, Dulce Gonzales10, Julie Griswold11, Javier Juarez10,
+                                    Singapore   Luis E. Lara7, Cristian Mauricio López12, Orlando Macedo13, Celestin Mahinda14,
+                                                Sarah Ogburn11, Oktory Prambada15, Patricio Ramon16, Domingo Ramos17,
+                              Reviewed by:      Aline Peltier18,19, Steve Saunders20, Elske de Zeeuw-van Dalfsen21, Nick Varley22 and
+                               Társilo Girona,  Ricardo William9
+       NASA Jet Propulsion Laboratory
+                       (JPL), United States     1 Dipartimento di Scienze della Terra, Università di Torino, Turin, Italy, 2 Centro Interdipartimentale sui Rischi Naturali
+                                                in Ambiente Montano e Collinare, Università di Torino, Turin, Italy, 3 Istituto Nazionale di Geofisica e Vulcanologia,
+                                 Yosuke Aoki,   Osservatorio Vesuviano, Naples, Italy, 4 Dipartimento Scienze della Terra, Università degli Studi di Firenze, Florence, Italy,
+         The University of Tokyo, Japan         5 Engineering Ingegneria Informatica S.p.A., Rome, Italy, 6 Icelandic Meteorological Office, Reykjavík, Iceland, 7 Servicio
+                                                Nacional de Geología y Minería, Santiago, Chile, 8 Instituto GeofÍsico del Perú, Lima, Peru, 9 Vanuatu Meteorology
+                   Christina Widiwijayanti,     and Geohazards Department, Port Vila, Vanuatu, 10 Instituto Nacional de Sismologia, Vulcanologia, Meteorologia e
+       Earth Observatory of Singapore,          Hidrologia, Guatemala City, Guatemala, 11 U.S. Geological Survey, Volcano Disaster Assistance Program, Reston, VA,
+                                                United States, 12 Servicio Geológico Colombiano, Bogota, Colombia, 13 Facultad de Geología, Geofísica y Minas,
+                                    Singapore   Universidad Nacional de San Agustin de Arequipa, Arequipa, Peru, 14 Goma Volcano Observatory, Goma, Democratic
+                                                Republic of Congo, 15 Center for Volcanology and Geological Hazard Mitigation, Bandung, Indonesia, 16 Instituto Geofísico,
+                       *Correspondence:         Escuela Politécnica Nacional, Quito, Ecuador, 17 Instituto Geologico Minero y Metalurgico, Lima, Peru, 18 Université de Paris,
+                              Diego Coppola     Institut de Physique du Globe de Paris, CNRS, Paris, France, 19 Observatoire Volcanologique du Piton de la Fournaise,
+                                                Institut de Physique du Globe de Paris, La Plaine des Cafres, France, 20 Department of Mineral Policy and Geohazards
+                   diego.coppola@unito.it       Management, Port Moresby, Papua New Guinea, 21 Royal Netherlands Meteorological Institute, De Bilt, Netherlands,
+                                                22 Colima Intercambio e Investigación en Vulcanología, Universidad de Colima, Colima, Mexico
+                        Specialty section:
+            This article was submitted to       Volcanic activity is always accompanied by the transfer of heat from the Earth's crust
+                                                to the atmosphere. This heat can be measured from space and its measurement is a
+                                 Volcanology,   very useful tool for detecting volcanic activity on a global scale. MIROVA (Middle Infrared
+                    a section of the journal    Observation of Volcanic Activity) is an automatic volcano hot spot detection system,
+                Frontiers in Earth Science      based on the analysis of MODIS data (Moderate Resolution Imaging Spectroradiometer).
+                                                The system is able to detect, locate and quantify thermal anomalies in near real-time, by
+        Received: 17 September 2019             providing, on a dedicated website (www.mirovaweb.it), infrared images and thermal flux
+        Accepted: 30 December 2019              time-series on over 200 volcanoes worldwide. Thanks to its simple interface and intuitive
+                                                representation of the data, MIROVA is currently used by several volcano observatories
+           Published: 27 January 2020           for daily monitoring activities and reporting. In this paper, we present the architecture
+                                                of the system and we provide a state of the art on satellite thermal data usage for
+                                     Citation:  operational volcano monitoring and research. In particular, we describe the contribution
+       Coppola D, Laiolo M, Cigolini C,         that the thermal data have provided in order to detect volcanic unrest, to forecast
+                                                eruptions and to depict trends and patterns during eruptive crisis. The current limits
+            Massimetti F, Delle Donne D,        and requirements to improve the quality of the data, their distribution and interpretation
+  Ripepe M, Arias H, Barsotti S, Parra          are also discussed, in the light of the experience gained in recent years within the
+
+           CB, Centeno RG, Cevuard S,
+        Chigna G, Chun C, Garaebiti E,
+     Gonzales D, Griswold J, Juarez J,
+        Lara LE, López CM, Macedo O,
+ Mahinda C, Ogburn S, Prambada O,
+
+          Ramon P, Ramos D, Peltier A,
+Saunders S, de Zeeuw-van Dalfsen E,
+Varley N and William R (2020) Thermal
+
+   Remote Sensing for Global Volcano
+          Monitoring: Experiences From
+                      the MIROVA System.
+                   Front. Earth Sci. 7:362.
+         doi: 10.3389/feart.2019.00362
+
+Frontiers in Earth Science | www.frontiersin.org  1  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                              Thermal Remote Sensing for Volcano Monitoring
+
+                volcanological community. The results presented clearly demonstrate how the open
+                access of satellite thermal data and the sharing of derived products allow a better
+                understanding of ongoing volcanic phenomena, and therefore constitute an essential
+                requirement for the assessment of volcanic hazards.
+
+                Keywords: thermal remote sensing, global volcano monitoring, MIROVA, MODIS, thermal unrest, eruption
+                forecasting
+
+INTRODUCTION                                                                Space (MOUNTS) project1, although in an embryonic stage,
+                                                                            can be considered a first prototype of such integrated system,
+Volcano monitoring consists of continuous, real-time,                       since it includes near-real time multi-parametric analysis (UV,
+acquisition and processing of numerous data that describe                   IR and microwaves) derived from the ESA Sentinel constellation,
+the behavior of a volcano (e.g., earthquakes, ground movement,              at several volcanoes (Valade et al., 2019). However, apart
+gas emissions, remote-sensed data) in order to detect any sign of           from this example, a comprehensive integration of space-based
+change that may precede an eruption (Sparks et al., 2012; Pallister         datasets into an operational system for global volcano monitoring
+and McNutt, 2015; Newhall et al., 2017). It likely represents the           is at this time only envisioned, with several distinct groups
+only scientifically valid approach for short-term forecasts of a            working on a single RSO (deformation, degassing, ash, thermal;
+future eruption, or possible changes during an ongoing eruption             Reath et al., 2019a).
+(Tilling, 2008).
+                                                                               During the past two decades, numerous volcanic hot-spot
+   Volcanic monitoring can be viewed as a form of continuous                detection systems have been developed in order to detect,
+learning by the scientific community, in which the greater the              localize and quantify the presence of thermal anomalies produced
+amount of information available, the greater the understanding              by volcanic activity (Harris, 2013; Ramsey and Harris, 2013).
+of the volcanic phenomena in progress, and the better the                   In Supplementary Table S1, we have compiled a list of all
+ability to forecast future eruptive scenarios (Winson et al.,               the systems currently operating in real time of which we
+2014). In this context, satellite data are a reliable source of             are aware, although other systems may be operated locally.
+information, especially for monitoring the large number (50%)               These systems are based on different sensors having distinct
+of potentially active volcanoes (1400) still lacking conventional           spatial, temporal and radiometric resolution so that each of
+ground-based instruments (Brown et al., 2015; Pritchard et al.,             them is different from the others in terms of performance
+2018; Delgado et al., 2019). Nonetheless, even at well-monitored            and usability for research and volcano monitoring (Steffke
+volcanoes, satellite data offer a spatio-temporal view of eruptive          and Harris, 2011). The scientific results achieved thanks to
+phenomena that may fill gaps left by ground based instruments               the open data elaborated by these systems are remarkable
+(Ebmeier et al., 2018).                                                     and in continuous growth (Harris, 2013; Ramsey and Harris,
+                                                                            2013). However, their use from an operational point of view,
+   The acquisition of satellite images and data for volcanological          that is, during the daily monitoring or during an eruptive
+applications is continuously and rapidly growing (Ramsey and                crisis, remains little known and poorly described. In particular,
+Harris, 2013; Furtney et al., 2018; Pritchard et al., unpublished),         what information is most useful to the observatories and how
+so that big data analysis techniques (i.e., artificial intelligence and     this information should be communicated/interpreted in (near)
+machine learning) are progressively used for research purposes              real time remains a topic of broad interest, especially for
+and for monitoring activity (Piscini and Lombardo, 2014;                    the future development of these systems and their integration
+Anantrasirichai et al., 2018; Valade et al., 2019). In particular, with     with other satellite- or ground-based monitoring networks
+the advent of the new millenium, and with the development of                (Pritchard et al., unpublished).
+internet, the dissemination and sharing of satellite data/products
+can be considered a pillar of open science in volcanology, also                In this work, we describe the architecture of the system named
+thanks to the growing availability of open data by space agencies           Middle Infrared Observations of Volcanic Activity (MIROVA)
+(Delgado et al., 2019).                                                     and its use by more than 17 volcano observatories/Institutions
+                                                                            in charge of monitoring more than 650 volcanoes around the
+   At present, four main types of Remote Sensing Observations               globe (Supplementary Table S2). Based on the experiences of
+(RSO) provide different insights into the key processes occurring           the individual observatories (summarized in the Supplementary
+within a volcanic system. These are: (i) ground deformation, from           Appendix), we then deduced what is the contribution of the
+microwaves; (ii) SO2 degassing, from ultraviolet and infrared; (iii)        satellite thermal data to the daily monitoring of volcanoes in
+ash emission, from infrared; and (iv) heat flux, from infrared.             extremely different geological and socio-economic contexts. The
+                                                                            use of the results provided by MIROVA makes it possible
+   Recent scientific pilot projects, as the European Volcano                to understand the current limits of thermal remote sensing
+Observatory Space Services, EVOSS (Tait and Ferrucci, 2013)                 systems and the requirements to further develop an open science
+and the Committee on Earth Observation Satellite (CEOS)                     tool to support the assessment and mitigation of volcanic risk
+Volcano Pilot Project (Delgado et al., 2019), demonstrated the              at global scale.
+potential of integrating these space-based data for forecasting
+eruptions (Furtney et al., 2018), stressing the need to develop             1http://mounts-project.com/
+a volcanic monitoring system to support volcano observatories
+(Pritchard et al., unpublished). The Monitoring Unrest From
+
+Frontiers in Earth Science | www.frontiersin.org                         2  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                         Thermal Remote Sensing for Volcano Monitoring
+
+THE MIROVA SYSTEM                                                      with a latency of less than 3 h2. The continuous screening of
+                                                                       the LANCE daily remote folders (every 5 min), allows timely
+Architecture of the System                                             downloading in the local computer of any newly acquired
+                                                                       MODIS granule imaging at least one target volcano. The
+Middle Infrared Observations of Volcanic Activity is an                downloaded granules are then processed following several steps
+automatic system for detecting thermal anomalies at high               fully described in Coppola et al. (2016a).
+temperatures (>500K), based on the analysis of MODIS
+(Moderate Resolution Imaging Spectroradiometer) data. MODIS               For each analyzed volcano, the original spectral radiance data
+is a sensor mounted on board two NASA satellites, called               (recorded by MODIS in the Middle Infrared [MIR] at 3.959 µm
+Terra and Aqua, in sun-synchronous polar orbit since March             and Thermal Infrared [TIR] at 12.02 µm) are resampled in
+2000 and May 2002, respectively. The main features of                  regular grids of 50 × 50 km (in UTM coordinates) and
+MODIS, useful for volcano thermal monitoring, consist of               processed in order to identify the pixels containing thermal
+its global coverage with spatial resolution of 1 km, temporal          anomalies. This step, or rather the hotspot detection algorithm,
+resolution of about four images/day (at the equator) and the           comprehends the application of spectral and spatial principles
+presence of a dual channel in the mid-infrared (centered               that, combined together, increase the ability to automatically
+at 3.959 microm) with low/high gain settings (providing an             detect hotspots. In particular, the MIROVA algorithm uses the
+extended range of unsaturated data). The general architecture          middle infrared MIR bands at 3.959 µm and thermal TIR at
+of the MIROVA system can be divided into two main parts:               12.02 µm to calculate different spectral indices (such as the
+(a) data download and processing (developed on a local                 Normalized Thermal Index ­ NTI, Wright et al., 2004, and the
+computer) and (b) data dissemination (developed on a website:          Enhanced Thermal Index ­ ETI, Coppola et al., 2016a) that
+www.mirovaweb.it).                                                     enhance the presence of hot objects inside the pixels. In addition,
+                                                                       a series of spatial operations allow us to highlight the pixels
+   Unlike other systems that use MODIS data (e.g., MODVOLC;            having these indices in excess with respect to their surroundings,
+FIRMS; Supplementary Table S1) MIROVA is not strictly                  thus constituting a hybrid and contextual approach for any
+a global monitoring system. In fact, although the algorithm            environmental condition.
+can be applied in any environmental context (Coppola et al.,
+2016a), the data processing chain actually operates only for              Once the contaminated pixels have been identified, the
+a list of selected target volcanoes for which the near real            volcanic radiative power (VRP) is calculated using the MIR-
+time observation is requested. This list of selected targets is        method (Wooster et al., 2003). Specifically, the VRP is
+compiled from the list of the Holocene volcanoes (more than            calculated as:
+1400) of the Global Volcanism Program (2013) by setting
+an "operational flag" to all the volcanoes that need to be             VRP=18.9·Apixel ·                      ( ) npix
+monitored. Volcanoes are also given an identification number
+in accordance with the Global Volcanism Program. The number                                                   i=1
+of monitored volcanoes has gradually increased since the start                                                LMIR,alert -LMIR,bk  i
+of the operational phase (in 2014) and has now reached
+a number equal to 216 units. These targets were gradually              where npix is the number of alerted pixels, LMIR,alert is the
+added to the MIROVA list based on a scientific interest, or            pixel integrated MIR radiance of the ith alerted pixel, LMIR,bk
+following specific requests from the observatories. They now           is the MIR radiance of the background (average radiance of
+cover the most active volcanoes on the globe (Global Volcanism         pixels surrounding the anomaly), Apixel is the pixel size (1 km2
+Program, 2013) with the current number actually limited by             for the resampled MODIS pixels), and 18.9 is a constant of
+the hardware resources of the system and by the amount of              proportionality (see Wooster et al., 2003).
+data to be downloaded and processed daily (about 25 Gb per
+day). Despite this limitation, this architecture makes it possible        The VRP is the main parameter calculated by the MIROVA
+to add other specific targets in case of need (i.e., unrest of a       system and represents the combined effect of the hotspot
+new volcano) without compromising the total system efficiency          area (Ahot) and its integrated temperature (Thot) according to
+in terms of processing time, memory, storage capacity, etc.            Stephan Boltzmann's law (VRP = AhotThot4; being  and  the
+Access to archived MODIS data (available since 2000 and 2002           Boltzmann constant and emissivity, respectively).
+for Terra and Aqua, respectively) also allows analysis and
+reconstruction of 20-year time series for any volcano. However,           It is important to underline that the application of the MIR
+building a complete thermal database for all the volcanoes             method on hotspots of volcanic origin represents the thermal
+currently monitored by MIROVA takes time and is in the                 flux radiated exclusively from the surfaces with T > 500 K
+development phase.                                                     (only the portion of the warmer surface produces sufficient MIR
+                                                                       radiances to be detected by MODIS) and returns the VRP with an
+Download, Data Processing, and                                         error of ± 30%.
+Sensibility
+                                                                          As a whole MIROVA may detect thermal anomalies with VRP
+The original MODIS data (Level 1b ­ calibrated radiances) are          spanning from less than 1 MW to about 50 GW. According to
+downloaded from the LANCE system, which provides them                  the Stephan-Boltzmann's law, the lower detection limit (1 MW)
+                                                                       would correspond to two end-member cases: (i) a hot case
+                                                                       characterized by a vent of 7 m2 and a temperature of 1000C,
+                                                                       or (ii) a cold case characterized by a fumarole field having an area
+                                                                       of 143 m2 and a temperature of 300C.
+
+                                                                       2https://lance-modis.eosdis.nasa.gov/
+
+Frontiers in Earth Science | www.frontiersin.org                    3                                         January 2020 | Volume 7 | Article 362
+Coppola et al.                                                            Thermal Remote Sensing for Volcano Monitoring
+
+Website and Data Dissemination                                            conditions (i.e., clouds/geometry) but they simply represent a
+                                                                          measurement of the thermal radiation reaching the sensor.
+In order to easily and quickly share the real-time observations of
+the system, a dedicated website3 summarizes, and continuously             VRP Time Series
+updates, a series of tables and graphical outputs for any                 The VRP time series can be displayed in both Log and Linear
+monitored volcano.                                                        scale, which summarizes the detected VRP values within the
+                                                                          previous month and year of the MODIS observation (upper and
+   The home page (Figure 1) of this website is constituted by a           lower panel, respectively in Figure 3). Each stem represents a
+world map showing all the monitored volcanoes, and by a table             single detection (one MODIS passage) with a distinction between
+summarizing the latest thermal anomalies detected by the system           proximal (hotspots located within 5 km from the summit are
+(in chronological order). In order to quickly identify the "thermal       represented by blue stems) and distal anomalies (far hotspots
+magnitude" of the hotspot listed in this table, we represent each         located at more than 5 km from the summit, are represented
+detection through a color scale, proportional to the logarithm of         by black stems).
+the detected VRP. This scale is divided into five distinct levels and
+each thermal detection is classified into these subdivisions, based          The time series are displayed in a logarithmic scale (Figure 3)
+on the recorded VRP (Figure 1).                                           to allow the visualization of the large variations in the thermal
+                                                                          intensity that may accompany a single eruption (up to five
+   The interactive map and table take the user to the page                orders of magnitude). Also, the logarithmic scale permits to
+dedicated to each individual volcano, where specific graphical            recognize subtle long-term trends and patterns such as the
+outputs are updated approximately four times per day (according           exponential decays (appearing linear in the log scale plot) that
+to the number of MODIS overpasses) and available online from 1            often accompany the waning phase of an eruption (Wadge,
+to 4 h after image acquisition. These outputs consist of the "Latest      1981). The extrapolation of these trends offers a rapid method
+IR Images," "VRP time series," "Distance from the summit," and a          to qualitatively detect a change from the expected values, possibly
+"Google Earth overlap" which are described in more detail below.          associated with a variation of the behavior of the ongoing volcanic
+                                                                          activity (see section "Eruptive Evolution, Trends and Patterns").
+Latest IR Images                                                          The same VRP time series are also shown with a linear scale ("Rad
+The latest IR Images screen summarizes the latest 10 MODIS                Power" button on the left menu; Figure 3) in order to better
+acquisitions over the target volcano (Figure 2). This display             visualize real intensity changes in thermal activity.
+provides an intuitive and fast overview of the thermal state of
+the volcano during the past 48 h (assuming four images per day).          Distance From the Summit
+Each image displays a grayscale map according to the NTI relative         This screen named "Distance from summit" shows the distance
+to each pixel. When a hotspot is detected, the VRP (in MW) is             from the farthest hot pixel to the summit of the volcano, during
+reported below each image, and the frame colored according to             the last month and last year of activity (upper and lower panel,
+the VRP Scale. The satellite zenith and azimuth are also displayed        respectively in Figure 4). This graph has the dual purpose of (i)
+at the bottom of each image in order to permit a quick evaluation         identifying gradual displacements of the thermal anomaly, for
+of the viewing geometry conditions. This information allows the           example during the advancement of a lava front, or (ii) detecting
+user, who knows the topography of the volcano, to assess whether          sudden changes in the hot spot location, likely associated with
+the observation conditions are favorable or unfavorable to the            the occurrence of forest fires or false alerts (in distal areas
+detection of a hotspot. For example, if a lava dome emerges               of the volcano).
+at the bottom of a deep crater, the observation conditions are
+quite restricted, since in this case (high zenith angle over a               Although the location accuracy remains significant (± 1 km),
+deep crater) the crater's rim could block the line of sight of the        in the case of km-long lava flows, this automatic analysis provides
+sensor and, therefore, the sensor would not detect the hot dome.          a useful estimate of lava front advancement. As an example, in
+Similarly, a lava flow descending on a steep flank of a volcano           Figure 4 we show the case of the eruption of Erta Ale (Figure 4)
+will be poorly imaged by a satellite looking from the opposite            during which the flow front advanced by 12 ± 1 km in 4 months
+side and with a high zenith angle. In this case the VRP could be          (June­September 2017), with an average speed of 100 m day-1.
+underestimated and would not correspond to a real lowering of             Isolated spikes showing thermal anomalies more than 25 km
+the thermal activity.                                                     away from the summit (Figure 4), can be easily identified and
+                                                                          associated with possible fires.
+   The visualization of the last 10 NTI maps allows also a first-
+order evaluation of the cloud fraction, essential for a correct           Google Earth Overlap
+interpretation of the data (e.g., presence/absence of hotspots,           The Google Earth overlap screen shows the last processed image
+intensity and location of the thermal anomaly). In a general way,         superimposed on google map which allows to locate the thermal
+during the course of an eruption user can refer to the latest images      anomaly and estimate its dimensions (Figure 5). In many cases,
+(Figure 2) to follow the detection of thermal activity level and          the overlap of the thermal images on google map can be used to
+evaluate the quality of each VRP related to the weather conditions        verify if the hotspot is located inside or outside a summit crater,
+and the geometry of the satellite acquisition. It is however              for hazard evaluation of the ongoing activity. The estimation
+important to emphasize that the VRP and the color code provided           of hotspot location is also very useful to verify if the thermal
+by MIROVA are not corrected automatically for the acquisition             anomaly is possibly associated to a forest fire (e.g., located over
+
+3www.mirovaweb.it
+
+Frontiers in Earth Science | www.frontiersin.org                       4  January 2020 | Volume 7 | Article 362
+Coppola et al.                                       Thermal Remote Sensing for Volcano Monitoring
+
+FIGURE 1 | Snapshot of the home page of the MIROVA website (www.mirovaweb.it; accessed on 19 November 2018).
+
+FIGURE 2 | Snapshot of the Latest IR Images display posted on MIROVA website for the Fuego volcano, Guatemala (accessed on 19 November 2018).
+
+a vegetated area), anthropogenic source (e.g., located over an All the outputs described in the previous section are
+
+urban/industrial area), or it is a false alert (e.g., located above exclusively made up of static graphs that are continuously
+
+a body of water).                                    overwritten as newer data are processed. The original images
+
+Frontiers in Earth Science | www.frontiersin.org  5                                                           January 2020 | Volume 7 | Article 362
+Coppola et al.                                                         Thermal Remote Sensing for Volcano Monitoring
+
+FIGURE 3 | Snapshot of the "Log Radiative Power" screen posted on the MIROVA website for the Fuego volcano, Guatemala (accessed on 19 November 2018).
+Note the fluctuations in thermal activity in the last month (top right panel), with an evident increase in VRP (almost 2 orders of magnitude) recorded from 14 to 19
+November 2018. The trend of thermal anomalies recorded during the past year (lower panel) shows that after the eruption of the June 3, 2018 the thermal activity of
+Fuego was very low for at least 3 months. However, since September 2018 the radiate heat flux gradually intensified by means of repeated pulses culminating with
+the high VRP recorded on November 19, 2018.
+
+(i.e., 50 × 50 km maps) and time series (numerical tables)             of Stromboli and Etna (Italy) volcanoes4. During major eruptive
+are not archived on a web database and cannot be query and             crises of these volcanoes, the effusion rate and erupted volume
+downloaded. Although this limitation prevents any direct data          calculated from MIROVA were presented and discussed at the
+download, the management of the complete MIROVA database               daily briefing organized by the Volcano Risk management of
+(that currently include a total of more than 2 million images)         the Italian Civil Protection Department (DPC) together with
+would require a large bandwidth and greatly slow down the              the scientific staff of the Istituto Nazionale di Geofisica e
+use of the website.                                                    Vulcanologia (INGV).
+
+   Data sharing is currently done by request through email by             In recent years, and thanks to its easy application on diverse
+the observatories. This practice, although slow and impractical        volcanic environments, the MIROVA system has gradually
+from an operational point of view, allows a continuous exchange        turned into a small pilot project testing the capabilities for global
+of information and discussions between the system developers           volcano monitoring, with the observations now covering the full
+and the end users, not necessarily experts in the interpretation       range of volcanic activities in near real time at 216 volcanoes
+of remote-sensed thermal data.                                         (Coppola et al., 2016a). Currently, the website is routinely used
+                                                                       by 17 volcanological observatories or other institutions in charge
+OPERATIONAL USE OF MIROVA FOR                                          of volcano monitoring (Figure 6 and Supplementary Table S2),
+VOLCANO MONITORING: EXPERIENCES                                        supporting their daily monitoring duties and management
+FROM THE OBSERVATORIES                                                 during eruptive crises. Since 2016, MIROVA is included in the
+                                                                       list of websites consulted by the ARISTOTLE2 program (All
+The MIROVA system was developed in 2013 in collaboration               Risk Integrated System TOward Trans-boundary hoListic Early-
+with the University of Firenze (Italy) for monitoring Italian          warning ­ European Natural Hazards Scientific Partnership)
+volcanoes on behalf of the Italian Department of Civil Protection      for volcanic surveillance on a global scale by the Emergency
+(DPC). Since then, the satellite thermal data have been integrated     Response Coordination Centre (ERCC5). Together with other
+with the ground-based data of the Laboratorio di Geofisica             remote sensing systems, MIROVA is currently used by the
+Sperimentale (LGS) of the University of Firenze to provide to
+the DPC daily/weekly and monthly reports regarding the activity        4http://lgs.geo.unifi.it/
+                                                                       5http://aristotle.ingv.it/tiki-index.php
+
+Frontiers in Earth Science | www.frontiersin.org                    6  January 2020 | Volume 7 | Article 362
+Coppola et al.                                       Thermal Remote Sensing for Volcano Monitoring
+
+FIGURE 4 | Snapshot of the "Distance from summit" figure posted on MIROVA website for the Erta Ale volcano (accessed on 08 June 2018). Note the lengthening
+phase of the lava flow occurred between June and October 2017 with an average flow advancement velocity of 100 m day-1.
+
+FIGURE 5 | Snapshot of the Google Map's overlay posted on MIROVA website for the Piton de la Fournaise volcano, La Réunion Island (accessed on 14 June
+2019). The overlay image represents the Brightness Temperature (BT) recorded by MODIS in the MIR channel, resampled to a spatial resolution of 500 m. Yellow to
+red pixels indicate higher BT values associated to the presence of a cooling lava flow on the upper eastern flank of the volcano.
+
+Frontiers in Earth Science | www.frontiersin.org  7  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                          Thermal Remote Sensing for Volcano Monitoring
+
+FIGURE 6 | Volcanoes currently observed by MIROVA (red triangles) with distribution of observatories (logos within insets) that use MIROVA in support of monitoring
+activities (see Supplementary Table S2 for details).
+
+Volcano Disaster Assistance Program (VDAP), formed in 1986              for monitoring purposes despite the fact that since 2011 the
+to assist foreign partners in mitigating hazards at their country's     ASTER Urgent Request Protocol (URP) system has allowed the
+threatening volcanoes (Lowenstern and Ramsey, 2017).                    continuous increase of acquisitions of new volcanic activity as
+                                                                        quickly as possible (Ramsey, 2016). Due to the lack of operational
+   In order to understand user' experiences and motivation              monitoring systems to analyze high-spatial resolution Short-
+in using the MIROVA system, a survey (see Supplementary                 Wave Infrared (SWIR) images, no observatory uses automatic
+Appendix) was recently conducted, whose results can be                  systems focused on Sentinel 2 or Landsat 8, which have a typical
+summarized in the following four main points.                           revisit time of 5 to 16 days (see Supplementary Table S1). Only
+                                                                        recently this gap has started to be covered by the MOUNTS pilot
+State of the Art of Operational Thermal                                 project that provides automatic Sentinel 2 hotspot detections
+Remote Sensing Systems Currently Used                                   alerts (together with other remote sensed parameters) on specific
+by Volcano Observatories                                                volcanic targets (Valade et al., 2019).
+
+None of the participating observatories has its own automatic           Frequency of Use of MIROVA Website
+detection/quantification hot spot system, but they rely on systems      and Volcano Alert Levels
+developed and maintained by external groups. Although there
+are many thermal remote sensing data available online (see              The experiences reported by the observatories during the past
+Supplementary Table S1), most of them are not operational in            5 years allow us to state that the frequency of use of a satellite
+near real time and in the area of interest. The most used remote        thermal monitoring system such as MIROVA strongly depends
+sensing thermal monitoring systems are those based on moderate          on the specific alert level of each monitored volcano. Many
+resolution sensors, such as MODIS data (MIROVA, MODVOLC,                alert level systems exist in the world, with the majority based
+REALVOLC) or VIIRS (FIRMS), which provide approximately                 on four levels, e.g., the US system developed by the USGS
+2/4 images daily, at a resolution of 1 km. Some observatories           (Normal, Advisory, Watch, and Warning). Each country (or
+also use automatic systems based on higher sampling rate data           volcano) has a specific scale which is adapted to the particular
+(e.g., HOTVOLC, HOTSAT based on SEVIRI data), which are                 volcanological, environmental, social, political and economic
+particularly useful for tracking volcanic plumes or for detecting       context (Fearnley et al., 2012). For each level there is therefore
+high-radiating effusive eruptions. Others use the available ASTER       a different need/urgency to have up-to-date data on the thermal
+data (i.e., ASTER Image database for Volcanoes), based on               state of the volcano which can be summarized as follows:
+TIR observations, which enable to detect low-level thermal
+activity (such as fumarole fields) but with longer revisit time         Normal
+(e.g., >15 days; Reath et al., 2019a). The lack of a near-real          Volcano is in typical background, non-eruptive state or, after
+time data dissemination system makes this resource less used            a change from a higher level, volcanic activity has ceased and
+
+Frontiers in Earth Science | www.frontiersin.org                     8  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                             Thermal Remote Sensing for Volcano Monitoring
+
+volcano has returned to non-eruptive background state. The                 During volcanic unrest, the appearance of a hotspot is indicative
+thermal state of volcanoes at this level is typically checked              of the breaking of the magmatic system through the surface.
+on a monthly basis (e.g., Vesuvius, Italy) or occasionally, for            In the case of MIROVA, which only detects high-temperature
+example to verify reports or rumors (e.g., Cumbal, Colombia;               features, such appearance is commonly ascribed to the presence
+Mt. Scenery, Saba Island ­ Netherlands). Automatic alerting                of magma at the surface, or at very shallow depths (Laiolo et al.,
+systems (for example, by sending emails) can facilitate the                2019). For example, during the eruptive crisis of Ubinas in 2014,
+immediate detection of hotspots. This is especially useful in              the detection of a small thermal anomaly inside the deep crater
+remote volcanoes in a quiescent state (Normal alert level), when           signaled the first appearance of a lava dome (confirmed only
+thermal state is irregularly controlled and for which there are no         later by observations on the ground) after several days of seismic
+other operational monitoring systems.                                      unrest. The opening of a magma path marked the beginning
+                                                                           of an intense explosive activity that culminated few weeks later
+Advisory                                                                   in a series of major explosions (Coppola et al., 2015). The fast
+Volcano is exhibiting signs of elevated unrest above known                 detection of thermal anomalies is therefore very important to
+background level or, after a change from a higher level, volcanic          indicate the opening of the system, and coupled with other
+activity has decreased significantly but continues to be closely           geophysical parameters often leads the rise of the alert level,
+monitored for possible renewed increase. Several volcanoes may             as recently occurred at Sabancaya (Perù) (Reath et al., 2019b).
+persist at this levels for several months or years showing                 On the other hand, the absence of a thermal anomaly is also
+persistent thermal anomalies (e.g., Stromboli, Italy; Villarrica,          important, and may help to discard any possible surface activity
+Chile). The typical frequency of use in this case is one to several        associated with deep seismic activity. This occurred for example
+times per week, in accordance with the reporting tasks of each             at the Galeras and Chiles-Cerro Negro (Colombia) volcanoes,
+observatory. In these cases, automatic alert systems, by setting           which experienced some seismic swarms in the last 4 years (2015­
+up specific thresholds, can be used to warn the end-user(s)                2019) without showing any kind of surface activity (Ebmeier
+of a sudden increase in thermal activity that may lead to a                et al., 2016). In other cases, and especially during clear waning
+higher alert level.                                                        phase, the persistence of thermal anomalies is useful to determine
+                                                                           the thermal state of the associated lava bodies. At Momotombo
+Watch                                                                      (Nicaragua), where lava flowed down the flank during the 2015
+Volcano is exhibiting heightened or escalating unrest with                 eruption, from visual observation it appeared like the eruption
+increased potential of eruption, timeframe uncertain, or eruption          had ceased and that the optically black lava had cooled. However,
+is underway but poses limited hazards. In this case, the thermal           thermal data showed that the lava near the summit and along
+data are typically checked on a daily basis, just before briefing or       the flow was still hot. Thermal anomalies, combined with seismic
+to write the daily reports (e.g., Etna, Italy, during major lava flows     activity, suggested that the lava extrusion was still feeding the flow
+or paroxysms; Piton de la Fournaise, Réunion Island, during                and that the potential advancement for lava flow front/perimeter
+eruptions). At this alert level, the daily comparison of thermal           was still present. Generally, the presence or absence of thermal
+data with other parameters (seismic, outgassing, deformation) is           anomalies is often used to depict the beginning and the end
+usually an integral part of the discussions within the observatory,        of eruptive episodes, especially for which direct or indirect
+and for analysis and evaluation of the ongoing volcanic activity.          observations from other monitoring systems are not available.
+
+Warning                                                                    Intensity
+Hazardous eruption is imminent, underway, or suspected. During
+imminent eruptions or ongoing eruptions, the thermal data                  The intensity of the thermal anomaly, referred to as VRP, is
+are checked daily or hourly during crisis (e.g., Bardarbunga,              the fundamental parameter of MIROVA and constitutes the
+Iceland [August 2014]; Agung, Indonesia [August 2017]; Kilauea,            main added value compared to other systems able to detect
+United States [May 2018]). In these warning conditions, each               the presence/absence of hotspots, without quantifying their
+dataset must be more frequently updated. A screen grab of the              intensity in terms of radiated energy. Besides being a direct
+MIROVA website is often displayed in the monitoring acquisition            measurement of radiated thermal energy, the VRP can be used
+rooms during eruptive crisis (e.g., Nevado del Ruiz, Colombia;             to calculate the area or the temperature of the lava body
+Manam, Papua New Guinea).                                                  using Stephan-Boltzmann law (see details in section "Download,
+                                                                           Data Processing, and Sensibility"), if at least one of the two
+What Kind of Information Is Retrieved                                      variables can be estimated (or assumed) independently. The
+From MIROVA                                                                area or temperature of a lava dome is a parameter that can
+                                                                           be easily understandable even by non-experts, and provides a
+The most useful information to get from a hotspot detection                clear idea of the size of the phenomenon underway. Moreover,
+system such as MIROVA, according to volcano observatories, is              during effusive eruptions, the VRP can be used to calculate the
+summarized in the following four parameters:                               Time Averaged lava Discharge Rate (TADR) and the volume of
+                                                                           erupted lava, subject to a calibration of the conversion factors
+Presence or Absence of Thermal Anomalies                                   or a basic knowledge of the type of erupted lava (Coppola
+The first and most direct information obtainable from a hotspot            et al., 2016a; Bernard et al., 2019). These second level products
+detection system is the presence/absence of thermal anomalies.             (Area, Temperature, TADR, Volume) are important for hazard
+
+Frontiers in Earth Science | www.frontiersin.org                        9  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                             Thermal Remote Sensing for Volcano Monitoring
+
+evaluation and communication, and require data independent of              Eruptive Evolution, Trends, and Patterns
+the satellite monitoring system as well as interpretation skills by        In conjunction with seismic, gas geochemistry, visual change
+the end-user. Finally, the quantification of the thermal activity          and deformation data, MIROVA provides an initial check for
+by means of a parameter that compute in a standardized and                 level and type of activity at volcanoes, e.g., the occurrence of
+consistent way (such as the VRP), allows for the comparison                lava flows, domes or simply hot, degassing open vents. Being
+between different volcanoes or between different eruptions                 able to track relative changes in thermal output (i.e., VRP) as
+of the same volcano. Statistical analysis of the VRP allows                a time series, provides a useful assessment of any changes in
+identification of distinct thermal regimes (Coppola and Cigolini,          activity, although a lack of thermal data does not necessarily
+2013) and may be used to detect change of activity, such as                means a volcano is cooling off (it can be due to cloud or thick ash
+from Strombolian activity to effusive activity (Coppola et al.,            cloud cover). Stationary, waning or intensifying trends obviously
+2013, 2019a; Naismith et al., 2019; see section "Forecasting               have different implications on the evaluation of the hazards and
+Eruptive Trends"), or the occurrence of episodes of dome growth            can be used (modeled) to define future eruptive scenarios, and
+(Werner et al., 2017). During the growth of a new spatter cone             possibly to make forecasts. At Piton de la Fournaise (La Réunion
+on February 29, 2016 inside the Nyiragongo Crater, MIROVA                  Island), the knowledge of the effusion rate trend (derived from
+data were used to eventually advise about anomalous large                  thermal data), in combination with previously generated models
+thermal emissions within the lava lake and/or the presence of              of the likely lava flow path, has been useful to predict whether
+active lava flows in areas around the volcano (see details in the          the flow will tend to lengthen or shorten, and whether the
+following section).                                                        lava flows will reach the sea, cutting the national road that
+                                                                           goes around La Réunion Island (Harris et al., 2017, 2019).
+Location/Dimension of the Hotspot and Its Distance                         Moreover, by comparing this variable with the gas flux and
+From the Volcanic Summit                                                   deformation rate, it is possible to analyze the balance of the
+Locating the thermal anomaly with precision is fundamental                 erupted/degassed material and eventually to quantify magmatic
+to recognize the type of activity in progress, to assess the               intrusions or endogenous growth (Coppola et al., 2017, 2019a).
+areas at risk and possibly to be able to run forecast models               During the Holuhraun (Iceland) eruption 2014­2015, MIROVA
+(for example, forecasting flooding of lava flows; Harris et al.,           was regularly checked to monitor the level of activity at the
+2016). The ability to promptly locate these anomalies is closely           eruption site (Barsotti et al., 2019), to estimate of lava discharge
+linked to the spatial and temporal resolution of the sensor used.          rate and, eventually, to declare the end of the eruption based
+With its 1 km pixel, the MIROVA system does not have the                   on the observed eruptive trend (Coppola et al., 2017). In the
+spatial resolution sufficient to locate the eruptive vents precisely.      case of Nevado del Ruiz (Colombia), MIROVA's thermal anomaly
+However, in most cases, this moderate resolution was found                 data matched very well with shallow seismicity increments, ash
+to be sufficient to discriminate between intra-crater anomalies            emissions (seismically associated to volcanic tremor), large SO2
+(produced, for example, by the fissure opening, lava dome                  fluxes, tiltmeters inflationary trends, etc. The largest VRP values
+extrusion, development of high-temperature fumarole fields,                have been clearly associated with magma ascent to shallower
+appearance of lava lakes) and lateral anomalies (associated with           levels of the volcanic conduit and surface magma extrusion
+lava flows or large pyroclastic flows descending the flanks of             process (lava dome emplacement within the inner part of crater).
+the volcano). This information, supplied in a relatively short             During the 2018­2019 Manam (Papua New Guinea) eruptions
+time (e.g., few hours), was fundamental for hazard evaluation              (Global Volcanism Program, 2019), the thermal trends provided
+and to timely forecast the eruptive scenarios. It is also useful           confirmation that increased RSAM was due to renewed activity
+tool to detect lava flows generated from more distal flank                 and that the activity involved the effusion of lava flows, and
+fissures, although naturally, there are many false positives (i.e.,        in what direction the flows were moving. After reaching the
+fires). At effusive eruptions, thermal data can be used to                 climax, the thermal data also indicated the waning of the activity,
+map (at low resolution, e.g., 1 km) lava flow emplacement                  suggesting that the effusive event was coming to an end. Similarly,
+in order to detect the position of the flow front and track                during the 2014 eruption of Ubinas (Peru), the increasing VRP
+the formation of lava tubes (Coppola et al., 2019a). At dome-              values were compared with the state of seismicity, as well as with
+forming volcanoes, such as Sinabung (Indonesia), the spatial               other parameters (such as ash or SO1 missions, etc.; Coppola
+distribution/extension of the thermal anomalies allows for an              et al., 2015) to provide, eventually, recommendations to the civil
+assessment of stable dome growth, indicated by cluster of                  protection authorities for the evacuation of the population.
+hot pixels at the summit, while for collapsing dome materials
+(large rock fall or pyroclastic density currents) and viscous lava         How Thermal Data Are Used
+flow, the hot pixels will be aligned with a channel down the
+flank. In the case of hot pixels down a channel, the sector                The use of the observations/images/data obtained from MIROVA
+and distance of furthest pixels provides a rapid estimate of               is highly varied and depends fundamentally on four factors:
+hazardous areas that ought to be maintained as part of an                  (i) the presence and (quality) of a ground-based monitoring
+exclusion zone. This becomes critical as eruption duration                 network; (ii) the accessibility of the volcano; (iii) the alert level;
+spans years and societal pressure on local officials to re-open            and (iv) the type of activity in progress.
+evacuated areas increases (see Supplementary Appendix ­
+VDAP Survey).                                                                 Remote-sensed thermal observations clearly provide
+                                                                           invaluable information for volcanoes not monitored in other
+                                                                           ways, and may represent the only evidence of ongoing volcanic
+
+Frontiers in Earth Science | www.frontiersin.org                       10  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                              Thermal Remote Sensing for Volcano Monitoring
+
+activity (Coppola et al., 2016a). These data may provide                    an important precursor and a clear symptom of volcanic unrest
+fundamental indications on the evolution of the unrest/eruption             (Reath et al., 2016). A recent review (Furtney et al., 2018) suggests
+(e.g., stationary, increasing, decreasing), although incomplete.            that about 19% of major eruptions are anticipated by thermal
+                                                                            precursors detected by satellites, although the mere presence of
+   When an eruption begins, remote sensing methods allow the                thermal activity to a volcano does not necessarily constitute a
+surveillance of volcanic phenomena, and help minimizing the                 change from its background level.
+risks associated with direct exposure of observers to the activity.
+Often, it is very difficult, impossible, or too expensive to make              The MIROVA archive now embeds 65 of 72 volcanoes
+frequent observations of the volcanoes' summit, as well as to               that after 2002 produced at least one VEI 3 eruption (Global
+measure directly lava flows, domes or fumarole temperatures. It             Volcanism Program database, accessed on 26 June 2019).
+is usually impossible to conduct frequent airborne observations             A preliminary analysis suggests that only 4 to 5 volcanoes of these
+within the crater, so MIROVA data are useful to get a longer                65 MIROVA targets, displays anomalies that can be considered as
+time series for routine monitoring, to verify reports, rumors, or           a thermal precursor of the upcoming VEI 3 eruption (Figure 7).
+provide observations for internal and wider discussions before              This number possibly increases if we consider less explosive
+making a decision to assess the level of activity at the volcano.           eruptions and changes from background activity at persistently
+                                                                            active volcanoes. However, from our analysis, only 6­8% of the
+   At basaltic volcanoes equipped with a large ground-based                 volcanoes seem to develop thermal unrest before a VEI 3 eruption
+monitoring network, such as Stromboli, Etna, Piton de la                    detectable by MIROVA. It is interesting to note that the thermal
+Fournaise, etc., MIROVA is commonly used to estimate time-                  unrest observed at these volcanoes shows unique behavior in
+averaged lava discharge rates (TADR) and erupted volumes in                 terms of duration, pre- and post-eruption trends, as described
+near real time (Coppola et al., 2019a; Laiolo et al., 2019), to define      below (Figures 7a­e):
+imminent eruptive scenarios (Ripepe et al., 2017) and to model
+the path and length of lava flows (Harris et al., 2017, 2019).              Sabancaya, Perú (Development of Fumarole Fields ­
+                                                                            Figure 7a)
+   In summary, the processed data provided by MIROVA                        This is the archetype of thermal unrest consisting of the gradual
+are used by the observatories in different ways, but essential              appearance of very low-level thermal anomalies (< 1MW)
+for monitoring activities, internal discussions on the volcano's            localized at the bottom of a summit crater. It is associated with
+activity level and for real-time calculations of the erupted volume         the slow (860 days for Sabancaya) development of a fumarole
+and eruptive trend. This information actually converges to                  field within the crater area, showing a slight increase in the
+activity reports (daily, weekly, monthly or extraordinary reports),         area and temperatures of fumaroles and almost constant water-
+in which the thermal data are integrated with other monitoring              vapor and SO2 plumes rising from the crater (Global Volcanism
+parameters in order to evaluate the state of activity and to                Program, 2016). The explosive VEI 3 eruption definitely opened
+maintain situational awareness.                                             the magma path and allowed the underlying magma to come
+                                                                            to the surface producing evident and more persistent thermal
+   The Volcano Disaster Assistance Program (VDAP) also                      anomalies (Figure 7a).
+includes the use of the website at trainings offered at volcano
+observatories where they are just starting to use remote sensing            Santa Ana, El Salvador (Rupture of Hydrothermal
+as part of their volcano monitoring. The MIROVA website is                  System ­ Figure 7b)
+freely accessible to observers who do not necessarily have the              In this case the thermal unrest has a pre-eruptive phase
+background knowledge or funding support for more elaborate                  characterized by a long (376 days) and gradual development
+remote sensing analysis. Furthermore, the website is reliable,              of a high-temperature fumarole field developing on the border
+immediately accessible and requires no maintenance on their part            of an acidic crater lake. Possibly, this type of thermal precursor
+beyond reliable internet connectivity.                                      develops in response to a magmatic injection at very superficial
+                                                                            levels, which causes the rupture of the hydrothermal system
+KEY-CASE STUDIES                                                            feeding the acidic lake (Laiolo et al., 2017). Notably, the
+                                                                            interaction between the fumarolic field and the crater lake may
+Below we summarize some case studies for which MIROVA                       eventually cause a "decrease" in thermal activity due to self-
+satellite thermal data proved to be an essential element in the             sealing phenomena that may precede a major explosion (Laiolo
+detection and characterization of volcanic (thermal) unrest, in             et al., 2017). Unlike the previous case, the explosive event is
+the forecast of eruptions and in the recognition of particular              not followed by a magmatic eruption (with lava dome extrusion
+trends and patterns.                                                        and/or recurrent ash-explosions), but it is characterized by the
+                                                                            almost total, definitive absence of a thermal anomaly (Figure 7b).
+Thermal Unrest
+                                                                            Llaima, Chile (Rise of Magmatic Column ­ Figure 7c)
+Volcanic unrest is commonly defined as a change from "normal                This type of thermal precursor may occur in basaltic and
+state" at a volcano, or deviation from its background behavior              basaltic-andesitic volcanoes characterized by the reactivation of
+(Gottsmann et al., 2017). Seismic activity, surface deformation,            the central vent after a period of quiescence. The unrest phase
+heat or gas emissions can be used as unrest indicators for a certain        is typically characterized by an evident increase in thermal
+volcano and need to be interpreted to be able to implement
+timely mitigation actions (Phillipson et al., 2013). The appearance
+of thermal anomalies before an eruption is often considered as
+
+Frontiers in Earth Science | www.frontiersin.org                        11  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                        Thermal Remote Sensing for Volcano Monitoring
+
+FIGURE 7 | Five cases of thermal unrest detected by MIROVA: (a) Sabancaya, (b) Santa Ana, (c) Llaima, (d) Bezymianny, (e) Tinakula. The red dashed line indicates
+the occurrence of a large explosion (VEI 3). The gray fields indicate the periods showing precursory thermal activity. The duration of each thermal unrest phase is
+indicated with arrows. Note how each volcano shows different behavior of thermal unrest in terms of duration, pre-eruptive level and trend, as well as post-eruptive
+pattern. See the text for more details.
+
+anomalies inside the summit crater, corresponding to the opening      activity is followed by a further intensification of the effusive
+of the system, followed by the ascent of the magmatic column          activity with the consequent emission of lava flows along
+and by increasing explosive activity (Franco et al., 2019), that      the flanks of the volcano (Global Volcanism Program, 2008;
+culminates with a paroxysmal phase (Figure 7c). The explosive         Bouvet de Maisonneuve et al., 2012).
+
+Frontiers in Earth Science | www.frontiersin.org                  12  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                            Thermal Remote Sensing for Volcano Monitoring
+
+Bezymianny, Kamchatka (Increase in Dome Extrusion                         to the degree of openness of the shallow magmatic system.
+Rate ­ Figure 7d)                                                         A more detailed analysis, which also considers the possible
+Activity of Bezymianny consists of ongoing lava-dome growth               appearance/variation of thermal anomalies before the numerous
+inside a large horseshoe-shaped crater, accompanied by                    VEI 1-2 eruptions that have occurred in the MODIS era, will
+intermittent explosive activity and pyroclastic flows. As already         surely help to clarify whether there is a correlation between the
+advised by previous works (van Manen et al., 2010, 2013), some            timing and intensity of thermal unrest and the magnitude of the
+major explosions of Bezymianny are preceded by weeks of                   explosive eruption.
+gradual increase of the thermal anomaly, thus constituting one
+of the most robust precursors for this remote volcano. In this            Forecasting Eruptive Trends
+case the thermal precursor occurred at a volcano characterized
+by a persistent, low level thermal activity, associated with              Forecasting the time and scale of a volcano eruption is the
+the presence of degassing hot cracks and minor explosions.                goal of several monitoring and research efforts (see Marzocchi
+The increase of VRP prior to large explosions (Figure 7d)                 and Bebbington, 2012 for a review). Generally, with eruption
+has been attributed to an increase in the dome extrusion rate             forecasting we mean the ability to evaluate the occurrence of
+(van Manen et al., 2010, 2013).                                           a volcanic eruption on the basis of a probabilistic approach.
+                                                                          Forecasting what happens after eruption onset, or when
+Tinakula, Solomon Islands (Sudden Opening of                              an eruption will come to an end is also critical for the
+Magma Path ­ Figure 7e)                                                   decision-making procedure and for updating eruptive scenarios
+After more than 5 years of quietness, on 19 October 2017, a               (Bebbington and Jenkins, 2019).
+low thermal anomaly was detected by MIROVA at the Tinakula
+volcano. This small thermal precursor was the unique sign of                 As illustrated in the previous paragraph, in most cases, the
+renewed eruptive activity at this remote volcano and preceded             MIROVA data do not record thermal precursors before > VEI
+by only 2 days the large VEI 3 explosion which occurred on                3 eruptions and therefore in many cases do not allow to make
+21 October (Global Volcanism Program, 2018; Laiolo et al.,                forecasts of imminent major explosive eruptions (with some
+2018). This short unrest is probably a limit case for MIROVA-             important exceptions; Figure 7). However, thermal data show
+type systems (i.e., based on Moderate Resolution data) and                their strength during the course of eruptions, allowing, in some
+suggests that the first thermal anomaly, detected after a several         cases, the generation of forecasts of future activity based on the
+year-long period of quiescence, must be seriously evaluated and           analysis of eruptive trends (Bonny and Wright, 2017).
+can represent a solitary short-term precursor of an incoming
+major eruption. On the other hand, it also outlines the need                 Many effusive eruptions show a characteristic exponential
+to have thermal satellite data with a high temporal resolution            decrease of effusion rates over time, ascribed to elastic or inelastic
+by keeping a high efficiency and a very limited number of                 processes occurring within the decompressing magmatic system
+false alerts. In the specific case of Tinakula it was necessary           (Wadge, 1981; Coppola et al., 2017). In Figure 8a we show the
+the post-event supervision (e.g., after the VEI 3 explosion) of           TADR and erupted volumes, reconstructed through the MIROVA
+the image of October 19, in order to exclude that it was a                data, for the April 2018 eruption of Piton de la Fournaise (Harris
+false alert. Actually, one real problem is how to assess the              et al., 2019) that can be considered as archetypal for this type of
+accuracy of each thermal alert, since there will always be a              trend. Taking into account the uncertainty in the TADR estimates
+possibility of false or non-volcanic alerts. Fires constitute non-        (typically between 30 and 50%; Coppola et al., 2019b), several
+volcanic heat sources frequently detected in volcanic areas, but          types of predictions are possible. For example, the initial flow rate
+their distinction from volcanic hotspots cannot currently be              (Q0) can be used (as soon as the MODIS data has been processed)
+done on a spectral basis. In addition, a smaller but variable             within an effusive response protocol (Harris et al., 2017, 2019),
+percentage of false alerts, generally comprised between 0 and             to timely provide the observatory flow path projections and
+3% (number of false alerts/number of MODIS overpasses), is                maximum run-out of the emplacing lava flow (Figure 8b).
+detected by the MIROVA system at different volcanoes (Coppola
+et al., 2016b). These false alerts depend on the regional and local          Once the exponential trend has become recognizable, as in
+environmental conditions as climate, elevation, topography and            the case of the Bárðarbunga-Holuhraun (Iceland) 2014­2015
+land cover type.                                                          eruption, extrapolation from initial data can be used to evaluate
+                                                                          final (or intermediate) erupted volumes (Figure 9a), useful, for
+   With the exception of these five cases, our data suggest that          example, to run simulation codes for lava flow invasion maps
+most of VEI 3 eruptions are not preceded by thermal anomalies             (Tarquini et al., 2019).
+detectable by monitoring systems such as MIROVA. This is
+possibly due to the sensitivity of this type of systems that fail            Projection of effusion rate trends to the future (black line
+to detect small, low-intensity thermal anomalies. Indeed, the             Figure 9b) may also be used to forecast/predict the end of this
+percentage of thermal unrest rises considerably if thermal data           type of eruptions (Coppola et al., 2017). In fact, before the
+with higher spatial resolution are used as suggested by Furtney           end of the Bárðarbunga-Holuhraun eruption there was a drastic
+et al. (2018) and Reath et al. (2019a). On the other hand, it cannot      decrease in the effusion rates with respect to the model based
+be excluded that the appearance of thermal precursors and the             upon the exponential curve. In this case, the phenomenon was
+explosivity index of the subsequent eruption are somehow related          attributed to the gradual closure of the dike, once the effusion
+                                                                          rates (or driving pressure) dropped below a critical value (yellow
+                                                                          star in Figure 9b). The detection in real-time of a change from the
+                                                                          expected trend can therefore be useful information to estimate
+                                                                          when the eruption end (Coppola et al., 2019a).
+
+Frontiers in Earth Science | www.frontiersin.org                      13  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                         Thermal Remote Sensing for Volcano Monitoring
+
+FIGURE 8 | (a) Middle Infrared Observations of Volcanic Activity-derived TADR (blue circles) and cumulative volume (red circles) provided to the Observatoire
+Volcanologique du Piton de la Fournaise (OVPF) during the April 2018 eruption. Q0 is the initial flow rate, used to model the maximum runout of the emplacing lava
+flow (modified from Harris et al., 2019). (b) Lava flow inundation map derived from ingestion of MIROVA-derived TADR into DOWNFLOW-PyFLOWGO models. The
+numbers (in m3 s-1) next to each star correspond to maximum and minimum estimate of Q0 measured on 28 April 2018. Overlain are the limits of the flow field
+defined from InSAR incoherence (blue outline) and field mapping (yellow outline) on the same dates. Background shows the DOWNFLOW inundation area (modified
+
+from Harris et al., 2019).
+
+FIGURE 9 | (A) Extrapolation of the cumulative erupted volume during the Holuhraun 2014­2015 eruption, based on the initial 5 weeks of observations (modified
+from Tarquini et al., 2019), (B) Time-averaged lava discharge rate (TADR) measured during Holuhraun eruption (Iceland) (black circles; modified from Coppola et al.,
+2017) shows exponential decay of effusive activity. Departure from exponential trend began on 27 January 2015 and preluded the end of the eruption on 27
+February. The yellow star indicates the critical flow rate Qc of 50 m3 s-1 when dike started to close. Numbered circles indicate main steps of eruption: (1) start of
+rifting episode and lateral magmatic injection; (2) start of caldera subsidence; (3) start of effusive eruption; (4) closure of lateral dike; and (5) end of eruption (modified
+from Coppola et al., 2017).
+
+   At persistently active volcanoes, such as Etna or Stromboli,        above which the ascending magma can no longer be recycled
+the long-term analysis of MIROVA data has allowed the                  in the conduit, and must be partially or completely extruded
+determination of specific thresholds (Figure 10) that separates        through effusive activity. The definition of these thresholds (blue
+the typical open-vent activity (with continuous degassing and          dashed lines in Figure 10), allows the separation of the different
+intermittent strombolian activity), from more intense phases           regimes of activity, making it possible to track the rise of magma
+characterized by effusive activity and/or fountaining episodes         within the conduit and to advise about potential transitions
+(Coppola et al., 2013, 2019a). According to the authors, these         toward magma effusion (Valade et al., 2016; Ripepe et al., 2017;
+thresholds represent a critical magma flux (about 0.1­0.3 m3 s-1)      Laiolo et al., 2019).
+
+Frontiers in Earth Science | www.frontiersin.org                   14  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                            Thermal Remote Sensing for Volcano Monitoring
+
+FIGURE 10 | Two-years long time-series of MIROVA-derived TADR for Etna (A1) and Stromboli (B1) volcanoes (modified from Valade et al., 2016 and Laiolo et al.,
+2019, respectively). A threshold separating the Strombolian and the effusive regime, is calculated from the statistical analysis of log-transformed TADRs (A2,B2) that
+outline the bimodal behaviors of magma flux.
+
+LIMITS AND FUTURE DEVELOPMENTS                                            (Koeppen et al., 2011), but this would require the collection
+                                                                          and analysis of many more bands, including ancillary metadata
+The surveys carried out by the observatories (Supplementary               and other atmospheric properties for every acquired image.
+Appendix) highlight the current limits of the MIROVA system               Although this approach may provide excellent results, it remains
+and provide guidelines for future development of an optimal               time- and resource- consuming, especially for real time analysis.
+satellite thermal monitoring system. In particular, the following         Similarly, as several volcanoes have steep slopes, the influence
+points were highlighted:                                                  of topography on lava flow quantification from satellite thermal
+                                                                          data may be important and require case by case correction
+Image Quality Assessment                                                  models (Zaksek et al., 2017). An apparent decrease in heat flux
+                                                                          may be due to unfavorable viewing conditions. This information
+Providing an evaluation of cloudiness and image/data quality              must be accessible to users in order to correctly interpret each
+is fundamental. In particular, any hot spot detection system              individual image. A promising solution is provided by machine
+should be able to quantify the effects of clouds and viewing              learning (i.e., Valade et al., 2019), where an artificial intelligence is
+geometry condition, within each acquired image (Coppola                   instructed on the basis of a supervised manual selection of cloud
+et al., 2016a). This fundamental step is currently absent in all          free images acquired in optimal viewing conditions.
+the operational systems (Supplementary Table S1) and surely
+requires further efforts. One particular goal is to be able to            Improve Spatial Resolution
+determine automatically if the absence of a hotspot is real (no sign
+of thermal anomaly) or if it is due to the presence of clouds or to       The spatial resolution of the satellite thermal detection system is
+unfavorable viewing geometry. Typical estimates of the average            fundamental in every aspect of volcanic monitoring. In particular,
+cloud fraction within a region of interest may be useful for              it has been proved that the integration of high spatial resolution
+long-term analysis but not practical for operational monitoring           data in the TIR (i.e., ASTER; Landsat8-TIRS) as well as in
+in real time, where every single image must be interpreted.               the NIR/SWIR (i.e., Landsat8-OLI; Sentinel2) greatly improves
+Moreover, when considered over large areas, the quantification            the ability to detect smaller or low intensity thermal anomalies
+of cloud fraction may cause misinterpretation of thermal data.            (Jay et al., 2013; Reath et al., 2019a; Valade et al., 2019). From
+In fact, in many cases thermal anomalies within high-altitude             an operational point of view, this translates into detecting a
+summit craters may be discarded or classified as strongly                 thermal precursor with respect to days/months earlier than
+attenuated, because the surroundings pixels are cloudy (although          moderate-resolution systems (Reath et al., 2019b). Nevertheless,
+the crater is actually without cloud cover). Quantification of cloud      integration of multisensor thermal data into a single volcanic
+attenuation on a pixel per pixel basis would be an ideal solution         hotspot detection system is still matter of development (Laiolo
+
+Frontiers in Earth Science | www.frontiersin.org                      15  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                            Thermal Remote Sensing for Volcano Monitoring
+
+et al., 2019), and currently no operative system exists that              of the local server. These problems require the development
+systematically provide this integrated information on the web             of a more complex infrastructure than the existing one or,
+(Supplementary Table S2).                                                 alternatively, the use of cloud computing services such as those
+                                                                          provided by Google Earth Engine6 or Amazon Web Services7.
+   Moreover, given the variability of wavelengths at which                However, the products useful for the application of the MIROVA
+these sensors operate (from SWIR to MIR and TIR), the                     algorithm (geolocated, corrected spectral radiances) are not yet
+thermal information retrieved display different sensitivities to          available on these platforms in near real time, making this option
+the wide range of temperatures of volcanological interest (i.e.,          currently impossible.
+from 50 to 1200C) and is often inhomogeneous between the
+different datasets (for example, spectral radiance, hotspot area,            Given the low spatial resolution of geostationary platforms
+temperature, radiative power).                                            (Supplementary Table S1), the hot spot detection systems based
+                                                                          on these sensors are generally not able to detect low intensity
+   A preliminary comparative study between MODIS-MIROVA                   thermal precursors. However, once an eruption has begun, it
+and SENTINEL2 (Massimetti et al., 2018; Valade et al., 2019)              is possible to follow the event with temporal resolutions up
+showed that the two systems provide extremely coherent and                to 5­15 min which make them extremely useful during crisis
+complementary information. The example of Figure 11 shows                 management (i.e., Ganci et al., 2011; Schneider et al., 2014;
+what could be an integrated output of these two datasets                  Gouhier et al., 2016; Lombardo, 2016; Patrick et al., 2016).
+(Massimetti et al., 2018) for the case of Agung volcano. The              The analysis of these data at high temporal frequency and
+frequent acquisition of SENTINEL2 images (every 5 days) allows            their integration with systems based on polar satellites (such as
+the tracking of the evolution of the area of the thermal anomaly          MODIS) is not trivial and requires the processing of data in
+inside the Agung crater, with a discrete temporal detail (red             virtually streaming mode. The recent availability of geolocated
+circles in Figure 11). The latter is in excellent agreement with the      and radiometrically pre-processed geostationary image data,
+thermal flux measured by the MODIS (blue stem in Figure 11) to            provided by systems like EUMETVIEW8 in near real time, is
+which it adds a high spatial resolution (20 m in the NIR/SWIR)            certainly a first fundamental step which needs further efforts and
+that allows the location and mapping of the thermal anomaly               development to integrate these high-frequency datasets into an
+inside the crater with great detail. Small changes in the location,       multiplatform satellite volcanic monitoring systems.
+area and or temperature of the hot feature are thus easily tracked
+by SENTINEL 2 data, and are coherent with MIROVA dataset.                    It is hoped that with the continuous technological
+An additional improvement can be obtained by integrating also             development, future satellite missions will be specifically
+the data provided by Landsat8-OLI sensor (30 m), considering              dedicated to volcanic monitoring, or at least will be characterized
+the appropriate spectral bands in NIR/SWIR.                               by sensors with appropriate features that would make a
+                                                                          breakthrough in volcanic monitoring. In particular, it is
+   Moving toward the TIR-based systems, it has been shown that            absolutely necessary to maintain the continuity of observations
+sensors such as ASTER (Ramsey et al., 2004) and LANDSAT8-                 in the MIR (such as MODIS and VIIRS), to continue the almost
+TIRS (Blackett, 2014) allow the monitoring of low temperature             20-years-long dataset, provided by MIROVA and MODVOLC,
+thermal anomalies, such as fumaroles, hydrothermal systems,               possibly improving both spatial and temporal resolution. The
+temperature of crater lakes, otherwise undetectable via systems           presence of SWIR and TIR data, co-registered with MIR and not
+using the NIR, SWIR or MIR bands. The integration of these data           saturated, would also be a significant improvement for future
+is certainly an opportunity that has not been currently exploited.        sensors that would permit the coverage, in a single system, of
+                                                                          the wide range of temperature observed on volcanoes. This
+Improve Temporal Resolution of MIR                                        would allow a detailed characterization of thermal anomalies,
+Data                                                                      potentially useful for real-time determination of the eruption
+                                                                          style and composition of terrestrial lavas (Wright et al., 2011).
+The temporal resolution is also extremely important to promptly
+detect a thermal anomaly, as well as to follow the course of an           Data/Image Availability, Archive and
+eruptive crisis. Increasing the frequency of thermal observations         Sharing
+can be achieved through two ways: (i) adding new coherent
+datasets, from other similar polar sensors, and (ii) processing           The availability of data and the possibility of them being searched,
+geostationary data.                                                       displayed and downloaded in real time is another important
+                                                                          element to make a volcanic hot spot detection system fully
+   The acquisition, processing and integration of thermal data            operational. Currently, MIROVA does not allow this possibility,
+from other sensors having MIR channels, such as the VIIRS or the          which is compensated by sharing data via email in the case
+SENTINEL 3, constitutes a relatively simple step to implement             of need. This step requires considerable and continuous efforts
+the VRP time series provided by MIROVA. In fact, these sensors            by the system developers, but allows the checking of the
+have spatial and spectral characteristics very similar to MODIS           dataset for the presence of any false alerts, to remove other
+(Blackett, 2015) that allow the direct application of the algorithms      thermal emitters, such as fires, and to provide support for
+behind MIROVA on the new acquired data. Their processing
+would therefore allow thermal anomalies to be detected more               6https://earthengine.google.com/
+frequently and with a greater probability of acquisition in optimal       7https://aws.amazon.com
+conditions. The main obstacle for such implementation remains             8https://eumetview.eumetsat.int/mapviewer/
+the quantity of data to be analyzed and the storage capacity
+
+Frontiers in Earth Science | www.frontiersin.org                      16  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                        Thermal Remote Sensing for Volcano Monitoring
+
+FIGURE 11 | Example of integration of MODIS-MIROVA (1 km) and SENTINEL2 (20 m) thermal data. The panels on the left show the SENTINEL 2 image of 18 May
+2019 (combination of bands 12, 11, 8A) acquired over Agung volcano (Indonesia). On the top-left is shown a zoomed view of the crater area (2 km × 2 km)
+enhancing the presence of a hot lava body. The panels on the right show the MIROVA thermal flow time series (stems) and SENTINEL 2 hot pixel number (circles) of
+the last 2 months (high) and 2 years (low). The red circles represent the extension of the thermal anomaly within the Agung crater (N Pixel × 106). Note the excellent
+correlation between the volcanic radiative power, measured by the MODIS, and the extent of the anomaly (number of hot pixels), detected by SENTINEL 2.
+
+the interpretation of the data, which in some cases can be            the latest 10 images on the web site, but is not possible to
+ambiguous for non-experts. It can therefore be considered a           go back days, months, years and visualize the archived images,
+sort of quality control service of the data that reduces the          thermal alerts and hotspots. In addition to the time series, a
+uncertainty (including cleaning of data sets of unreliable or         data archive of thermal images, searchable and downloadable
+untrustworthy data points) and any indirect, incidental or            on line, is certainly a useful tool for the post-event analysis,
+consequential damages arising out of any use of, or inability         but also for real-time assessments. Comparison of older data to
+to use, the data.                                                     the near-real time scenes allows for a quick reality check of the
+                                                                      current situation to the last thermal events to see whether this is
+   Nevertheless, the creation of a web-based database for the         a repeat of normal behavior of whether this new thermal pattern
+entire MIROVA archive (time series) remains a task for future         is anomalous and atypical.
+development to ensure faster information flow. The development
+of the apps (for mobiles and desktop pc) is an additional data           The integration of the thermal dataset with the satellite
+sharing method, which would allow each individual user to select      image viewing capabilities offered by cloud platforms such as
+only the volcanoes of interest observed by MIROVA. Updates            WorldView9 could be a particularly interesting solution to greatly
+could be available through real-time notifications.                   simplify the visualization of MODIS images by local systems
+                                                                      (such as MIROVA), by maintaining the possibility of linking the
+   The system could be also improved by providing a                   VRP time series with an independent image browser. However,
+simple display of daily, monthly and annual values (including         building an online archive requires a major upgrade of the system
+cumulative curves) that could be easily accessed by volcano           and improved storage capacity (millions of images to manage).
+observatories for research/monitoring purposes.                       MODVOLC (Wright et al., 2004) offers an efficient ability to
+                                                                      go back days, months, years and still get a quick plot of the
+   Although the time series plots of VRP and distance are very        distribution of thermal alerts, but it does not store the images.
+useful for ongoing situation information, visualization of the
+image is useful to get the full sense for the spatial pattern of      9https://worldview.earthdata.nasa.gov/
+the thermal anomaly, or to verify the presence of clouds or ash
+plumes above the volcano. MIROVA offers the ability to check
+
+Frontiers in Earth Science | www.frontiersin.org                  17  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                           Thermal Remote Sensing for Volcano Monitoring
+
+True Global Detection Capabilities                                          All these applications are the result of a long chain of data
+Keeping High Sensitivity                                                 sharing which, starting from the raw data generated by satellite
+                                                                         and delivered by the space agency (NASA) via an open-data
+A final limit that could be overcome is the transformation of            policy, finally reaches the observatories, as a useful product for
+a system like MIROVA into a real global volcanic monitoring              volcanic monitoring.
+system. In fact, many observatories have shown interest in
+extending the satellite observations currently provided by                  The current system is, however, limited in a series of aspects
+MIROVA to many more volcanoes. However, the current limit                that include: (i) the moderate spatial and temporal resolution
+of download and storage capacity of the system does not allow            of the data, (ii) the limited capacity to download and explore
+for such expansion, making MIROVA a potentially global system            the entire archive of time series images, and (iii) the non-
+only. Hotspot detection systems that are really global, such             global coverage.
+as MODVOLC or FIRMS, offer effective coverage over the
+entire earth's surface, but at the expense of less efficiency in            Several improvements can be made to partially overcome
+detecting low-intensity thermal anomalies (due to the simplicity         these limits. However, all these enhancements require human
+of the algorithm). Moreover, they do not allow the display of            effort, as well as financial and technological resources that can
+original images, which we have seen to be fundamental for the            be only partially supported by individual observatories or small
+correct interpretation of the thermal anomalies in real time.            research groups. As envisioned by Pritchard et al. (unpublished),
+This major limitation, essentially technological, could possibly         the future development of a global volcano remote sensing
+be overcome by a hardware upgrade of the current system,                 observatory requires international support at each stage of the
+allowing the inclusion of all the Holocene volcanoes (about              processing chain, from the acquisition and elaboration of the
+1500) currently present in the Global Volcanism Database. This           data, to their interpretation and dissemination to the volcano
+option would limit the amount of data to be analyzed only                observatories or civil protection agencies.
+to areas of volcanic interest (not to the whole Earth's surface
+as it is done for MODVOLC or for FIRMS), retaining the                      Middle Infrared Observations of Volcanic Activity is a small
+possibility to add, in few hours at most, new targets in areas           pilot project, originally created to monitor only a few volcanoes.
+not yet covered. Alternatively, the development of 5 or 6 local          However, thanks to the sharing of open data and the growing
+systems (MIROVA clones), hosted by respective volcanological             collaboration with volcanological observatories, it has become
+observatories, and focused only on regions (e.g., Asia, Africa,          a useful tool for monitoring hundreds of volcanoes around the
+Europe, etc.) or countries can be a technologically easier solution      world. Thanks to this experience, we are convinced that the
+to implement (it simply requires settling MIROVA on different            role of thermal remote sensing will grow in the coming years,
+targets in each region), which however involves an adaptation of         due to the great contribution provided by this open data to the
+the system to the specific hardware and networking requirements          comprehension of volcanic phenomena, and in particular for the
+of each observatory.                                                     hazard evaluation of volcanoes worldwide.
+
+                                                                         DATA AVAILABILITY STATEMENT
+
+CONCLUSION                                                               The datasets generated for this study are available on request to
+                                                                         the corresponding author.
+Middle Infrared Observations of Volcanic Activity is a system
+that provides satellite observations, in near real time, regarding       AUTHOR CONTRIBUTIONS
+the thermal state of more than 200 volcanoes worldwide. The
+system provides on a specific website10 thermal images and               DC conceived and wrote the work. DC and ML have developed
+time series of VRP that are examined daily by more than 15               and analyzed the MIROVA data. FM analyzed the Sentinel2
+volcanological observatories. This information is being used             images. All authors listed have made a substantial, direct
+daily to assess the presence/absence of thermal activity and             and intellectual contribution to the work, and approved it
+eventually to locate and quantify these anomalies during phases          for publication.
+of unrest or during eruptions. The recognition of particular
+thermal data trends or patterns, and the integration with                FUNDING
+other geophysical/geochemical parameters, permits an improved
+evaluation of the activity of a volcano. In many cases, the thermal      This research has benefited from funding provided by the
+data have been fundamental for the detection of the appearance of        Italian Presidenza del Consiglio dei Ministri, Dipartimento della
+lava domes at the bottom of deep craters, or to quantify effusion        Protezione Civile (DPC) as part of the DEVnet Program (2014­
+rates and volumes erupted during effusive eruptions. In open vent        2016) that includes a collaborative project between the Earth
+volcanoes, the thermal data also permit to track the rise of the         Sciences departments of the University of Florence and the
+magmatic column that precedes effusive eruptions, although the           University of Turin. This research was partially supported by the
+detection of thermal precursors before major explosions remain           Italian Ministry for Universities and Research (MIUR).
+currently a challenge for MIROVA.
+
+10www.mirovaweb.it
+
+Frontiers in Earth Science | www.frontiersin.org                     18  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                                                Thermal Remote Sensing for Volcano Monitoring
+
+ACKNOWLEDGMENTS                                                                               SUPPLEMENTARY MATERIAL
+
+We thank the three reviewers for their constructive comments                                  The Supplementary Material for this article can be found
+and for the attention paid to revising this work. We                                          online at: https://www.frontiersin.org/articles/10.3389/feart.
+acknowledge the LANCE-MODIS system (http://lance-                                             2019.00362/full#supplementary-material
+modis.eosdis.nasa.gov/) for providing Level 1B MODIS
+data in near-real time. We thank many collaborators                                           TABLE S1 | Thermal Remote sensing systems available on the web, for
+and students of the University of Turin who have                                              operational volcano monitoring.
+contributed to the development and maintenance of the
+MIROVA system.                                                                                TABLE S2 | Synthesis of observatories currently using MIROVA in support of
+                                                                                              monitoring activity. From Global Volcanism Program (2013).
+
+REFERENCES                                                                                        years of MODIS observations. J. Volcanol. Geotherm. Res. 215­216, 48­60.
+                                                                                                  doi: 10.1016/j.jvolgeores.2011.12.001
+Anantrasirichai, N., Biggs, J., Albino, F., Hill, P., and Bull, D. (2018). Application        Coppola, D., Ripepe, M., Laiolo, M., and Cigolini, C. (2017). Modelling satellite-
+    of machine learning to classification of volcanic deformation in routinely                    derived magma discharge to explain caldera collapse. Geology 45, 523­526.
+    generated InSAR data. J. Geophys. Res. Solid Earth 123, 6592­6606.                            doi: 10.1130/G38866.1
+                                                                                              Davies, D. K., Ilavajhala, S., Wong, M. M., and Justice, C. O. (2009). Fire
+Barsotti, S., Oddsson, B., Gudmundsson, M. T., Pfeffer, M. A., Parks, M. M., et al.               information for resource management system: archiving and distributing modis
+    (2019). Operational response and hazards assessment during the 2014­2015                      active fire data. IEEE Trans. Geosci. Remote Sens. 47, 72­79. doi: 10.1109/tgrs.
+    volcanic crisis at Bárðarbunga volcano and associated eruption at Holuhraun,                  2008.2002076
+    Iceland. J. Volcanol. Geotherm. Res. doi: 10.1016/j.jvolgeores.2019.106753                Dean, K. G., Jon, D., Kevin, E., Pavel, I., and Ken, P. (2002). "Operational satellite
+                                                                                                  monitoring of volcanoes at the alaska volcano observatory," in Monitoring
+Bebbington, M. S., and Jenkins, S. F. (2019). Intra-eruption forecasting. Bull.                   Volcanic Hotspots Using Thermal Remote Sensing, Advances in Environmental
+    Volcanol. 81:34. doi: 10.1007/s00445-019-1294-9                                               Monitoring and Modelling, eds A. J. H. Harris, E. Wooster, and D. A. Rothery,
+                                                                                                  (Anchorage: Alaska Volcano Observatory).
+Bernard, B., Gibson, S., Ramon, P., Gleeson, M., Stock, M., Hernandez, S., et al.             Delgado, F., Poland, M., Biggs, J., Ebmeier, S., Sansosti, E., Lundgren, P., et al.
+    (2019). Chronology and phenomenology of the 1982 and 2015 wolf volcano                        (2019). lessons learned from the ceos volcano pilot in latin american and the
+    eruptions, Galápagos Archipelago. J. Volcanol. Geotherm. Res. 374, 26­38. doi:                ongoing volcano demonstrator project. Geophys. Res. Abstr. 21, EGU2019­
+    10.1016/j.jvolgeores.2019.02.013                                                              EGU14981.
+                                                                                              Ebmeier, S. K., Andrews, B., Araya, M. C., Arnold, D. W. D., Biggs, J., Cooper, C.,
+Blackett, M. (2014). Early analysis of landsat-8 thermal infrared sensor imagery of               et al. (2018). Synthesis of global volcano deformation observations: implications
+    volcanic activity. Remote Sens. 6, 2282­2295. doi: 10.3390/rs6032282                          for volcano monitoring and the lateral extent of magmatic systems. J. Appl.
+                                                                                                  Volcanol. 7:2.
+Blackett, M. (2015). An initial comparison of the thermal anomaly detection                   Ebmeier, S. K., Elliott, J. R., Nocquet, J.-M., Biggs, J., Mothes, P., Jarriìn, P., et al.
+    products of MODIS and VIIRS in their observation of Indonesian volcanic                       (2016). Shallow earthquake inhibits unrest near chiles­cerro negro volcanoes,
+    activity. Remote Sens. Environ. 171, 75­82. doi: 10.1016/j.rse.2015.10.002                    ecuador­colombian border. Earth Planet Sci. Lett. 450, 283­291. doi: 10.1016/
+                                                                                                  j.epsl.2016.06.046
+Bonny, E., and Wright, R. (2017). Predicting the end of lava flow-forming eruptions           Elvidge, C. D., Zhizhin, M., Hsu, F., and Baugh, K. E. (2013). VIIRS nightfire:
+    from space. Bull. Volcanol. 79:52. doi: 10.1007/s00445-017-1134-1138                          satellite pyrometry at night. Remote Sens. 5, 4423­4449. doi: 10.3390/rs5094423
+                                                                                              Fearnley, C. J., McGuire, W. J., Davies, G., and Twigg, J. (2012). Standardisation
+Bouvet de Maisonneuve, C., Dungan, M. A., Bachmann, O., and Burgisser, A.                         of the USGS volcano alert level system (VALS): analysis and ramifications. Bull.
+    (2012). Insights into shallow magma storage and crystallization at Volcán                     Volcanol. 74, 2023­2036. doi: 10.1007/s00445-012-0645-6
+    Llaima (Andean Southern Volcanic Zone, Chile). J. Volcanol. Geotherm. Res.                Franco, L., Palma, J. L., Lara, L. E., Gil-Cruz, F., Cardona, C., Basualto, D.,
+    211-212, 76­91. doi: 10.1016/j.jvolgeores.2011.09.010                                         et al. (2019). Eruptive sequence and seismic activity of llaima volcano (Chile)
+                                                                                                  during the 2007­2009 eruptive period: inferences of the magmatic feeding
+Brown, S. K., Loughlin, S. C., Sparks, R. S. J., Vye-Brown, C., Barclay, J., Calder, E.,          system. J. Volcanol. Geotherm. Res. 379, 90­105. doi: 10.1016/j.jvolgeores.2019.
+    et al. (2015). "Global volcanic hazard and risk," in Global Volcanic Hazards and              04.014
+    Risk (Cambridge, MA: Cambridge University Press).                                         Furtney, M. A., Pritchard, M. E., Ebmeier, S. K., Jay, J. A., Carn, S. A., McCormick,
+                                                                                                  B. T., et al. (2018). Synthesizing multi-sensor, multi-satellite, multi-decadal data
+Coppola, D., Barsotti, S., Cigolini, C., Laiolo, M., Pfeffer, M. A., and Ripepe,                  sets for global volcano monitoring. J. Volcanol. Geotherm. Res. 365, 38­56.
+    M. (2019a). Monitoring the time-averaged discharge rates, volumes and                         doi: 10.1016/j.jvolgeores.2018.10.002
+    emplacement style of large lava flows by using MIROVA system: the case of                 Ganci, G., Vicari, A., Fortuna, L., and Del Negro, C. (2011). The HOTSAT volcano
+    the 2014-2015 eruption at Holuhraun (Iceland). Ann. Geophys. 61:VO221. doi:                   monitoring system based on combined use of SEVIRI and MODIS multispectral
+    10.4401/ag-7812                                                                               data. Ann. Geophys. 54, 544­550.
+                                                                                              Global Volcanism Program, (2008). "Report on llaima (Chile)," in Bulletin of the
+Coppola, D., Campion, R., Laiolo, M., Cuoco, E., Balagizi, C., Ripepe, M., et al.                 Global Volcanism Network, ed. R. Wunderman, (Washington, DC: Smithsonian
+    (2016a). Birth of a lava lake: Nyamulagira volcano 2011-2015. Bull. Volcanol.                 Institution), BGVN200801­BGVN357110.
+    78, 1­13. doi: 10.1007/s00445-016-1014-7                                                  Global Volcanism Program, (2013). "East diamante (284201)," in Volcanoes of the
+                                                                                                  World, v. 4.8.0, ed. E. Venzke, (Washington, DC: Smithsonian Institution).
+Coppola, D., and Cigolini, C. (2013). Thermal regimes and effusive trends at                  Global Volcanism Program, (2016). "Report on sabancaya (Peru)," in Bulletin of the
+    Nyamuragira volcano (DRC) from MODIS infrared data. Bull. Volcanol. 75:744.                   Global Volcanism Network, 41:5, ed. E. Venzke, (Washington, DC: Smithsonian
+    doi: 10.1007/s00445-013-0744-z                                                                Institution).
+                                                                                              Global Volcanism Program, (2018). "Report on tinakula (Solomon Islands)," in
+Coppola, D., Laiolo, M., Cigolini, C., Donne, D. D., and Ripepe, M. (2016b).                      Bulletin of the Global Volcanism Network, 43:2, ed. E. Venzke, (Washington,
+    Enhanced volcanic hot-spot detection using MODIS IR data: results from the                    DC: Smithsonian Institution).
+    MIROVA system. Geol. Soc. Lond. Spec. Publ. 426, 181­205. doi: 10.1144/sp
+    426.5
+
+Coppola, D., Laiolo, M., Massimetti, F., and Cigolini, C. (2019b). Monitoring
+    endogenous growth of open-vent volcanoes by balancing thermal and SO2
+    emissions data derived from space. Sci. Rep. 9:9394. doi: 10.1038/s41598-019-
+    45753-4
+
+Coppola, D., Macedo, O., Ramos, D., Finizola, A., Delle Donne, D., Del Carpio,
+    J., et al. (2015). Magma extrusion during the Ubinas 2013­2014 eruptive crisis
+    based on satellite thermal imaging (MIROVA) and ground-based monitoring.
+    J. Volcanol. Geotherm. Res. 302, 199­210. doi: 10.1016/j.jvolgeores.2015.07.005
+
+Coppola, D., Piscopo, D., Laiolo, M., Cigolini, C., Delle Donne, D., and Ripepe, M.
+    (2013). Radiative heat power at stromboli volcano during 2000­2011: twelve
+
+Frontiers in Earth Science | www.frontiersin.org                                          19  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                                                 Thermal Remote Sensing for Volcano Monitoring
+
+Global Volcanism Program, (2019). "Report on manam (Papua New Guinea),"                        Naismith, A., Watson, I., Quinillo, C. C., Chigna, G., Escobar-Wolf, R., Coppola,
+    in Bulletin of the Global Volcanism Network, 44:2, eds A. E. Crafford, and E.                  D., et al. (2019). Eruption frequency patterns through time for the current
+    Venzke, (Washington, DC: Smithsonian Institution).                                             (1999 ­ 2018) activity cycle at Volcán de Fuego derived from remote sensing
+                                                                                                   data: evidence for an accelerating cycle of explosive paroxysms and potential
+Gordeev, E. I., Girina, O. A., Lupyan, E. A., Sorokin, A. A., Kramareva, L. S.,                    implications of eruptive activity. J. Volcanol. Geotherm. Res. 371, 206­219.
+    Efremov, V., et al. (2016). The volsatview information system for monitoring                   doi: 10.1016/j.jvolgeores.2019.01.001
+    the volcanic activity in Kamchatka and on the Kuril Islands. J. Volcanol. Seismol.
+    10, 382­394. doi: 10.1134/s074204631606004x                                                Newhall, C. G., Costa, F., Ratdomopurbo, A., Venezky, D. Y., Widiwijayanti, C.,
+                                                                                                   Win, N. T. Z., et al. (2017). WOVOdat ­ an online, growing library of worldwide
+Gottsmann, J., Komorowski, J.-C., and Barclay, J. (2017). "Volcanic unrest and                     volcanic unrest. J. Volcanol. nd Geotherm. Res. 345, 184­199. doi: 10.1016/j.
+    pre-eruptive processes: a hazard and risk perspective," in Volcanic Unrest: from               jvolgeores.2017.08.003
+    Science to Society. Advances in Volcanology, (Berlin: Springer).
+                                                                                               Pallister, J., and McNutt, S. R. (2015). "Synthesis of volcano monitoring," in The
+Gouhier, M., Guéhenneux, Y., Labazuy, P., Cacault, P., Decriem, J., and Rivet, S.                  Encyclopedia of Volcanoes, 2nd Edn, ed. H. Sigurdsson, (Cambridge, MA:
+    (2016). HOTVOLC: a web-based monitoring system for volcanic hot spots.                         Academic Press), 1151­1171. doi: 10.1016/b978-0-12-385938-9.00066-3
+    Geol. Soc. Lond. Spec. Publ. 426, 223­241. doi: 10.1144/sp426.31
+                                                                                               Patrick, M., Kauahikaua, J., Orr, T., Davies, A., and Ramsey, M. (2016).
+Harris, A. (2013). Thermal Remote Sensing of Active Volcanoes: A User's Manual.                    "Operational thermal remote sensing and lava flow monitoring at the hawaiian
+    Cambridge, MA: Cambridge university press.                                                     volcano observatory," in Detecting, Modelling and Responding to Effusive
+                                                                                                   Eruptions, eds A. J. L. Harris, T. De Groeve, F. Garel, and S. A. Carn, (London:
+Harris, A. J. L., Carn, S., Dehn, J., Del Negro, C., Guðmundsson, G., Cordonnier,                  Special Publications), 426.
+    B., et al. (2016). Conclusion: recommendations and findings of the red seed
+    working group. detecting, modelling and responding to effusive eruptions. Geol.            Pergola, N., Coviello, I., Filizzola, C., Lacava, T., Marchese, F., Paciello, R., et al.
+    Soc. Lond. Spec. Publ. 426, 567­648. doi: 10.1144/SP426.11                                     (2016). A review of RSTVOLC, an original algorithm for automatic detection
+                                                                                                   and near-real-time monitoring of volcanic hotspots from space. Geol. Soc. Lond.
+Harris, A. J. L., Chevrel, M. O., Coppola, D., Ramsey, M., Hrysiewicz, A., Thivet,                 Spec. Publ. 426:55. doi: 10.1144/SP426.1
+    S., et al. (2019). Validation of an integrated satellite-data-driven response to
+    an effusive crisis: the April-May 2018 eruption of Piton de la fournaise. Ann.             Phillipson, G., Sobradelo, R., and Gottsmann, J. (2013). Global volcanic unrest in
+    Geophys. 61:2018. doi: 10.4401/ag-7972                                                         the 21st century: an analysis of the first decade. J. Volcanol. Geotherm. Res. 264,
+                                                                                                   183­196. doi: 10.1016/j.jvolgeores.2013.08.004
+Harris, A. J. L., Villeneuve, N., Di Muro, A., Ferrazzini, V., Peltier, A., Coppola, D.,
+    et al. (2017). - Effusive crises at piton de la fournaise 2014-2015: a multi-national      Piscini, A., and Lombardo, V. (2014). Volcanic hot spot detection from optical
+    response model. J. Appl. Volcanol. 6:11. doi: 10.1186/s13617-017-0062-9                        multispectral remote sensing data using artificial neural networks. Geophys. J.
+                                                                                                   Int. 196, 1525­1535. doi: 10.1093/gji/ggt506
+Jay, J. A., Welch, M., Pritchard, M. E., Mares, P. J., Mnich, M. E., Melkonian, A. K.,
+    et al. (2013). Volcanic hotspots of the central and southern andes as seen from            Pritchard, M. E., Biggs, J., Wauthier, C., Sansosti, E., Arnold, W. D., Delgado,
+    space by ASTER and MODVOLC between the years 2000-2010, remote sensing                         F., et al. (2018). Towards coordinated regional multi-satellite InSAR volcano
+    of volcanoes and volcanic processes: integrating observation and modelling.                    observations: results from the latin America pilot project. J. Appl. Volcanol. 7:5.
+    Geol. Soc. Lond. Spec. Publ. 380, 161­185. doi: 10.1144/SP380.1                                doi: 10.1186/s13617-018-0074-70
+
+Kaneko, T., Yasuda, A., Aoki, Y., Kajiwara, K., and Kitagawa, S. (2010). Realtime              Ramsey, M., Flynn, L., and Wright, R. (2004). Volcanic observations from space:
+    monitoring of active volcanoes in East Asia using MODIS and MTSAT data its                     new results from the eos satellite instruments. J. Volcanol. Geotherm. Res. 135,
+    advancement by GCOM-C1 SGLI. Int. Arch. Photogramm. Remote Sens. Spatial                       1­219.
+    Inform. Sci. 38, 209­212.
+                                                                                               Ramsey, M. S. (2016). Synergistic use of satellite thermal detection and science:
+Koeppen, W. C., Pilger, E., and Wright, R. (2011). Time series analysis of infrared                a decadal perspective using ASTER. Geol. Soc. Lond. Spec. Publ. 426, 115­136.
+    satellite data for detecting thermal anomalies: a hybrid approach. Bull. Volcanol.             doi: 10.1144/sp426.23
+    73, 577­593. doi: 10.1007/s00445-010-0427-y
+                                                                                               Ramsey, M. S., and Harris, A. J. L. (2013). Volcanology 2020: how will thermal
+Laiolo, M., Coppola, D., Barahona, F., Benítez, J. E., Cigolini, C., Escobar, D., et al.           remote sensing of volcanic surface activity evolve over the next decade? (invited
+    (2017). Evidences of volcanic unrest on high-temperature fumaroles by satellite                review article). J. Volcanol. Geotherm. Res. 249, 217­233. doi: 10.1016/j.
+    thermal monitoring: the case of Santa Ana volcano, El Salvador. J. Volcanol.                   jvolgeores.2012.05.011
+    Geotherm. Res. 340, 170­179. doi: 10.1016/j.jvolgeores.2017.04.013
+                                                                                               Reath, K., Pritchard, M., Moruzzi, S., Alcott, A., Coppola, D., and Pieri, D. (2019a).
+Laiolo, M., Massimetti, F., Cigolini, C., Ripepe, M., and Coppola, D. (2018).                      The. (AVTOD)(ASTER Volcano Thermal Output Database) latin america
+    Long-term eruptive trends from space-based thermal and SO2 emissions: a                        archive. J. Volcanol. Geotherm. Res. 376, 62­76. doi: 10.1016/j.jvolgeores.2019.
+    comparative analysis of Stromboli, Batu Tara and Tinakula volcanoes. Bull.                     03.019
+    Volcanol. 80 doi: 10.1007/s00445-018-1242-0
+                                                                                               Reath, K., Pritchard, M., Poland, M., Delgado, F., Carn, S., Coppola, D., et al.
+Laiolo, M., Ripepe, M., Cigolini, C., Coppola, D., Della Schiava, M., Genco, R.,                   (2019b). Thermal, deformation, and degassing remote sensing time series (A.D.
+    et al. (2019). Space- and ground-based geophysical data tracking of magma                      2000-2017) at the 47 most active volcanoes in Latin America: implications
+    migration in shallow feeding system of mount etna volcano. Remote Sens.                        for volcanic systems. J. Geophys. Res. Solid Earth 124, 195­218. doi: 10.1029/
+    11:1182. doi: 10.3390/rs11101182                                                               2018JB016199
+
+Linick, J. P., Pieri, D. C., and Sanchez, R. M. (2014). "The JPL ASTER Volcano                 Reath, K. A., Ramsey, M. S., Dehn, J., and Webley, P. W. (2016). Predicting
+    Archive: the development and capabilities of a 15 year global high resolution                  eruptions from precursory activity using remote sensing data hybridization.
+    archive of volcano data," in Proceedings of the Abstract ID. GC51E-0482                        J. Volcanol. Geotherm. Res. 321, 18­30. doi: 10.1016/j.jvolgeores.2016.04.027
+    Presented at Fall Meeting 2014, (San Francisco, CA: American Geophysical
+    Union).                                                                                    Ripepe, M., Pistolesi, M., Coppola, D., Delle Donne, D., Genco, R., Lacanna,
+                                                                                                   G., et al. (2017). Forecasting effusive dynamic and decompression rates by
+Lombardo, V. (2016). The AVHotRR: near-real time routine for volcano                               magmastatic model at open-vent volcanoes. Sci. Rep. 7:3885. doi: 10.1038/
+    monitoring using IR satellite data. Geol. Soc. 426, 73­92. doi: 10.1144/sp426.18               s41598-017-03833-3
+
+Lowenstern, J. B., and Ramsey, D. W. (2017). The volcano disaster assistance                   Schneider, D. J., Randall, M., and Parker, T. (2014). "Volcview: a web-based
+    program--helping to save lives worldwide for more than 30 years. U.S. Geol.                    platform for satellite monitoring of volcanic activity and eruption response,"
+    Survey Fact Sheet 6, 2017­3071. doi: 10.3133/fs20173071                                        in Proceedings of the Abstract ID IN41D-05 Presented at Fall Meeting 2014,
+                                                                                                   (San Francisco, CA: American Geophysical Union).
+Marzocchi, W., and Bebbington, M. S. (2012). Probabilistic eruption forecasting at
+    short and long time scales. Bull. Volcanol. 74, 1777­1805. doi: 10.1007/s00445-            Sparks, R. S. J., Biggs, J., and Neuberg, J. W. (2012). Monitoring volcanoes. Science
+    012-0633-x                                                                                     335, 1310­1311.
+
+Massimetti, F., Coppola, D., Laiolo, M., Cigolini, C., and Ripepe, M. (2018).                  Steffke, A. M., and Harris, A. J. L. (2011). A review of algorithms for detecting
+    "First comparative results from SENTINEL-2 and MODIS-MIROVA volcanic                           volcanic hot spots in satellite infrared data. Bull. Volcanol. 73, 1109­1137.
+    thermal dataseries," in Proceedings of the CoV10 IAVCEI General Assembly,                      doi: 10.1007/s00445-011-0487-487
+    Naples, Italy, 2­7.
+
+Frontiers in Earth Science | www.frontiersin.org                                           20  January 2020 | Volume 7 | Article 362
+Coppola et al.                                                                                Thermal Remote Sensing for Volcano Monitoring
+
+Tait, S., and Ferrucci, F. (2013). "A real-time, space borne volcano observatory to               volcanic activity over multi-year timescales. J. Volcanol. Geotherm. Res. 337,
+    support decision making during eruptive crises: european volcano observatory                  98­110. doi: 10.1016/j.jvolgeores.2017.03.001
+    space services," in proceedings of the 2013 UKSim 15th International Conference           Winson, A. E. G., Costa, F., Newhall, C. G., and Woo, G. (2014). An analysis of the
+    on Computer Modelling and Simulation, (Washington, DC: IEEE Computer                          issuance of volcanic alert levels during volcanic crises. J. Appl. Volcanol. 3:14.
+    Society).                                                                                     doi: 10.1186/s13617-014-0014-6
+                                                                                              Wooster, M. J., Zhukov, B., and Oertel, D. (2003). Fire radiative energy for
+Tarquini, S., de' Micheli Vitturi, M., Jensen, E., Pedersen, G. M. B., Barsotti, S.,              quantitative study of biomass burning: derivation from the BIRD experimental
+    Coppola, D., et al. (2019). Modeling lava flow propagation over a flat landscape              satellite and comparison to modis fire products. Remote Sens. Environ. 86,
+    by using MrLavaLoba: the case of the 2014-2015 eruption at holuhraun, Iceland.                83­107. doi: 10.1016/s0034-4257(03)00070-1
+    Ann. Geophys. 62:228. doi: 10.4401/ag-7812                                                Wright, R., Flynn, L. P., Garbeil, H., Harris, A. J. L., and Pilger, E. (2004).
+                                                                                                  MODVOLC: near-real-time thermal monitoring of global volcanism. J. Volc.
+Tilling, R. I. (2008). The critical role of volcano monitoring in risk reduction. Adv.            Geotherm. Res. 135, 29­49. doi: 10.1016/j.jvolgeores.2003.12.008
+    Geosci. 14, 3­11. doi: 10.5194/adgeo-14-3-2008                                            Wright, R., Glaze, L., and Baloga, S. M. (2011). Constraints on determining the
+                                                                                                  eruption style and composition of terrestrial lavas from space. Geology 39,
+Urai, M. (2011). "Volcano observations with aster and ASTER Image Database                        1127­1130. doi: 10.1130/g32341.1
+    for Volcanoes," in Proceedings of the IEEE International Geoscience and Remote            Zaksek, K., Pick, L., Coppola, D., and Hort, M. (2017). Influence of topography on
+    Sensing Symposium, (Piscataway, NJ: IEEE).                                                    lava flow quantification from satellite thermal data. EGU Gen. Assem. Geophys.
+                                                                                                  Res. Abstr. 19, EGU2017­EGU12016.
+Valade, S., Lacanna, G., Coppola, D., Laiolo, M., Pistolesi, M., Delle Donne, D., et al.
+    (2016). Tracking dynamics of magma migration in open-conduit systems. Bull.               Conflict of Interest: The authors declare that the research was conducted in the
+    Volcanol. 78:78.                                                                          absence of any commercial or financial relationships that could be construed as a
+                                                                                              potential conflict of interest.
+Valade, S., Ley, A., Massimetti, F., D'Hondt, O., Laiolo, M., Coppola, D., et al.
+    (2019). Towards global volcano monitoring using multisensor sentinel missions             Copyright © 2020 Coppola, Laiolo, Cigolini, Massimetti, Delle Donne, Ripepe, Arias,
+    and artificial intelligence: the MOUNTS monitoring system. Remote Sens.                   Barsotti, Parra, Centeno, Cevuard, Chigna, Chun, Garaebiti, Gonzales, Griswold,
+    11:528.                                                                                   Juarez, Lara, López, Macedo, Mahinda, Ogburn, Prambada, Ramon, Ramos, Peltier,
+                                                                                              Saunders, de Zeeuw-van Dalfsen, Varley and William. This is an open-access article
+van Manen, S. M., Blake, S., Dehn, J., and Valcic, L. (2013). Forecasting large               distributed under the terms of the Creative Commons Attribution License (CC BY).
+    explosions at Bezymianny Volcano using thermal satellite data. Geol. Soc. Lond.           The use, distribution or reproduction in other forums is permitted, provided the
+    Spec. Publ. 380, 187­201. doi: 10.1144/sp380.3                                            original author(s) and the copyright owner(s) are credited and that the original
+                                                                                              publication in this journal is cited, in accordance with accepted academic practice. No
+van Manen, S. M., Dehn, J., and Blake, S. (2010). Satellite thermal observations              use, distribution or reproduction is permitted which does not comply with these terms.
+    of the Bezymianny lava dome 1993­2008: precursory activity, large explosions,
+    and dome growth. J. Geophys. Res. 115:B08205.
+
+Wadge, G. (1981). The variation of magma discharge during basaltic eruptions.
+    J. Volcanol. Geotherm. Res. 11, 139­168. doi: 10.1016/0377-0273(81)90020-2
+
+Werner, C., Kern, C., Coppola, D., Lyons, J., Kelly, P., Wallace, K., et al.
+    (2017). Magmatic degassing, lava dome extrusion, and explosions from mount
+    cleveland volcano, alaska, 2011-2015: insight into the continuous nature of
+
+Frontiers in Earth Science | www.frontiersin.org                                          21  January 2020 | Volume 7 | Article 362
+

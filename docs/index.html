@@ -1,0 +1,2723 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Sentinel-2 Volcanic Monitor</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: linear-gradient(135deg, #0b0e14 0%, #1a1f2e 100%);
+            color: #e0e0e0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdiana, sans-serif;
+            overflow-x: hidden;
+        }
+
+        /* MODO TIMELAPSE FULLSCREEN */
+        body.timelapse-mode #main-content {
+            display: none;
+        }
+
+        body.timelapse-mode #timelapse-fullscreen {
+            display: flex !important;
+        }
+
+        body.personal-mode #main-content { display: none; }
+        body.personal-mode #monitoreo-personal-fullscreen { display: flex !important; }
+        body.riesgosos-mode #main-content { display: none; }
+        body.riesgosos-mode #riesgosos-fullscreen { display: flex !important; }
+        #monitoreo-personal-fullscreen, #riesgosos-fullscreen {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100vh;
+            background: #0b0e14;
+            z-index: 2000;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        /* HEADER */
+        header {
+            background: linear-gradient(90deg, #161b22 0%, #1f2937 100%);
+            padding: 0;
+            text-align: center;
+            border-bottom: 2px solid #58a6ff;
+            box-shadow: 0 4px 20px rgba(88, 166, 255, 0.3);
+        }
+
+        header h1 {
+            color: #58a6ff;
+            font-size: 2em;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(88, 166, 255, 0.5);
+        }
+
+        header p {
+            color: #8b949e;
+            font-size: 0.9em;
+        }
+
+        /* BARRA DE ESTADO */
+        #status-bar {
+            background: #161b22;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #30363d;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            font-size: 0.85em;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-weight: bold;
+        }
+
+        .badge-active {
+            background: #2ea043;
+            color: #fff;
+        }
+
+        .btn-ui {
+            background: #30363d;
+            color: white;
+            border: 1px solid #444;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.85em;
+            margin-left: 5px;
+        }
+
+        .btn-ui:hover {
+            background: #444c56;
+        }
+
+        .btn-active {
+            background: #238636 !important;
+            border-color: #2ea043;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .btn-group {
+            display: flex;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+        .btn-group-label {
+            font-size: 0.65em;
+            color: #8b949e;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+            margin-right: 4px;
+            align-self: center;
+        }
+        .btn-corner {
+            margin-left: auto;
+            display: flex;
+            gap: 4px;
+        }
+
+        /* SELECTOR DE VOLCAN + CALENDARIO */
+        #volcano-selector {
+            background: #161b22;
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 1px solid #30363d;
+            flex-wrap: wrap;
+        }
+
+        #volcano-selector label {
+            font-weight: bold;
+            color: #58a6ff;
+        }
+
+        #volcano-selector select, #volcano-selector button {
+            background: #0d1117;
+            color: #e0e0e0;
+            border: 1px solid #30363d;
+            padding: 8px 15px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        /* CALENDARIO MODAL */
+        #calendar-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 3000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .calendar-content {
+            background: #161b22;
+            border: 2px solid #58a6ff;
+            border-radius: 10px;
+            padding: 0;
+            max-width: 450px;
+            width: 90%;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0;
+        }
+
+        .calendar-header h3 {
+            color: #58a6ff;
+            margin: 0;
+        }
+
+        .close-btn {
+            background: #ff4500;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .calendar-selectors {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 15px;
+        }
+
+        .calendar-selectors select {
+            flex: 1;
+            background: #0d1117;
+            color: #e0e0e0;
+            border: 1px solid #30363d;
+            padding: 3px;
+            border-radius: 6px;
+        }
+
+        #calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-top: 10px;
+        }
+
+        #calendar-copernicus-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            margin-top: 10px;
+        }
+
+        .calendar-day-header {
+            text-align: center;
+            color: #8b949e;
+            font-size: 0.85em;
+            font-weight: bold;
+            padding: 3px;
+        }
+
+        .calendar-day {
+            padding: 3px;
+            text-align: center;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        /* CAMBIO QUIRRGICO 2: CALENDARIO 3 ESTADOS */
+        .calendar-day.downloaded {
+            background: #2ea043;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .calendar-day.downloaded:hover {
+            background: #3fb950;
+            transform: scale(1.1);
+        }
+
+        .calendar-day.available {
+            background: #58a6ff;
+            color: #fff;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .calendar-day.available:hover {
+            background: #79c0ff;
+            transform: scale(1.1);
+        }
+
+        .calendar-day.unavailable {
+            background: #30363d;
+            color: #6e7681;
+            cursor: not-allowed;
+        }
+
+        .calendar-legend {
+            margin-top: 15px;
+            font-size: 0.8em;
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            color: #8b949e;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .legend-box {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        /* TIMELAPSES AUTOMTICOS */
+        #timelapse-automatico {
+            background: #161b22;
+            padding: 0;
+            margin: 20px;
+            border-radius: 10px;
+            border: 2px solid #58a6ff;
+        }
+
+        #timelapse-automatico h2 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .timelapse-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .timelapse-card {
+            background: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 4px;
+            padding: 8px;
+        }
+
+        .timelapse-card h3 {
+            color: #58a6ff;
+            margin-bottom: 0;
+            font-size: 1.1em;
+        }
+
+        .timelapse-card img {
+            width: 100%;
+            border-radius: 6px;
+            margin-bottom: 0;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .timelapse-card img:hover {
+            transform: scale(1.02);
+        }
+
+        .timelapse-info {
+            font-size: 0.85em;
+            color: #8b949e;
+            line-height: 1.6;
+        }
+
+        /* TIMELINE */
+        #timeline {
+            background: #161b22;
+            padding: 15px 20px;
+            border-bottom: 1px solid #30363d;
+        }
+
+        #timeline h3 {
+            color: #58a6ff;
+            margin-bottom: 0;
+            font-size: 1em;
+        }
+
+        #timeline-dates {
+            display: flex;
+            gap: 3px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+
+        #timeline-dates::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        #timeline-dates::-webkit-scrollbar-track {
+            background: #0d1117;
+        }
+
+        #timeline-dates::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 3px;
+        }
+
+        .date-btn {
+            background: #30363d;
+            color: #e0e0e0;
+            border: 1px solid #444c56;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 0.85em;
+        }
+
+        .date-btn:hover {
+            background: #444c56;
+        }
+
+        .date-btn.active {
+            background: #58a6ff;
+            color: #0d1117;
+            border-color: #58a6ff;
+        }
+
+        /* COMPARACIN DE IMGENES */
+        #image-comparison {
+            background: #0d1117;
+            padding: 0;
+            margin: 15px 20px;
+            border-radius: 10px;
+        }
+
+        #image-comparison h3 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+        }
+
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 6px;
+        }
+
+        .image-panel {
+            background: #161b22;
+            border-radius: 4px;
+            padding: 8px;
+            border: 1px solid #30363d;
+        }
+
+        .image-panel h4 {
+            color: #58a6ff;
+            margin-bottom: 0;
+            font-size: 1em;
+        }
+
+        .image-container {
+            width: 100%;
+            min-height: 300px;
+            background: #0d1117;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .image-container img {
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 6px;
+            object-fit: contain;
+            width: auto;
+            height: auto;
+        }
+
+        .image-date-overlay {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.8);
+            color: #58a6ff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: bold;
+            border: 1px solid #58a6ff;
+        }
+
+        .image-scale-indicator {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            font-weight: bold;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+
+        .loading-spinner {
+            border: 3px solid #30363d;
+            border-top: 3px solid #58a6ff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .no-image {
+            color: #8b949e;
+            text-align: center;
+            padding: 40px;
+        }
+
+        /* TIMELAPSE CONTAINER */
+        #timelapse-container {
+            background: #161b22;
+            padding: 0;
+            margin: 15px 20px;
+            border-radius: 10px;
+            display: none;
+        }
+
+        .gif-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 6px;
+            margin-top: 15px;
+        }
+
+        .gif-panel {
+            background: #0d1117;
+            border-radius: 4px;
+            padding: 8px;
+        }
+
+        .gif-panel h4 {
+            color: #58a6ff;
+            margin-bottom: 0;
+        }
+
+        .gif-container {
+            width: 100%;
+            min-height: 300px;
+            background: #0d1117;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .gif-container img {
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+        }
+
+        /* METADATA */
+        #metadata {
+            background: #161b22;
+            padding: 0;
+            margin: 15px 20px;
+            border-radius: 10px;
+        }
+
+        #metadata h3 {
+            color: #58a6ff;
+            margin-bottom: 15px;
+        }
+
+        .metadata-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 6px;
+        }
+
+        .metadata-item {
+            background: #0d1117;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+        }
+
+        .metadata-label {
+            color: #8b949e;
+            font-size: 0.8em;
+            margin-bottom: 5px;
+        }
+
+        .metadata-value {
+            color: #e0e0e0;
+            font-weight: bold;
+        }
+
+        /* FULLSCREEN TIMELAPSE */
+        #timelapse-fullscreen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #0b0e14;
+            z-index: 2000;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+
+        .timelapse-header {
+            background: #161b22;
+            padding: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #58a6ff;
+            position: sticky;
+            top: 0;
+            z-index: 2001;
+        }
+
+        .timelapse-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        /* CAMBIO QUIRRGICO 1: ESCALAS TIMELAPSES */
+        #timelapse-gif {
+            max-width: 90%;
+            max-height: 80vh;
+            border-radius: 10px;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 768px) {
+            .image-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .gif-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .metadata-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========================================
+           MEJORA 7: COMPARACIÓN LADO A LADO
+           ======================================== */
+        
+        .date-selectors {
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #161b22;
+            border-radius: 8px;
+            border: 1px solid #30363d;
+        }
+        
+        .selector-group {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .selector-group label {
+            font-weight: 600;
+            font-size: 14px;
+            color: #58a6ff;
+        }
+        
+        .selector-group select {
+            padding: 10px 14px;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            font-size: 14px;
+            background: #0d1117;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .selector-group select:hover {
+            border-color: #58a6ff;
+            background: #161b22;
+        }
+        
+        .selector-buttons {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        
+        .selector-buttons button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            background: #238636;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+        
+        .selector-buttons button:hover {
+            background: #2ea043;
+            transform: translateY(-1px);
+        }
+        
+        .comparison-grid-2x2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .comparison-item {
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            overflow: hidden;
+            background: #0d1117;
+        }
+        
+        .comparison-header {
+            background: #161b22;
+            padding: 12px;
+            font-weight: 600;
+            text-align: center;
+            color: #58a6ff;
+            border-bottom: 1px solid #30363d;
+        }
+        
+        .comparison-image {
+            width: 100%;
+            display: block;
+            background: #000;
+        }
+        
+        .comparison-metadata {
+            padding: 12px;
+            font-size: 12px;
+            background: #0d1117;
+            border-top: 1px solid #30363d;
+        }
+        
+        .comparison-metadata div {
+            margin: 6px 0;
+            color: #8b949e;
+        }
+        
+        .comparison-metadata strong {
+            color: #e0e0e0;
+        }
+
+
+        /* Animacion del badge "NUEVA HOY" */
+        @keyframes pulseNew {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+            50% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); }
+        }
+
+        /* Escala en imágenes de comparación: la pinta agregarEscalaAImagen() en canvas
+           usando el buffer_km real del volcán (config_sentinel2.py). */
+
+    </style>
+</head>
+<body>
+    <header>
+        <h1> Sentinel-2 Volcanic Monitor</h1>
+        <p>Sistema de Monitoreo Automático - Volcanes de Chile</p>
+    </header>
+
+    <div id="status-bar">
+        <div class="status-item">
+            <strong>Sistema:</strong>
+            <span class="status-badge badge-active" id="system-status">Operativo</span>
+        </div>
+        
+        <div class="action-buttons">
+
+            <!-- GRUPO 1: Vistas multi-volcán -->
+            <div class="btn-group" title="Modos de visualización multi-volcán">
+                <span class="btn-group-label">Vistas</span>
+                <button class="btn-ui" style="background: #da3633;" onclick="toggleTimelapseMode()" title="Comparación multi-volcán por zona">🌋 Multi-Volcán</button>
+                <button class="btn-ui" style="background: #6e40c9;" onclick="toggleMonitoreoPersonal()" title="Monitoreo personal (selección)">⭐ Personal</button>
+                <button class="btn-ui" style="background: #b45309;" onclick="toggleRiesgosos()" title="14 volcanes más riesgosos SERNAGEOMIN">⚠️ Riesgosos</button>
+            </div>
+
+            <!-- GRUPO 2 eliminado 2026-05-17: los botones "PPT Individual" y
+                 "PPT Completo" disparaban workflows manuales lentos. Ahora
+                 el Constructor PPT (client-side, en Grupo 4) hace lo mismo
+                 más rápido sin intervención de GitHub Actions. -->
+
+            <!-- GRUPO 3: Visores satélite externos -->
+            <div class="btn-group" title="Visores satelitales (otras fuentes)">
+                <span class="btn-group-label">Visores</span>
+                <a href="https://mendozavolcanic.github.io/Landsat-v1/" target="_blank" rel="noopener" class="btn-ui" style="background: #e67e22; text-decoration: none;" title="Dashboard Landsat 8/9 (otro repo)">🛰️ Landsat 8/9</a>
+                <button class="btn-ui" style="background: #0969da;" onclick="abrirCopernicusBrowser()" title="Abrir en Copernicus Browser oficial">🌐 Copernicus</button>
+                <a href="experimental/cog_viewer.html" target="_blank" class="btn-ui" style="background: #0e7490; text-decoration: none;" title="Mapa con zoom y desplazamiento libre a resolución completa (imágenes en vivo, 0 bytes)">🗺️ Mapa Interactivo</a>
+                <a href="experimental/alta_resolucion.html" target="_blank" class="btn-ui" style="background: #065f46; text-decoration: none;" title="Planet / Vantor alta resolución comercial">🔭 Alta Res</a>
+            </div>
+
+            <!-- GRUPO 4: Análisis y herramientas -->
+            <div class="btn-group" title="Análisis automatizado y herramientas">
+                <span class="btn-group-label">Análisis</span>
+                <a href="change_detection.html" target="_blank" class="btn-ui" style="background: #8b5cf6; text-decoration: none;" title="Detección automática de cambios">🔍 Cambios</a>
+                <a href="proximas_pasadas.html" target="_blank" class="btn-ui" style="background: #0891b2; text-decoration: none;" title="Predicción próximas pasadas Sentinel-2">🛰️ Pasadas S2</a>
+                <a href="proximas_pasadas_landsat.html" target="_blank" class="btn-ui" style="background: #e67e22; text-decoration: none;" title="Predicción próximas pasadas Landsat 8/9">🛰️ Pasadas L8/9</a>
+                <a href="gif_builder.html" target="_blank" class="btn-ui" style="background: #16a34a; text-decoration: none;" title="Constructor GIF interactivo">🎬 GIF</a>
+                <a href="ppt_builder.html" target="_blank" class="btn-ui" style="background: #15803d; text-decoration: none;" title="Constructor PPT client-side con tu selección de fechas">📊 Constructor PPT</a>
+                <a href="sala_monitoreo.html" target="_blank" class="btn-ui" style="background: #be185d; text-decoration: none;" title="Vista pantalla vertical 1080×1920">📺 Sala</a>
+                <a href="revision_volcanes.html" target="_blank" class="btn-ui" style="background: #15803d; text-decoration: none;" title="Formulario revisión coordenadas y vistas zoom (reemplaza Word)">📝 Revisión Coordenadas</a>
+            </div>
+
+            <!-- ESQUINA: Ayuda + Pantalla Completa -->
+            <div class="btn-corner">
+                <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa (F11)">⛶</button>
+                <a href="ayuda.html" target="_blank" class="btn-ui" style="background: #475569; text-decoration: none;" title="Manual de ayuda completo">📖 Ayuda</a>
+            </div>
+        </div>
+
+        <div class="status-item" title="Fecha de la imagen satelital más reciente disponible en el sistema (no la hora del navegador)">
+            <strong>Última imagen del sistema:</strong>
+            <span id="last-update">Cargando...</span>
+        </div>
+    </div>
+
+    <div id="volcano-selector">
+        <label for="zona-select"> ZONA:</label>
+        <select id="zona-select" onchange="cambiarZona()">
+            <option value="Norte" selected>Zona Norte</option>
+            <option value="Centro">Zona Centro</option>
+            <option value="Sur">Zona Sur</option>
+            <option value="Austral">Zona Austral</option>
+        </select>
+        
+        <label for="volcano-select" style="margin-left: 15px;"> VOLCÁN:</label>
+        <select id="volcano-select" onchange="loadVolcano()">
+            <!-- Se llena dinámicamente segun zona -->
+        </select>
+        
+        <button onclick="toggleCalendar()"> Ver Imágenes</button>
+        <button onclick="toggleCalendarioCopernicus()" style="background: #0969da; border-color: #0969da;"> Ver en Copernicus</button>
+    </div>
+
+    <!-- CALENDARIO MODAL -->
+    <div id="calendar-modal" onclick="closeModalOutside(event)">
+        <div class="calendar-content" onclick="event.stopPropagation()">
+            <div class="calendar-header">
+                <h3> Calendario de Imágenes</h3>
+                <button class="close-btn" onclick="toggleCalendar()"></button>
+            </div>
+            
+            <div class="calendar-selectors">
+                <select id="calendar-month" onchange="updateCalendar()">
+                    <option value="0">Enero</option>
+                    <option value="1">Febrero</option>
+                    <option value="2">Marzo</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Mayo</option>
+                    <option value="5">Junio</option>
+                    <option value="6">Julio</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Septiembre</option>
+                    <option value="9">Octubre</option>
+                    <option value="10">Noviembre</option>
+                    <option value="11">Diciembre</option>
+                </select>
+                
+                <select id="calendar-year" onchange="updateCalendar()">
+                    <!-- Opciones generadas dinámicamente por populateYearSelectors() en init -->
+                </select>
+            </div>
+            
+            <div id="calendar-grid">
+                <div class="calendar-day-header">Dom</div>
+                <div class="calendar-day-header">Lun</div>
+                <div class="calendar-day-header">Mar</div>
+                <div class="calendar-day-header">Mié</div>
+                <div class="calendar-day-header">Jue</div>
+                <div class="calendar-day-header">Vie</div>
+                <div class="calendar-day-header">Sáb</div>
+            </div>
+            
+            <!-- CAMBIO QUIRRGICO 3: LEYENDA 3 ESTADOS -->
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #2ea043;"></div>
+                    <span>Ya descargada</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #58a6ff;"></div>
+                    <span>Disponible en Copernicus</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #30363d;"></div>
+                    <span>No disponible</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CALENDARIO COPERNICUS MODAL -->
+    <div id="calendar-copernicus-modal" onclick="closeModalCopernicusOutside(event)" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 3000; justify-content: center; align-items: center;">
+        <div class="calendar-content" onclick="event.stopPropagation()">
+            <div class="calendar-header">
+                <h3> Copernicus Browser - Calendario</h3>
+                <button class="close-btn" onclick="toggleCalendarioCopernicus()"></button>
+            </div>
+            
+            <p style="text-align: center; color: #8b949e; margin-bottom: 15px; font-size: 0.85em;">
+                Click en cualquier fecha para abrir Copernicus Browser
+            </p>
+            
+            <div class="calendar-selectors">
+                <select id="calendar-copernicus-month" onchange="updateCalendarioCopernicus()">
+                    <option value="0">Enero</option>
+                    <option value="1">Febrero</option>
+                    <option value="2">Marzo</option>
+                    <option value="3">Abril</option>
+                    <option value="4">Mayo</option>
+                    <option value="5">Junio</option>
+                    <option value="6">Julio</option>
+                    <option value="7">Agosto</option>
+                    <option value="8">Septiembre</option>
+                    <option value="9">Octubre</option>
+                    <option value="10">Noviembre</option>
+                    <option value="11">Diciembre</option>
+                </select>
+                
+                <select id="calendar-copernicus-year" onchange="updateCalendarioCopernicus()">
+                    <!-- Opciones generadas dinámicamente por populateYearSelectors() -->
+                </select>
+            </div>
+            
+            <div id="calendar-copernicus-grid">
+                <div class="calendar-day-header">Dom</div>
+                <div class="calendar-day-header">Lun</div>
+                <div class="calendar-day-header">Mar</div>
+                <div class="calendar-day-header">Mié</div>
+                <div class="calendar-day-header">Jue</div>
+                <div class="calendar-day-header">Vie</div>
+                <div class="calendar-day-header">Sáb</div>
+            </div>
+            
+            <div class="calendar-legend">
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #58a6ff;"></div>
+                    <span>Disponible en Copernicus</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-box" style="background: #30363d;"></div>
+                    <span>No disponible</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div id="main-content">
+        <!-- TIMELAPSES AUTOMTICOS (LTIMOS 30 DAS) -->
+        <div id="timelapse-automatico">
+            <h2> Timelapses Automáticos (Últimos 30 días)</h2>
+            <p style="text-align: center; color: #8b949e; margin-bottom: 15px;">
+                El sistema revisa cada 15 minutos si Copernicus publicó una imagen nueva y la
+                descarga apenas aparece. Entre que el satélite pasa sobre el volcán y la imagen
+                queda disponible aquí pasan típicamente <strong>4 a 6 horas</strong> — ese tiempo
+                lo determina el procesamiento de la ESA, no nuestro sistema.
+            </p>
+            
+            <div class="timelapse-grid">
+                <div class="timelapse-card">
+                    <h3>Color Verdadero (B4-B3-B2)</h3>
+                    <img id="timelapse-rgb-auto"
+                         src=""
+                         alt="Timelapse Color Verdadero"
+                         onclick="verTimelapseFullscreen('RGB')">
+                    <div class="timelapse-info">
+                         Sentinel-2 L2A · Bandas B04-B03-B02 · 10m/px<br>
+                         Últimos 30 días<br>
+                         Última imagen disponible: <span id="update-date-rgb">--</span>
+                    </div>
+                </div>
+
+                <div class="timelapse-card">
+                    <h3 id="swir-card-title">SWIR Falso Color (B12-B11-B4)</h3>
+                    <button id="btn-composite2" class="btn-ui" onclick="toggleComposite2()"
+                            title="Alternar el composite del panel 2 entre Thermal (B12/B11/B04) y SWIR B8A (B12/B11/B8A)"
+                            style="margin-bottom: 8px;">Ver SWIR B8A</button>
+                    <img id="timelapse-thermal-auto"
+                         src=""
+                         alt="Timelapse SWIR"
+                         onclick="verTimelapseFullscreen('Thermal')">
+                    <div class="timelapse-info">
+                         Sentinel-2 L2A · Bandas <span id="swir-card-bandas">B12-B11-B04</span> · 20m/px<br>
+                         Últimos 30 días<br>
+                         Última imagen disponible: <span id="update-date-thermal">--</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="timeline" style="display: none;">
+            <h3> Fechas Disponibles (Últimos 30 días)</h3>
+            <div id="timeline-dates">
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+
+        <div id="image-comparison">
+            <h3 style="color: #58a6ff; margin-bottom: 15px;">🔍 Comparación de Composiciones</h3>
+            
+            <!-- MEJORA 7: Selectores de fecha -->
+            <div class="date-selectors">
+                <div class="selector-group">
+                    <label for="fecha-izquierda">📅 Imagen Izquierda:</label>
+                    <select id="fecha-izquierda" onchange="actualizarComparacion()">
+                        <option value="">Seleccionar fecha...</option>
+                    </select>
+                </div>
+                
+                <div class="selector-group">
+                    <label for="fecha-derecha">📅 Imagen Derecha:</label>
+                    <select id="fecha-derecha" onchange="actualizarComparacion()">
+                        <option value="">Seleccionar fecha...</option>
+                    </select>
+                </div>
+                
+                <div class="selector-buttons">
+                    <button onclick="intercambiarFechas()" title="Intercambiar fechas">⇄</button>
+                    <button onclick="resetearComparacion()" title="Resetear a últimas 2 fechas">↺</button>
+                </div>
+            </div>
+            
+            <!-- Grid de comparación 2x2 -->
+            <div class="comparison-grid-2x2" id="comparison-grid">
+                <p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #8b949e;">
+                    Selecciona dos fechas para comparar
+                </p>
+            </div>
+        </div>
+
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+
+        <div id="timelapse-container">
+            <h3 style="color: #58a6ff; margin-bottom: 0;"> Timelapses del Mes</h3>
+            <div class="gif-grid">
+                <div class="gif-panel">
+                    <h4> Color Verdadero</h4>
+                    <div class="gif-container" id="gif-rgb-container">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+                
+                <div class="gif-panel">
+                    <h4> Thermal</h4>
+                    <div class="gif-container" id="gif-thermal-container">
+                        <div class="loading-spinner"></div>
+                    </div>
+                </div>
+            </div>
+            <div style="margin-top: 15px; color: #8b949e; font-size: 0.85em; text-align: center;">
+                 Los timelapses se generan automáticamente el primer día de cada mes con todas las imágenes disponibles.
+            </div>
+        </div>
+
+        <div id="metadata">
+            <h3>📊 Metadatos de las Imágenes</h3>
+            <p style="color: #8b949e; font-size: 0.9em; margin-bottom: 15px;">
+                Información de las 4 imágenes seleccionadas en la comparación
+            </p>
+            
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 15px;">
+                <!-- COLUMNA IZQUIERDA -->
+                <div style="border: 1px solid #30363d; border-radius: 8px; padding: 15px; background: #0d1117;">
+                    <h4 style="color: #58a6ff; margin-bottom: 12px; font-size: 16px;">📅 Imagen Izquierda</h4>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <!-- RGB Izquierda -->
+                        <div style="border-left: 3px solid #1f6feb; padding-left: 10px;">
+                            <div style="color: #8b949e; font-size: 11px; margin-bottom: 8px; font-weight: 600;">🟦 Color Verdadero</div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Fecha</div>
+                                <div class="metadata-value" id="meta-izq-rgb-fecha">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Satélite</div>
+                                <div class="metadata-value" id="meta-izq-rgb-sensor">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Nubes</div>
+                                <div class="metadata-value" id="meta-izq-rgb-clouds">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Bandas</div>
+                                <div class="metadata-value">B04-B03-B02</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Resolución</div>
+                                <div class="metadata-value">10m/píxel</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Thermal Izquierda -->
+                        <div style="border-left: 3px solid #da3633; padding-left: 10px;">
+                            <div style="color: #8b949e; font-size: 11px; margin-bottom: 8px; font-weight: 600;">🟥 Thermal</div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Fecha</div>
+                                <div class="metadata-value" id="meta-izq-thermal-fecha">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Satélite</div>
+                                <div class="metadata-value" id="meta-izq-thermal-sensor">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Nubes</div>
+                                <div class="metadata-value" id="meta-izq-thermal-clouds">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Bandas</div>
+                                <div class="metadata-value">B12-B11-B04</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Resolución</div>
+                                <div class="metadata-value">20m/píxel</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- COLUMNA DERECHA -->
+                <div style="border: 1px solid #30363d; border-radius: 8px; padding: 15px; background: #0d1117;">
+                    <h4 style="color: #58a6ff; margin-bottom: 12px; font-size: 16px;">📅 Imagen Derecha</h4>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <!-- RGB Derecha -->
+                        <div style="border-left: 3px solid #1f6feb; padding-left: 10px;">
+                            <div style="color: #8b949e; font-size: 11px; margin-bottom: 8px; font-weight: 600;">🟦 Color Verdadero</div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Fecha</div>
+                                <div class="metadata-value" id="meta-der-rgb-fecha">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Satélite</div>
+                                <div class="metadata-value" id="meta-der-rgb-sensor">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Nubes</div>
+                                <div class="metadata-value" id="meta-der-rgb-clouds">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Bandas</div>
+                                <div class="metadata-value">B04-B03-B02</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Resolución</div>
+                                <div class="metadata-value">10m/píxel</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Thermal Derecha -->
+                        <div style="border-left: 3px solid #da3633; padding-left: 10px;">
+                            <div style="color: #8b949e; font-size: 11px; margin-bottom: 8px; font-weight: 600;">🟥 Thermal</div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Fecha</div>
+                                <div class="metadata-value" id="meta-der-thermal-fecha">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Satélite</div>
+                                <div class="metadata-value" id="meta-der-thermal-sensor">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Nubes</div>
+                                <div class="metadata-value" id="meta-der-thermal-clouds">--</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Bandas</div>
+                                <div class="metadata-value">B12-B11-B04</div>
+                            </div>
+                            <div class="metadata-item">
+                                <div class="metadata-label">Resolución</div>
+                                <div class="metadata-value">20m/píxel</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- MODO TIMELAPSE FULLSCREEN -->
+    <div id="timelapse-fullscreen">
+        <div class="timelapse-header">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h2 style="color: #58a6ff; margin: 0;"> Comparación Multi-Volcán - Últimas Imágenes</h2>
+                <select id="zona-multi-select" onchange="loadMultiVolcanoViewZona()" style="padding: 8px 12px; background: #161b22; color: white; border: 1px solid #30363d; border-radius: 6px;">
+                    <option value="Norte" selected>Zona Norte</option>
+                    <option value="Centro">Zona Centro</option>
+                    <option value="Sur">Zona Sur</option>
+                    <option value="Austral">Zona Austral</option>
+                </select>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
+                <button class="btn-ui" onclick="toggleTimelapseMode()"> Volver al Dashboard</button>
+            </div>
+        </div>
+        <div class="timelapse-content">
+            <div id="volcanes-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;">
+                <!-- Se llena dinámicamente con JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODO MONITOREO PERSONAL -->
+    <div id="monitoreo-personal-fullscreen">
+        <div class="timelapse-header">
+            <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+                <h2 style="color: #58a6ff; margin: 0;">⭐ Monitoreo Personal</h2>
+                <button class="btn-ui" style="background:#6e40c9;" onclick="loadMonitoreoPersonal()">Cargar Selección</button>
+                <button id="personal-toggle-btn" class="btn-ui" style="background:#30363d;font-size:0.8em;" onclick="personalToggleLista()">▼ Ver lista</button>
+                <button class="btn-ui" style="background:#30363d;font-size:0.8em;" onclick="personalSelectAll()">Seleccionar todo</button>
+                <button class="btn-ui" style="background:#30363d;font-size:0.8em;" onclick="personalClearAll()">Limpiar</button>
+                <span id="personal-count" style="color: #58a6ff; font-size: 0.85em; font-weight: bold;"></span>
+            </div>
+            <div style="display:flex;gap:8px;">
+                <button class="btn-ui" style="background:#1f2937;border:1px solid #58a6ff;" onclick="toggleFullscreen()">⛶ Pantalla Completa</button>
+                <button class="btn-ui" onclick="toggleMonitoreoPersonal()">Volver al Dashboard</button>
+            </div>
+        </div>
+
+        <!-- Lista de checkboxes desplegable -->
+        <div id="personal-lista-checkboxes" style="background:#0d1117;border-bottom:1px solid #30363d;padding:12px 20px;display:none;gap:30px;flex-wrap:wrap;">
+
+            <div>
+                <div style="color: #58a6ff; font-weight: bold; font-size: 0.8em; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Zona Norte</div>
+                <div id="personal-zona-norte" style="display:flex;flex-direction:column;gap:5px;"></div>
+            </div>
+            <div>
+                <div style="color: #58a6ff; font-weight: bold; font-size: 0.8em; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Zona Centro</div>
+                <div id="personal-zona-centro" style="display:flex;flex-direction:column;gap:5px;"></div>
+            </div>
+            <div>
+                <div style="color: #58a6ff; font-weight: bold; font-size: 0.8em; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Zona Sur</div>
+                <div id="personal-zona-sur" style="display:flex;flex-direction:column;gap:5px;"></div>
+            </div>
+            <div>
+                <div style="color: #58a6ff; font-weight: bold; font-size: 0.8em; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Zona Austral</div>
+                <div id="personal-zona-austral" style="display:flex;flex-direction:column;gap:5px;"></div>
+            </div>
+
+        </div>
+
+        <div class="timelapse-content">
+            <div id="personal-grid" style="display:grid;grid-template-columns:repeat(2,1fr);gap:6px;padding:8px;"></div>
+        </div>
+    </div>
+
+    <!-- MODO 14 MÁS RIESGOSOS -->
+    <div id="riesgosos-fullscreen">
+        <div class="timelapse-header">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h2 style="color: #58a6ff; margin: 0;">⚠️ 14 Volcanes más Riesgosos</h2>
+                <span style="color: #8b949e; font-size: 0.85em;">Ranking SERNAGEOMIN · Peligrosidad Volcánica</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
+                <button class="btn-ui" onclick="toggleRiesgosos()"> Volver al Dashboard</button>
+            </div>
+        </div>
+        <div class="timelapse-content">
+            <div id="riesgosos-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;"></div>
+        </div>
+    </div>
+
+    <!-- CAMBIO QUIRRGICO 7: CRDITOS -->
+    <footer style="background: #0d1117; padding: 0; text-align: center; color: #8b949e; border-top: 1px solid #30363d; font-size: 0.85em; line-height: 1.8; margin-top: 40px;">
+        <p><strong style="color: #58a6ff;"> Fuente de Datos:</strong></p>
+        <p>
+            Sentinel-2 L2A (ESA/Copernicus) | 
+            Sentinel Hub API (Copernicus Data Space) | 
+            NASA FIRMS
+        </p>
+        
+        <p style="margin-top: 15px;"><strong style="color: #58a6ff;"> Desarrollo:</strong></p>
+        <p>
+            Sistema: Nicolás Mendoza | 
+            Asistencia Técnica: Claude AI (Anthropic)
+        </p>
+        
+        <p style="margin-top: 15px;"><strong style="color: #58a6ff;"> Enlaces:</strong></p>
+        <p>
+            <a href="https://github.com/MendozaVolcanic/Copernicus-v1" target="_blank" style="color: #58a6ff; text-decoration: none;">GitHub Repository</a> | 
+            <a href="https://browser.dataspace.copernicus.eu" target="_blank" style="color: #58a6ff; text-decoration: none;">Copernicus Browser</a> | 
+            <a href="https://www.sernageomin.cl/red-nacional-de-vigilancia-volcanica/" target="_blank" style="color: #58a6ff; text-decoration: none;">SERNAGEOMIN</a>
+        </p>
+        
+        <p style="margin-top: 15px; font-size: 0.75em; color: #6e7681;">
+             2026 Sistema de Monitoreo Volcánico Automatizado - Chile
+        </p>
+    </footer>
+
+    <script src="volcanes.js"></script>
+    <script>
+        const REPO_BASE = 'https://raw.githubusercontent.com/MendozaVolcanic/Copernicus-v1/main';
+
+        // Single source of truth: volcanes.js (generado desde config_sentinel2.py
+        // via scripts/generar_volcanes_js.py). VOLCANES_CONFIG incluye 46 entidades
+        // (43 principales + 3 vistas zoom).
+        const VOLCANES_CONFIG = window.VOLCANES_CONFIG;
+        
+        let currentVolcano = 'Villarrica';
+        let currentDate = null;
+        let metadataCache = {};
+        let availableDates = [];
+
+        // ---- Composite del PANEL 2 (toggle Thermal <-> SWIR B8A) ----
+        // 'ThermalFalseColor' = SWIR clasico B12/B11/B04 (3er canal rojo visible 10m).
+        // 'SWIR_B8A'          = SWIR con NIR-angosto B8A: B12/B11/B8A, las 3 a 20m
+        //                       nativo (sin resampling), mejor separa anomalia/veg/nieve.
+        // Global -> todas las vistas (timelapse automatico, comparacion, grids) leen
+        // esta variable. El boton vive en la card SWIR del timelapse automatico.
+        let composite2 = 'ThermalFalseColor';
+        const COMPOSITE2_INFO = {
+            'ThermalFalseColor': { titulo: 'SWIR Falso Color (B12-B11-B4)', bandas: 'B12-B11-B04', corto: 'Thermal' },
+            'SWIR_B8A':          { titulo: 'SWIR B8A (B12-B11-B8A)',         bandas: 'B12-B11-B8A', corto: 'SWIR B8A' }
+        };
+
+        function toggleComposite2() {
+            composite2 = (composite2 === 'ThermalFalseColor') ? 'SWIR_B8A' : 'ThermalFalseColor';
+            aplicarComposite2();
+        }
+
+        // Refresca textos del panel 2 y re-renderiza las superficies que dependen
+        // del composite. Usa textContent (no innerHTML) para los labels.
+        function aplicarComposite2() {
+            const info = COMPOSITE2_INFO[composite2];
+            const otroKey = (composite2 === 'ThermalFalseColor') ? 'SWIR_B8A' : 'ThermalFalseColor';
+            const titulo = document.getElementById('swir-card-title');
+            if (titulo) titulo.textContent = info.titulo;
+            const bandas = document.getElementById('swir-card-bandas');
+            if (bandas) bandas.textContent = info.bandas;
+            const btn = document.getElementById('btn-composite2');
+            if (btn) btn.textContent = 'Ver ' + COMPOSITE2_INFO[otroKey].corto;
+            // Re-render de lo visible que usa el composite del panel 2
+            if (currentVolcano) cargarTimelapesAutomaticos(currentVolcano);
+            try { actualizarComparacion(); } catch (e) {}
+        }
+        
+        // Año dinámico — antes estaba hardcoded como 2026, se rompía en 2027
+        let calendarMonth = new Date().getMonth();
+        let calendarYear = new Date().getFullYear();
+
+        // Segundo calendario (Copernicus)
+        let calendarCopernicusMonth = new Date().getMonth();
+        let calendarCopernicusYear = new Date().getFullYear();
+
+        // Generar opciones de año dinámicamente: del año actual hacia atrás 3 años
+        function populateYearSelectors() {
+            const anioActual = new Date().getFullYear();
+            const anios = [anioActual - 2, anioActual - 1, anioActual, anioActual + 1];
+            ['calendar-year', 'calendar-copernicus-year'].forEach(id => {
+                const sel = document.getElementById(id);
+                if (!sel) return;
+                while (sel.firstChild) sel.removeChild(sel.firstChild);
+                anios.forEach(y => {
+                    const opt = document.createElement('option');
+                    opt.value = String(y);
+                    opt.textContent = String(y);
+                    if (y === anioActual) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            });
+        }
+        // Llamar al cargar
+        document.addEventListener('DOMContentLoaded', populateYearSelectors);
+        
+        // CAMBIO QUIRRGICO 6: VARIABLE COPERNICUS
+        let fechasDisponiblesCopernicus = {};
+
+        async function init() {
+            await loadVolcano();
+        }
+
+        function cambiarZona() {
+            const zonaSelect = document.getElementById('zona-select');
+            const volcanoSelect = document.getElementById('volcano-select');
+            const zona = zonaSelect.value;
+            
+            // Limpiar opciones actuales
+            volcanoSelect.innerHTML = '';
+            
+            // Filtrar volcanes por zona y ordenar por latitud (Norte a Sur)
+            // En Chile latitudes son NEGATIVAS: -18 (norte) a -45 (sur)
+            // Con lat negativas: -18 > -23, entonces para Norte→Sur usamos b-a
+            const volcanesZona = Object.entries(VOLCANES_CONFIG)
+                .filter(([nombre, config]) => config.zona === zona)
+                .sort((a, b) => b[1].lat - a[1].lat)  // Ordenar descendente: -18, -19, ..., -23
+                .map(([nombre, config]) => nombre);
+            
+            // Agregar opciones
+            volcanesZona.forEach(nombre => {
+                const option = document.createElement('option');
+                option.value = nombre;
+                option.textContent = nombre;
+                volcanoSelect.appendChild(option);
+            });
+            
+            // Cargar primer volcn de la zona
+            if (volcanesZona.length > 0) {
+                loadVolcano();
+            }
+        }
+
+        async function loadVolcano() {
+            const select = document.getElementById('volcano-select');
+            currentVolcano = select.value;
+            
+            document.getElementById('system-status').textContent = 'Cargando...';
+            
+            await loadTimeline();
+            
+            // CAMBIO QUIRRGICO 6: CARGAR FECHAS COPERNICUS
+            await cargarFechasDisponiblesCopernicus(currentVolcano);
+            
+            // CARGAR TIMELAPSES AUTOMTICOS
+            await cargarTimelapesAutomaticos(currentVolcano);
+            
+            // FIX: Resetear timelapse si est visible
+            const timelapseContainer = document.getElementById('timelapse-container');
+            if (timelapseContainer && timelapseContainer.style.display === 'block') {
+                timelapseContainer.style.display = 'none';
+                document.getElementById('btn-toggle-timelapse').textContent = 'Ver Timelapse';
+                document.getElementById('gif-rgb-container').innerHTML = '<div class="loading-spinner"></div>';
+                document.getElementById('gif-thermal-container').innerHTML = '<div class="loading-spinner"></div>';
+            }
+            
+            document.getElementById('system-status').textContent = 'Operativo';
+            document.getElementById('system-status').className = 'status-badge badge-active';
+            // Mostrar la fecha REAL de la imagen más reciente del sistema
+            // (de cualquier volcán), no la fecha del navegador.
+            actualizarBannerUltimaImagen();
+            // MEJORA 7: Cargar fechas para comparación
+            cargarFechasComparacion(currentVolcano);
+        }
+
+        // Actualiza el banner "Última actualización" con la fecha REAL de la
+        // imagen más reciente entre TODOS los volcanes del sistema, no la hora
+        // del navegador. Lee fechasDisponiblesCopernicus (JSON regenerado por
+        // el cron cada vez que se descargan imágenes nuevas).
+        async function actualizarBannerUltimaImagen() {
+            try {
+                // Asegurarse de tener el JSON cargado
+                if (!fechasDisponiblesCopernicus || Object.keys(fechasDisponiblesCopernicus).length === 0) {
+                    const r = await fetch(`${REPO_BASE}/docs/fechas_disponibles_copernicus.json?t=${Date.now()}`);
+                    fechasDisponiblesCopernicus = await r.json();
+                }
+                // Construir lista de (fecha, volcán) y ordenar DESC por fecha
+                const todas = [];
+                Object.entries(fechasDisponiblesCopernicus).forEach(([volcan, fechas]) => {
+                    if (Array.isArray(fechas) && fechas.length > 0) {
+                        // El JSON viene ASC: última fecha es la última posición
+                        todas.push({ fecha: fechas[fechas.length - 1], volcan });
+                    }
+                });
+                todas.sort((a, b) => b.fecha.localeCompare(a.fecha));
+
+                if (todas.length === 0) {
+                    document.getElementById('last-update').textContent = 'Sin datos';
+                    return;
+                }
+
+                const ultima = todas[0];
+                // FIX 2026-05-17: calcular delta a hoy (Chile) usando fechas YYYY-MM-DD
+                // con Intl API (maneja DST automáticamente). Comparar a mediodía UTC
+                // evita errores de redondeo cerca de medianoche o transiciones DST.
+                const hoyStr = (() => {
+                    const fmt = new Intl.DateTimeFormat('en-CA', {
+                        timeZone: 'America/Santiago',
+                        year: 'numeric', month: '2-digit', day: '2-digit'
+                    });
+                    return fmt.format(new Date());
+                })();
+                const hoyChile = new Date(hoyStr + 'T12:00:00Z');
+                const fechaImg = new Date(ultima.fecha + 'T12:00:00Z');
+                const diffDias = Math.round((hoyChile - fechaImg) / (24 * 3600 * 1000));
+                const sufijo = diffDias === 0 ? ' (hoy)'
+                    : diffDias === 1 ? ' (ayer)'
+                    : ` (hace ${diffDias} días)`;
+
+                const el = document.getElementById('last-update');
+                while (el.firstChild) el.removeChild(el.firstChild);
+                const strong = document.createElement('strong');
+                strong.textContent = ultima.fecha;
+                strong.style.color = diffDias <= 1 ? '#7ee787' : diffDias <= 3 ? '#f0883e' : '#e6edf3';
+                el.appendChild(strong);
+                const span = document.createElement('span');
+                span.textContent = ` ${sufijo} · ${ultima.volcan}`;
+                span.style.color = '#8b949e';
+                el.appendChild(span);
+
+                // Tooltip con top 10 más recientes
+                const top10 = todas.slice(0, 10).map(x => `${x.fecha} · ${x.volcan}`).join('\n');
+                el.parentElement.title = '📡 Últimas 10 imágenes en el sistema:\n\n' + top10;
+            } catch (e) {
+                console.warn('No se pudo calcular última imagen del sistema:', e);
+                document.getElementById('last-update').textContent = '—';
+            }
+        }
+
+        // CAMBIO QUIRRGICO 6: FUNCIN CARGAR FECHAS COPERNICUS
+        async function cargarFechasDisponiblesCopernicus(volcano) {
+            try {
+                const response = await fetch(`${REPO_BASE}/docs/fechas_disponibles_copernicus.json?t=${Date.now()}`);
+                if (response.ok) {
+                    const data = await response.json();
+                    fechasDisponiblesCopernicus = data;
+                    console.log(' Fechas Copernicus cargadas:', fechasDisponiblesCopernicus);
+                }
+            } catch (error) {
+                console.error('Error cargando fechas Copernicus:', error);
+                fechasDisponiblesCopernicus = {};
+            }
+        }
+
+        async function loadMetadata(volcano) {
+            const metadataUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcano)}/metadata.csv?t=${Date.now()}`;
+            
+            try {
+                const response = await fetch(metadataUrl);
+                const csvText = await response.text();
+                
+                const lines = csvText.trim().split('\n');
+                const headers = lines[0].split(',');
+                
+                const metadata = [];
+                for (let i = 1; i < lines.length; i++) {
+                    const values = lines[i].split(',');
+                    const obj = {};
+                    headers.forEach((header, idx) => {
+                        obj[header] = values[idx];
+                    });
+                    metadata.push(obj);
+                }
+                
+                return metadata;
+            } catch (e) {
+                console.error('Error loading metadata:', e);
+                return [];
+            }
+        }
+
+        async function loadTimeline() {
+            const metadata = await loadMetadata(currentVolcano);
+            metadataCache[currentVolcano] = metadata;
+            
+            const timelineDiv = document.getElementById('timeline-dates');
+            
+            if (metadata.length === 0) {
+                timelineDiv.innerHTML = '<div class="no-image">No hay fechas disponibles</div>';
+                availableDates = [];
+                return;
+            }
+            
+            const fechas = [...new Set(metadata.map(m => m.fecha))].sort().reverse();
+            availableDates = fechas;
+            
+            timelineDiv.innerHTML = '';
+            
+            fechas.forEach((fecha, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'date-btn';
+                if (idx === 0) {
+                    btn.classList.add('active');
+                    currentDate = fecha;
+                }
+                btn.textContent = fecha;
+                btn.onclick = () => selectDate(fecha);
+                timelineDiv.appendChild(btn);
+            });
+            // (currentDate ya queda fijado en idx===0 dentro del forEach.)
+        }
+
+        // Marca la fecha activa en el timeline. La visualizacion de imagenes
+        // ocurre via cargarTimelapesAutomaticos (cards de timelapse) y
+        // actualizarComparacion (grid 2x2); loadImages (con contenedores
+        // rgb-container/thermal-container inexistentes) se elimino — solo tiraba
+        // errores en consola.
+        function selectDate(fecha) {
+            currentDate = fecha;
+
+            document.querySelectorAll('.date-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent === fecha) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        function toggleTimelapseMode() {
+            document.body.classList.remove('personal-mode', 'riesgosos-mode');
+            document.body.classList.toggle('timelapse-mode');
+            if (document.body.classList.contains('timelapse-mode')) {
+                document.getElementById('zona-multi-select').value = 'Norte';
+                loadMultiVolcanoViewZona();
+            }
+        }
+
+        // Modo "Personal": checkboxes agrupados por zona (lowercase). Desde volcanes.js.
+        const PERSONAL_ZONAS = {
+            'norte':   window.VOLCANES_POR_ZONA['Norte']   || [],
+            'centro':  window.VOLCANES_POR_ZONA['Centro']  || [],
+            'sur':     window.VOLCANES_POR_ZONA['Sur']     || [],
+            'austral': window.VOLCANES_POR_ZONA['Austral'] || []
+        };
+
+        function personalToggleLista() {
+            const lista = document.getElementById('personal-lista-checkboxes');
+            const btn = document.getElementById('personal-toggle-btn');
+            if (lista.style.display === 'none') {
+                lista.style.display = 'flex';
+                btn.textContent = '▲ Ocultar lista';
+            } else {
+                lista.style.display = 'none';
+                btn.textContent = '▼ Ver lista';
+            }
+        }
+
+        function personalBuildCheckboxes() {
+            Object.entries(PERSONAL_ZONAS).forEach(([zona, volcanes]) => {
+                const container = document.getElementById('personal-zona-' + zona);
+                if (!container || container.children.length > 0) return;
+                volcanes.forEach(nombre => {
+                    const label = document.createElement('label');
+                    label.style.cssText = 'display:flex;align-items:center;gap:7px;cursor:pointer;color:#e0e0e0;font-size:0.85em;padding:2px 4px;border-radius:4px;transition:background 0.15s;';
+                    label.addEventListener('mouseenter', () => label.style.background = '#21262d');
+                    label.addEventListener('mouseleave', () => label.style.background = '');
+                    const cb = document.createElement('input');
+                    cb.type = 'checkbox';
+                    cb.value = nombre;
+                    cb.style.cssText = 'accent-color:#a371f7;width:15px;height:15px;cursor:pointer;';
+                    cb.addEventListener('change', personalUpdateCount);
+                    label.appendChild(cb);
+                    label.appendChild(document.createTextNode(nombre));
+                    container.appendChild(label);
+                });
+            });
+        }
+
+        function personalUpdateCount() {
+            const n = personalGetSeleccionados().length;
+            const el = document.getElementById('personal-count');
+            el.textContent = n > 0 ? n + ' volcán' + (n !== 1 ? 'es seleccionados' : ' seleccionado') : '';
+        }
+
+        function personalGetSeleccionados() {
+            return Array.from(document.querySelectorAll('#monitoreo-personal-fullscreen input[type=checkbox]:checked'))
+                        .map(cb => cb.value);
+        }
+
+        function personalSelectAll() {
+            document.querySelectorAll('#monitoreo-personal-fullscreen input[type=checkbox]')
+                    .forEach(cb => cb.checked = true);
+            personalUpdateCount();
+        }
+
+        function personalClearAll() {
+            document.querySelectorAll('#monitoreo-personal-fullscreen input[type=checkbox]')
+                    .forEach(cb => cb.checked = false);
+            personalUpdateCount();
+            const grid = document.getElementById('personal-grid');
+            while (grid.firstChild) grid.removeChild(grid.firstChild);
+            const msg = document.createElement('p');
+            msg.style.cssText = 'color:#8b949e;padding:20px;';
+            msg.textContent = 'Selecciona volcanes y presiona Cargar Selección.';
+            grid.appendChild(msg);
+        }
+
+        function toggleMonitoreoPersonal() {
+            document.body.classList.remove('timelapse-mode', 'riesgosos-mode');
+            document.body.classList.toggle('personal-mode');
+            if (document.body.classList.contains('personal-mode')) {
+                personalBuildCheckboxes();
+                const grid = document.getElementById('personal-grid');
+                while (grid.firstChild) grid.removeChild(grid.firstChild);
+                const msg = document.createElement('p');
+                msg.style.cssText = 'color:#8b949e;padding:20px;';
+                msg.textContent = 'Selecciona volcanes y presiona Cargar Selección.';
+                grid.appendChild(msg);
+            }
+        }
+
+        async function loadMonitoreoPersonal() {
+            const seleccionados = personalGetSeleccionados();
+            if (seleccionados.length === 0) {
+                alert('Selecciona al menos un volcán.');
+                return;
+            }
+            await cargarPanelesList(seleccionados, 'personal-grid', '');
+        }
+
+        function toggleRiesgosos() {
+            document.body.classList.remove('timelapse-mode', 'personal-mode');
+            document.body.classList.toggle('riesgosos-mode');
+            if (document.body.classList.contains('riesgosos-mode')) {
+                loadRiesgososView();
+            }
+        }
+
+        async function loadRiesgososView() {
+            // VOLCANES_RIESGOSOS viene de volcanes.js (ranking SERNAGEOMIN).
+            const VOLCANES_RIESGOSOS = window.VOLCANES_RIESGOSOS;
+            const nombres = VOLCANES_RIESGOSOS.map(v => v.nombre);
+            const regiones = {};
+            VOLCANES_RIESGOSOS.forEach((v, i) => { regiones[v.nombre] = `#${i+1} · ${v.region}`; });
+            await cargarPanelesList(nombres, 'riesgosos-grid', regiones);
+        }
+
+        // FIX 2026-05-17: usar Intl API con timeZone America/Santiago para manejar DST
+        // automáticamente (UTC-4 invierno / UTC-3 verano). El hardcoded -240 fallaba
+        // en verano y mostraba el badge "NUEVA HOY" con 1 día de offset.
+        function obtenerFechaHoyChile() {
+            const fmt = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Santiago',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            return fmt.format(new Date()); // formato YYYY-MM-DD
+        }
+
+        function fechaChileOffset(dias) {
+            const d = new Date(Date.now() + dias * 86400000);
+            return new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Santiago',
+                year: 'numeric', month: '2-digit', day: '2-digit'
+            }).format(d);
+        }
+
+        // FIX 2026-06-12: "nueva" = la imagen APARECIO hace menos de 24h en este
+        // navegador. Gate hoy/ayer (el L2A se publica 4-12h despues del paso, asi
+        // que una imagen del dia D puede llegar recien la manana de D+1) + marca
+        // de primera vista en localStorage para que el aviso dure exactamente 24h.
+        function esNuevaHoy(volcan, fechaStr) {
+            if (!fechaStr) return false;
+            if (fechaStr !== obtenerFechaHoyChile() && fechaStr !== fechaChileOffset(-1)) return false;
+            const key = 'vista_s2_' + volcan + '_' + fechaStr;
+            let visto;
+            try {
+                visto = localStorage.getItem(key);
+                if (!visto) {
+                    visto = String(Date.now());
+                    const prefijo = 'vista_s2_' + volcan + '_';
+                    for (let i = localStorage.length - 1; i >= 0; i--) {
+                        const k = localStorage.key(i);
+                        if (k && k.indexOf(prefijo) === 0 && k !== key) localStorage.removeItem(k);
+                    }
+                    localStorage.setItem(key, visto);
+                }
+            } catch (e) {
+                return true; // localStorage bloqueado: caer al gate hoy/ayer
+            }
+            return (Date.now() - Number(visto)) < 24 * 3600 * 1000;
+        }
+
+        function badgeNuevaHTML(esNueva) {
+            return esNueva ? '<span style="display:inline-block; background:#dc2626; color:white; padding:2px 8px; border-radius:10px; font-size:0.7em; font-weight:700; margin-left:8px; vertical-align:middle; animation: pulseNew 1.5s ease-in-out infinite;">🆕 NUEVA</span>' : '';
+        }
+
+        function bordeNuevoHTML(esNueva) {
+            return esNueva ? 'border: 2px solid #dc2626; box-shadow: 0 0 12px rgba(220,38,38,0.5);' : 'border: 1px solid #30363d;';
+        }
+
+        async function cargarPanelesList(volcanesList, gridId, subtitulos) {
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = '';
+            for (const volcan of volcanesList) {
+                const panel = document.createElement('div');
+                let ultimaFecha = '';
+                try {
+                    const metadataUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/metadata.csv?t=${Date.now()}`;
+                    const response = await fetch(metadataUrl);
+                    const csvText = await response.text();
+                    const lines = csvText.trim().split('\n');
+                    if (lines.length > 1) ultimaFecha = lines[1].split(',')[0];
+                } catch (e) {}
+                const esNueva = esNuevaHoy(volcan, ultimaFecha);
+                panel.style.cssText = `background: #161b22; border-radius: 4px; padding: 8px; ${bordeNuevoHTML(esNueva)}`;
+                const subtitulo = subtitulos && subtitulos[volcan] ? subtitulos[volcan] : '';
+                // Layout homogeneizado con modo Multi-Volcán (loadMultiVolcanoViewZona).
+                // Misma tipografía, tamaños, márgenes y min-height para coherencia visual.
+                panel.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 5px;">
+                        <h2 style="color: #58a6ff; margin: 0;">${volcan}${badgeNuevaHTML(esNueva)}</h2>
+                        ${subtitulo ? `<span style="color:#f97316; font-size:0.8em; font-weight:bold;">${subtitulo}</span>` : ''}
+                    </div>
+                    ${ultimaFecha ? `<p style="color: ${esNueva ? '#dc2626' : '#8b949e'}; font-size: 0.85em; margin-bottom: 15px; font-weight: ${esNueva ? '700' : 'normal'};"> ${ultimaFecha}</p>` : ''}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 3px;">
+                            <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">Color Verdadero</h4>
+                            <div id="list-rgb-${gridId}-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                        <div style="background: #0d1117; border-radius: 6px; padding: 3px;">
+                            <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">${COMPOSITE2_INFO[composite2].corto}</h4>
+                            <div id="list-thermal-${gridId}-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                    </div>`;
+                grid.appendChild(panel);
+                if (ultimaFecha) {
+                    const rgbUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
+                    const thermalUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_${composite2}.png?t=${Date.now()}`;
+                    const rgbId = `list-rgb-${gridId}-${volcan}`;
+                    const thermalId = `list-thermal-${gridId}-${volcan}`;
+                    const compositoCorto = COMPOSITE2_INFO[composite2].corto;
+                    const rgbImg = new Image(); rgbImg.crossOrigin = 'anonymous';
+                    rgbImg.onload = async () => {
+                        const c = await agregarEscalaAImagen(rgbImg, VOLCANES_CONFIG[volcan]?.buffer_km || 3);
+                        renderImagenPanel(rgbId, c, volcan + ' - Color Verdadero', ultimaFecha);
+                    };
+                    rgbImg.onerror = () => { renderNoDisponible(rgbId); };
+                    rgbImg.src = rgbUrl;
+                    const thImg = new Image(); thImg.crossOrigin = 'anonymous';
+                    thImg.onload = async () => {
+                        const c = await agregarEscalaAImagen(thImg, VOLCANES_CONFIG[volcan]?.buffer_km || 3);
+                        renderImagenPanel(thermalId, c, volcan + ' - ' + compositoCorto, ultimaFecha);
+                    };
+                    thImg.onerror = () => { renderNoDisponible(thermalId); };
+                    thImg.src = thermalUrl;
+                } else {
+                    renderNoDisponible(`list-rgb-${gridId}-${volcan}`, 'Sin datos');
+                    renderNoDisponible(`list-thermal-${gridId}-${volcan}`, 'Sin datos');
+                }
+            }
+        }
+
+        async function loadMultiVolcanoViewZona() {
+            const zonaSelect = document.getElementById('zona-multi-select');
+            const zona = zonaSelect.value;
+            
+            const volcanesGrid = document.getElementById('volcanes-grid');
+            volcanesGrid.innerHTML = '';
+            
+            // Filtrar volcanes por zona y ordenar por latitud (Norte a Sur)
+            // Con latitudes negativas: usar b-a para ordenar Norte→Sur
+            const volcanesZona = Object.entries(VOLCANES_CONFIG)
+                .filter(([nombre, config]) => config.zona === zona)
+                .sort((a, b) => b[1].lat - a[1].lat)  // Ordenar descendente: -18, ..., -45
+                .map(([nombre, config]) => nombre);
+            
+            for (const volcan of volcanesZona) {
+                const panel = document.createElement('div');
+
+                // Obtener ultima fecha
+                let ultimaFecha = '';
+                try {
+                    const metadataUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/metadata.csv?t=${Date.now()}`;
+                    const response = await fetch(metadataUrl);
+                    const csvText = await response.text();
+                    const lines = csvText.trim().split('\n');
+
+                    if (lines.length > 1) {
+                        const values = lines[1].split(',');
+                        ultimaFecha = values[0];
+                    }
+                } catch (e) {
+                    console.error(`Error obteniendo fecha de ${volcan}:`, e);
+                }
+
+                const esNueva = esNuevaHoy(volcan, ultimaFecha);
+                panel.style.cssText = `background: #161b22; border-radius: 4px; padding: 8px; ${bordeNuevoHTML(esNueva)}`;
+
+                panel.innerHTML = `
+                    <h2 style="color: #58a6ff; margin-bottom: 5px;">${volcan}${badgeNuevaHTML(esNueva)}</h2>
+                    ${ultimaFecha ? `<p style="color: ${esNueva ? '#dc2626' : '#8b949e'}; font-size: 0.85em; margin-bottom: 15px; font-weight: ${esNueva ? '700' : 'normal'};"> ${ultimaFecha}</p>` : ''}
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 3px;">
+                        <div style="background: #0d1117; border-radius: 6px; padding: 3px;">
+                            <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">Color Verdadero</h4>
+                            <div id="rgb-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                        <div style="background: #0d1117; border-radius: 6px; padding: 3px;">
+                            <h4 style="color: #58a6ff; margin: 0 0 10px 0; font-size: 0.9em;">${COMPOSITE2_INFO[composite2].corto}</h4>
+                            <div id="thermal-${volcan}" style="min-height: 320px; display: flex; align-items: center; justify-content: center;">
+                                <div class="loading-spinner"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                volcanesGrid.appendChild(panel);
+                
+                try {
+                    if (ultimaFecha) {
+                        const rgbUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
+                        const thermalUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_${composite2}.png?t=${Date.now()}`;
+                        
+                        const compositoCorto = COMPOSITE2_INFO[composite2].corto;
+                        const rgbId = `rgb-${volcan}`;
+                        const thermalId = `thermal-${volcan}`;
+                        // RGB con escala
+                        const rgbImgMV = new Image();
+                        rgbImgMV.crossOrigin = "anonymous";
+                        rgbImgMV.onload = async () => {
+                            const imgConEscala = await agregarEscalaAImagen(rgbImgMV, VOLCANES_CONFIG[volcan]?.buffer_km || 3);
+                            renderImagenPanel(rgbId, imgConEscala, volcan + ' - Color Verdadero', ultimaFecha);
+                        };
+                        rgbImgMV.onerror = () => { renderNoDisponible(rgbId); };
+                        rgbImgMV.src = rgbUrl;
+
+                        // Thermal con escala
+                        const thermalImgMV = new Image();
+                        thermalImgMV.crossOrigin = "anonymous";
+                        thermalImgMV.onload = async () => {
+                            const imgConEscala = await agregarEscalaAImagen(thermalImgMV, VOLCANES_CONFIG[volcan]?.buffer_km || 3);
+                            renderImagenPanel(thermalId, imgConEscala, volcan + ' - ' + compositoCorto, ultimaFecha);
+                        };
+                        thermalImgMV.onerror = () => { renderNoDisponible(thermalId); };
+                        thermalImgMV.src = thermalUrl;
+                    }
+                } catch (e) {
+                    renderNoDisponible(`rgb-${volcan}`, 'Error');
+                    renderNoDisponible(`thermal-${volcan}`, 'Error');
+                }
+            }
+        }
+
+        // Helpers FIX auditoria: renderizan la <img> con createElement (no innerHTML
+        // con onclick interpolado -> cumple regla del proyecto y es seguro con
+        // nombres que tengan apostrofo/comilla). El closure captura las variables.
+        function renderImagenPanel(containerId, dataUrl, altText, fecha) {
+            const cont = document.getElementById(containerId);
+            if (!cont) return;
+            while (cont.firstChild) cont.removeChild(cont.firstChild);
+            const img = document.createElement('img');
+            img.src = dataUrl;
+            img.alt = altText;
+            img.style.cssText = 'width:100%; border-radius:4px; cursor:pointer;';
+            img.addEventListener('click', () => zoomImage(dataUrl, altText, fecha));
+            cont.appendChild(img);
+        }
+
+        function renderNoDisponible(containerId, texto) {
+            const cont = document.getElementById(containerId);
+            if (!cont) return;
+            while (cont.firstChild) cont.removeChild(cont.firstChild);
+            const div = document.createElement('div');
+            div.className = 'no-image';
+            div.textContent = texto || 'No disponible';
+            cont.appendChild(div);
+        }
+
+        // loadMultiVolcanoView() (hardcodeada a ['Villarrica','Llaima']) se elimino:
+        // nunca se llamaba desde ningun lado. La vista multi-volcan activa es
+        // loadMultiVolcanoViewZona() (filtra por zona). No confundir ambas.
+
+        async function generarPPT() {
+            const today = new Date();
+            // Usar mes ACTUAL en lugar de mes anterior
+            const monthStr = today.toISOString().slice(0, 7);  // 2026-02
+            
+            const pptUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(currentVolcano)}/reportes/${encodeURIComponent(currentVolcano)}_Evaluacion_Mensual_${monthStr}.pptx?t=${Date.now()}`;
+            
+            try {
+                const response = await fetch(pptUrl, { method: 'HEAD' });
+                
+                if (response.ok) {
+                    if (confirm(` PPT EVALUACION MENSUAL\n\n` +
+                               `Volcan: ${currentVolcano}\n` +
+                               `Mes: ${monthStr}\n\n` +
+                               ` El PPT ya esta generado.\n\n` +
+                               `Descargar ahora?`)) {
+                        
+                        const a = document.createElement('a');
+                        a.href = pptUrl;
+                        a.download = `${currentVolcano}_Evaluacion_Mensual_${monthStr}.pptx`;
+                        a.click();
+                    }
+                    return;
+                }
+            } catch (e) {
+                console.log('PPT no existe, necesita generarse');
+            }
+            
+            if (confirm(' GENERAR PPT EVALUACION MENSUAL\n\n' +
+                       `Volcan: ${currentVolcano}\n` +
+                       `Mes: ${monthStr}\n\n` +
+                       ` El PPT aun no se ha generado.\n\n` +
+                       `Para generar el PPT:\n` +
+                       `1. Ir a Actions -> PPT Evaluacion Workflow\n` +
+                       `2. Run workflow\n` +
+                       `3. Seleccionar volcan, fecha inicio y fecha fin\n\n` +
+                       `Abrir GitHub Actions?`)) {
+                
+                window.open('https://github.com/MendozaVolcanic/Copernicus-v1/actions', '_blank');
+            }
+        }
+
+        // CALENDARIO
+        function toggleCalendar() {
+            const modal = document.getElementById('calendar-modal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'flex';
+                updateCalendar();
+            }
+        }
+
+        function closeModalOutside(event) {
+            if (event.target.id === 'calendar-modal') {
+                toggleCalendar();
+            }
+        }
+
+        // CAMBIO QUIRRGICO 4: LGICA CALENDARIO 3 ESTADOS
+        function updateCalendar() {
+            calendarMonth = parseInt(document.getElementById('calendar-month').value);
+            calendarYear = parseInt(document.getElementById('calendar-year').value);
+            
+            const grid = document.getElementById('calendar-grid');
+            
+            const dayElements = grid.querySelectorAll('.calendar-day');
+            dayElements.forEach(el => el.remove());
+            
+            const firstDay = new Date(calendarYear, calendarMonth, 1);
+            const lastDay = new Date(calendarYear, calendarMonth + 1, 0);
+            const startDay = firstDay.getDay();
+            
+            // NUEVO: Cargar fechas Copernicus
+            const fechasCopernicus = fechasDisponiblesCopernicus[currentVolcano] || [];
+            
+            for (let i = 0; i < startDay; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'calendar-day';
+                grid.appendChild(emptyDiv);
+            }
+            
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dateStr = `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                // NUEVO: 3 estados
+                const yaDescargada = availableDates.includes(dateStr);
+                const disponibleCopernicus = fechasCopernicus.includes(dateStr);
+                
+                // DEBUG: Log primer día del mes
+                if (day === 1) {
+                    console.log('🗓️ Debug Calendario:', {
+                        volcano: currentVolcano,
+                        month: `${calendarYear}-${String(calendarMonth + 1).padStart(2, '0')}`,
+                        availableDatesCount: availableDates.length,
+                        fechasCopernicusCount: fechasCopernicus.length,
+                        firstAvailable: availableDates[0],
+                        firstCopernicus: fechasCopernicus[0],
+                        sampleDate: dateStr
+                    });
+                }
+                
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = day;
+                dayDiv.className = 'calendar-day';
+                
+                if (yaDescargada) {
+                    dayDiv.classList.add('downloaded');
+                    dayDiv.onclick = () => {
+                        selectDateFromCalendar(dateStr);
+                        toggleCalendar();
+                    };
+                } else if (disponibleCopernicus) {
+                    dayDiv.classList.add('available');
+                    dayDiv.onclick = () => abrirCopernicusBrowserFecha(dateStr);
+                } else {
+                    dayDiv.classList.add('unavailable');
+                }
+                
+                grid.appendChild(dayDiv);
+            }
+        }
+
+        function selectDateFromCalendar(dateStr) {
+            if (availableDates.includes(dateStr)) {
+                selectDate(dateStr);
+            }
+        }
+
+        // CAMBIO QUIRRGICO 5: FUNCIN COPERNICUS POR FECHA
+        function abrirCopernicusBrowserFecha(fecha) {
+            const config = VOLCANES_CONFIG[currentVolcano];
+            
+            if (confirm(` FECHA DISPONIBLE EN COPERNICUS\n\n` +
+                       `Volcan: ${currentVolcano}\n` +
+                       `Fecha: ${fecha}\n\n` +
+                       `Abrir Copernicus Browser?`)) {
+                
+                const url = `https://browser.dataspace.copernicus.eu/?` +
+                    `zoom=13&` +
+                    `lat=${config.lat}&` +
+                    `lng=${config.lon}&` +
+                    `themeId=DEFAULT-THEME&` +
+                    `datasetId=S2_L2A_CDAS&` +
+                    `fromTime=${fecha}T00:00:00.000Z&` +
+                    `toTime=${fecha}T23:59:59.999Z&` +
+                    `layerId=1_TRUE_COLOR&` +
+                    `cloudCoverage=30`;
+                
+                window.open(url, '_blank');
+            }
+        }
+
+        // BOTN COPERNICUS BROWSER (VOLCAN ACTUAL)
+        function abrirCopernicusBrowser() {
+            const config = VOLCANES_CONFIG[currentVolcano];
+            
+            if (confirm(` COPERNICUS BROWSER\n\n` +
+                       `Volcan: ${currentVolcano}\n` +
+                       `Coordenadias: ${config.lat}, ${config.lon}\n\n` +
+                       `Abrir navegador Copernicus?`)) {
+                
+                // Fecha actual
+                const hoy = new Date().toISOString().split('T')[0];
+                
+                const url = `https://browser.dataspace.copernicus.eu/?` +
+                    `zoom=13&` +
+                    `lat=${config.lat}&` +
+                    `lng=${config.lon}&` +
+                    `themeId=DEFAULT-THEME&` +
+                    `datasetId=S2_L2A_CDAS&` +
+                    `fromTime=${hoy}T00:00:00.000Z&` +
+                    `toTime=${hoy}T23:59:59.999Z&` +
+                    `layerId=1_TRUE_COLOR&` +
+                    `cloudCoverage=30`;
+                
+                window.open(url, '_blank');
+            }
+        }
+
+        // CALENDARIO COPERNICUS
+        function toggleCalendarioCopernicus() {
+            const modal = document.getElementById('calendar-copernicus-modal');
+            if (modal.style.display === 'flex') {
+                modal.style.display = 'none';
+            } else {
+                modal.style.display = 'flex';
+                updateCalendarioCopernicus();
+            }
+        }
+
+        function closeModalCopernicusOutside(event) {
+            if (event.target.id === 'calendar-copernicus-modal') {
+                toggleCalendarioCopernicus();
+            }
+        }
+
+        function updateCalendarioCopernicus() {
+            calendarCopernicusMonth = parseInt(document.getElementById('calendar-copernicus-month').value);
+            calendarCopernicusYear = parseInt(document.getElementById('calendar-copernicus-year').value);
+            
+            const grid = document.getElementById('calendar-copernicus-grid');
+            
+            const dayElements = grid.querySelectorAll('.calendar-day');
+            dayElements.forEach(el => el.remove());
+            
+            const firstDay = new Date(calendarCopernicusYear, calendarCopernicusMonth, 1);
+            const lastDay = new Date(calendarCopernicusYear, calendarCopernicusMonth + 1, 0);
+            const startDay = firstDay.getDay();
+            
+            // Cargar fechas Copernicus para este volcn
+            const fechasCopernicus = fechasDisponiblesCopernicus[currentVolcano] || [];
+            
+            for (let i = 0; i < startDay; i++) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'calendar-day';
+                grid.appendChild(emptyDiv);
+            }
+            
+            for (let day = 1; day <= lastDay.getDate(); day++) {
+                const dateStr = `${calendarCopernicusYear}-${String(calendarCopernicusMonth + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+                
+                const dayDiv = document.createElement('div');
+                dayDiv.textContent = day;
+                dayDiv.className = 'calendar-day';
+                
+                // Verificar si est en fechas disponibles de Copernicus
+                const disponible = fechasCopernicus.includes(dateStr);
+                
+                if (disponible) {
+                    dayDiv.classList.add('available');
+                    dayDiv.onclick = () => {
+                        abrirCopernicusBrowserFecha(dateStr);
+                    };
+                } else {
+                    dayDiv.classList.add('unavailable');
+                }
+                
+                grid.appendChild(dayDiv);
+            }
+        }
+
+        // TIMELAPSES AUTOMTICOS (30 DAS)
+        async function cargarTimelapesAutomaticos(volcano) {
+            const timestamp = new Date().getTime();
+            
+            const imgRGB = document.getElementById('timelapse-rgb-auto');
+            const imgThermal = document.getElementById('timelapse-thermal-auto');
+            
+            // Rutas a GIFs en docs/sentinel2/{volcano}/timelapses/
+            imgRGB.src = `${REPO_BASE}/docs/timelapses/${encodeURIComponent(volcano)}_RGB.gif?t=${timestamp}`;
+            // Panel 2: usa el composite seleccionado (Thermal o SWIR_B8A).
+            imgThermal.src = `${REPO_BASE}/docs/timelapses/${encodeURIComponent(volcano)}_${composite2}.gif?t=${timestamp}`;
+            
+            // Placeholder local si el GIF no existe (sin red, sin dependencia
+            // externa). Reemplaza la <img> por un div 'no-image' en su lugar,
+            // igual que el resto del dashboard (createElement + textContent).
+            const placeholderTimelapse = (img) => {
+                if (!img || !img.parentNode) return;
+                const div = document.createElement('div');
+                div.className = 'no-image';
+                div.textContent = 'Timelapse no disponible';
+                img.parentNode.replaceChild(div, img);
+            };
+            imgRGB.onerror = () => placeholderTimelapse(imgRGB);
+            imgThermal.onerror = () => placeholderTimelapse(imgThermal);
+            
+            // Fecha REAL de la imagen más reciente del volcán (no la fecha del navegador)
+            const fechasVol = fechasDisponiblesCopernicus && fechasDisponiblesCopernicus[currentVolcano];
+            const ultimaFechaVol = (Array.isArray(fechasVol) && fechasVol.length > 0)
+                ? fechasVol[fechasVol.length - 1]
+                : '—';
+            document.getElementById('update-date-rgb').textContent = ultimaFechaVol;
+            document.getElementById('update-date-thermal').textContent = ultimaFechaVol;
+        }
+
+        function verTimelapseFullscreen(tipo) {
+            // Panel 2 ('Thermal') respeta el composite seleccionado.
+            const tipoArchivo = tipo === 'RGB' ? 'RGB' : composite2;
+            const timestamp = new Date().getTime();
+            
+            // Crear modal fullscreen
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                background: rgba(0,0,0,0.95);
+                z-index: 3000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+            `;
+            
+            const header = document.createElement('div');
+            header.style.cssText = `
+                position: absolute;
+                top: 0;
+                width: 100%;
+                background: #161b22;
+                padding: 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #58a6ff;
+            `;
+            
+            const title = document.createElement('h2');
+            const tituloComposite = tipo === 'RGB' ? 'Color Verdadero' : COMPOSITE2_INFO[composite2].titulo;
+            title.textContent = ` ${currentVolcano} - ${tituloComposite} (30 dias)`;
+            title.style.cssText = 'color: #58a6ff; margin: 0;';
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = ' Cerrar';
+            closeBtn.className = 'btn-ui';
+            closeBtn.onclick = () => document.body.removeChild(modal);
+            
+            header.appendChild(title);
+            header.appendChild(closeBtn);
+            
+            const img = document.createElement('img');
+            img.src = `${REPO_BASE}/docs/timelapses/${encodeURIComponent(currentVolcano)}_${tipoArchivo}.gif?t=${timestamp}`;
+            img.alt = `Timelapse ${currentVolcano} - ${tituloComposite}`;
+            img.style.cssText = 'max-width: 90%; max-height: 80vh; border-radius: 10px; margin-top: 80px;';
+            img.onerror = () => {
+                // Placeholder local (sin red): reemplaza la <img> por un div 'no-image'.
+                if (img.parentNode) {
+                    const div = document.createElement('div');
+                    div.className = 'no-image';
+                    div.style.marginTop = '80px';
+                    div.textContent = 'Timelapse no disponible';
+                    img.parentNode.replaceChild(div, img);
+                }
+            };
+            
+            modal.appendChild(header);
+            modal.appendChild(img);
+            document.body.appendChild(modal);
+            
+            // Click fuera cierra
+            modal.onclick = (e) => {
+                if (e.target === modal) document.body.removeChild(modal);
+            };
+        }
+
+
+        // ZOOM DE IMAGENES
+        function zoomImage(imageUrl, title, fecha) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100vh;
+                background: rgba(0,0,0,0.95);
+                z-index: 4000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-direction: column;
+            `;
+            
+            const header = document.createElement('div');
+            header.style.cssText = `
+                position: absolute;
+                top: 0;
+                width: 100%;
+                background: #161b22;
+                padding: 0;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 2px solid #58a6ff;
+            `;
+            
+            const titleEl = document.createElement('h2');
+            titleEl.textContent = `${title} - ${fecha}`;
+            titleEl.style.cssText = 'color: #58a6ff; margin: 0;';
+            
+            const closeBtn = document.createElement('button');
+            closeBtn.textContent = 'Cerrar';
+            closeBtn.className = 'btn-ui';
+            closeBtn.onclick = () => document.body.removeChild(modal);
+            
+            header.appendChild(titleEl);
+            header.appendChild(closeBtn);
+            
+            const img = document.createElement('img');
+            img.src = imageUrl;
+            img.alt = `${title} - ${fecha}`;
+            img.style.cssText = 'max-width: 90%; max-height: 85vh; border-radius: 10px; margin-top: 80px;';
+
+            modal.appendChild(header);
+            modal.appendChild(img);
+            document.body.appendChild(modal);
+            
+            modal.onclick = (e) => {
+                if (e.target === modal) document.body.removeChild(modal);
+            };
+        }
+
+        // ==============================================
+        // FUNCIÓN: AGREGAR ESCALA A IMAGEN
+        // ==============================================
+        
+        async function agregarEscalaAImagen(imgElement, bufferKm = 3) {
+            return new Promise((resolve) => {
+                if (!imgElement.complete) {
+                    imgElement.onload = () => procesarImagen();
+                } else {
+                    procesarImagen();
+                }
+
+                function procesarImagen() {
+                    try {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+
+                        canvas.width = imgElement.naturalWidth || imgElement.width;
+                        canvas.height = imgElement.naturalHeight || imgElement.height;
+
+                        ctx.drawImage(imgElement, 0, 0);
+
+                        // Calcular escala usando el buffer_km real del volcán
+                        const escalaKm = bufferKm;
+                        const areaFisicaKm = bufferKm * 2;
+                        const pixelesPorKm = canvas.width / areaFisicaKm;
+                        const anchoBarraPx = Math.floor(pixelesPorKm * escalaKm);
+                        
+                        const xStart = canvas.width - anchoBarraPx - 30;
+                        const yPos = canvas.height - 50;
+                        const padding = 10;
+                        const alturaBarra = 6;
+                        
+                        // Fondo negro
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+                        ctx.fillRect(
+                            xStart - padding, 
+                            yPos - padding - 20, 
+                            anchoBarraPx + padding * 2, 
+                            50
+                        );
+                        
+                        // Borde negro
+                        ctx.fillStyle = 'black';
+                        ctx.fillRect(xStart - 2, yPos - 2, anchoBarraPx + 4, alturaBarra + 4);
+                        
+                        // Barra blanca
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(xStart, yPos, anchoBarraPx, alturaBarra);
+                        
+                        // Marcas
+                        ctx.strokeStyle = 'white';
+                        ctx.lineWidth = 2;
+                        for (let i = 0; i <= escalaKm; i++) {
+                            const xMarca = xStart + Math.floor((anchoBarraPx / escalaKm) * i);
+                            ctx.beginPath();
+                            ctx.moveTo(xMarca, yPos);
+                            ctx.lineTo(xMarca, yPos + alturaBarra + 5);
+                            ctx.stroke();
+                        }
+                        
+                        // Texto "3 km"
+                        ctx.fillStyle = 'white';
+                        ctx.font = 'bold 14px Arial';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(
+                            escalaKm + ' km', 
+                            xStart + anchoBarraPx / 2, 
+                            yPos - 10
+                        );
+                        
+                        resolve(canvas.toDataURL('image/png'));
+                    } catch (error) {
+                        console.error('Error procesando imagen:', error);
+                        resolve(imgElement.src);
+                    }
+                }
+            });
+        }
+
+        // ========================================
+        // FUNCIONES BOTONES PPT
+        // ========================================
+        
+        function generarPPTIndividual() {
+            const volcan = currentVolcano;
+            const url = 'https://github.com/MendozaVolcanic/Copernicus-v1/actions/workflows/ppt_individual_workflow.yml';
+            
+            alert(
+                `📊 PPT EVALUACIÓN INDIVIDUAL\n\n` +
+                `Volcán: ${volcan}\n\n` +
+                `Pasos:\n` +
+                `1. Ir a Actions → PPT Evaluación Individual\n` +
+                `2. Run workflow\n` +
+                `3. Seleccionar: ${volcan}\n` +
+                `4. Fechas: Último mes\n` +
+                `5. Esperar ~5 minutos\n\n` +
+                `¿Abrir Actions ahora?`
+            );
+            
+            if (confirm('Abrir GitHub Actions?')) {
+                window.open(url, '_blank');
+            }
+        }
+        
+        function generarPPTCompleto() {
+            const url = 'https://github.com/MendozaVolcanic/Copernicus-v1/actions/workflows/ppt_completo_workflow.yml';
+            
+            alert(
+                `📊 PPT EVALUACIÓN COMPLETA (Todos los Volcanes)\n\n` +
+                `Genera PPT con TODOS los volcanes\n\n` +
+                `⚠️ ADVERTENCIA:\n` +
+                `- Tiempo estimado: 30-45 minutos\n` +
+                `- Generará ~40 slides\n` +
+                `- Tamaño: ~50-80 MB\n\n` +
+                `Pasos:\n` +
+                `1. Ir a Actions → PPT Completo\n` +
+                `2. Run workflow\n` +
+                `3. Esperar completar\n\n` +
+                `¿Abrir Actions ahora?`
+            );
+            
+            if (confirm('Abrir GitHub Actions?')) {
+                window.open(url, '_blank');
+            }
+        }
+
+        window.onload = function() {
+            cambiarZona(); // Carga zona Sur por defecto
+        };
+
+        // ============================================
+        // MEJORA 7: COMPARACIÓN LADO A LADO
+        // ============================================
+        
+        let fechasDisponibles = [];
+        let volcanActual = null;
+        
+        function cargarFechasComparacion(volcan) {
+            volcanActual = volcan;
+
+            // FIX 2026-05-28: antes leiamos sentinel2/<volcan>/metadata.csv
+            // pero ese CSV queda desactualizado cuando el cron matrix paralelo
+            // sube los PNGs nuevos pero los .csv se pisan entre artifacts.
+            // El JSON global fechas_disponibles_copernicus.json sí refleja el
+            // filesystem real, lo regenera el job consolidador escaneando los
+            // PNGs. Lo usamos como single source of truth.
+            //
+            // fechasDisponiblesCopernicus se carga al inicio en el modulo
+            // del calendario (linea ~1425). Si por timing no esta listo,
+            // hacemos fallback fetch al JSON.
+            const aplicar = (lista) => {
+                fechasDisponibles = lista.slice().sort().reverse();
+                poblarSelectoresFechas();
+                if (fechasDisponibles.length >= 2) {
+                    document.getElementById('fecha-izquierda').value = fechasDisponibles[1];
+                    document.getElementById('fecha-derecha').value = fechasDisponibles[0];
+                    actualizarComparacion();
+                }
+            };
+
+            const cached = (typeof fechasDisponiblesCopernicus === 'object'
+                            && fechasDisponiblesCopernicus
+                            && fechasDisponiblesCopernicus[volcan]);
+            if (cached && cached.length) {
+                aplicar(cached);
+                return;
+            }
+            // Fallback: traer el JSON directamente
+            fetch(`${REPO_BASE}/docs/fechas_disponibles_copernicus.json?t=${Date.now()}`)
+                .then(r => r.json())
+                .then(j => aplicar(j[volcan] || []))
+                .catch(err => console.error('Error cargando fechas:', err));
+        }
+        
+        function poblarSelectoresFechas() {
+            const selectIzq = document.getElementById('fecha-izquierda');
+            const selectDer = document.getElementById('fecha-derecha');
+            
+            selectIzq.innerHTML = '<option value="">Seleccionar fecha...</option>';
+            selectDer.innerHTML = '<option value="">Seleccionar fecha...</option>';
+            
+            fechasDisponibles.forEach(fecha => {
+                const optionIzq = document.createElement('option');
+                optionIzq.value = fecha;
+                optionIzq.textContent = fecha;
+                selectIzq.appendChild(optionIzq);
+                
+                const optionDer = document.createElement('option');
+                optionDer.value = fecha;
+                optionDer.textContent = fecha;
+                selectDer.appendChild(optionDer);
+            });
+        }
+        
+        function actualizarComparacion() {
+            const fechaIzq = document.getElementById('fecha-izquierda').value;
+            const fechaDer = document.getElementById('fecha-derecha').value;
+            
+            if (!fechaIzq || !fechaDer) {
+                document.getElementById('comparison-grid').innerHTML = 
+                    '<p style="grid-column: 1 / -1; text-align: center; padding: 40px; color: #8b949e;">Selecciona dos fechas para comparar</p>';
+                return;
+            }
+            
+            if (!volcanActual) {
+                console.error('No hay volcán seleccionado');
+                return;
+            }
+            
+            const grid = document.getElementById('comparison-grid');
+            const bufKm = VOLCANES_CONFIG[volcanActual]?.buffer_km || 3;
+
+            // Cargar metadata para ambas fechas (sino los cards muestran "--")
+            cargarMetadatosComparacion(fechaIzq, 'izq');
+            cargarMetadatosComparacion(fechaDer, 'der');
+
+            const tit2 = COMPOSITE2_INFO[composite2].titulo;  // panel 2: Thermal o SWIR B8A
+            const items = [
+                { headerText: `Color Verdadero (B4-B3-B2) — ${fechaIzq}`, file: `${fechaIzq}_RGB.png`,             altText: `Color Verdadero ${fechaIzq}` },
+                { headerText: `Color Verdadero (B4-B3-B2) — ${fechaDer}`, file: `${fechaDer}_RGB.png`,             altText: `Color Verdadero ${fechaDer}` },
+                { headerText: `${tit2} — ${fechaIzq}`,                    file: `${fechaIzq}_${composite2}.png`,  altText: `${tit2} ${fechaIzq}` },
+                { headerText: `${tit2} — ${fechaDer}`,                    file: `${fechaDer}_${composite2}.png`,  altText: `${tit2} ${fechaDer}` },
+            ];
+
+            while (grid.firstChild) grid.removeChild(grid.firstChild);
+
+            items.forEach(it => {
+                const card = document.createElement('div');
+                card.className = 'comparison-item';
+
+                const head = document.createElement('div');
+                head.className = 'comparison-header';
+                head.textContent = it.headerText;
+                card.appendChild(head);
+
+                const placeholder = document.createElement('div');
+                placeholder.className = 'no-image';
+                placeholder.textContent = 'Cargando…';
+                card.appendChild(placeholder);
+
+                grid.appendChild(card);
+
+                const sourceImg = new Image();
+                sourceImg.crossOrigin = 'anonymous';
+                sourceImg.onload = async () => {
+                    const dataUrl = await agregarEscalaAImagen(sourceImg, bufKm);
+                    const finalImg = document.createElement('img');
+                    finalImg.className = 'comparison-image';
+                    finalImg.alt = it.altText;
+                    finalImg.src = dataUrl;
+                    if (placeholder.parentNode === card) {
+                        card.replaceChild(finalImg, placeholder);
+                    }
+                };
+                sourceImg.onerror = () => {
+                    placeholder.textContent = 'No disponible';
+                };
+                sourceImg.src = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcanActual)}/${it.file}`;
+            });
+        }
+        
+        function cargarMetadatosComparacion(fecha, lado) {
+            const metadataPath = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcanActual)}/metadata.csv`;
+            
+            fetch(metadataPath)
+                .then(response => response.text())
+                .then(csv => {
+                    const lineas = csv.split('\n');
+                    let metadataRGB = null;
+                    let metadataThermal = null;
+                    
+                    lineas.slice(1).forEach(linea => {
+                        const cols = linea.split(',');
+                        if (cols[0] === fecha) {
+                            const metadata = {
+                                fecha: cols[0],
+                                tipo: cols[1],
+                                nubes: parseFloat(cols[2]),
+                                sensor: cols[3]
+                            };
+                            
+                            if (cols[1] === 'RGB') {
+                                metadataRGB = metadata;
+                            } else if (cols[1] === 'ThermalFalseColor') {
+                                metadataThermal = metadata;
+                            }
+                        }
+                    });
+                    
+                    // Actualizar metadatos RGB
+                    if (metadataRGB) {
+                        const elemFecha = document.getElementById(`meta-${lado}-rgb-fecha`);
+                        const elemSensor = document.getElementById(`meta-${lado}-rgb-sensor`);
+                        const elemClouds = document.getElementById(`meta-${lado}-rgb-clouds`);
+                        
+                        if (elemFecha) elemFecha.textContent = metadataRGB.fecha;
+                        if (elemSensor) elemSensor.textContent = metadataRGB.sensor;
+                        if (elemClouds) elemClouds.textContent = `${metadataRGB.nubes.toFixed(1)}%`;
+                    }
+                    
+                    // Actualizar metadatos Thermal
+                    if (metadataThermal) {
+                        const elemFecha = document.getElementById(`meta-${lado}-thermal-fecha`);
+                        const elemSensor = document.getElementById(`meta-${lado}-thermal-sensor`);
+                        const elemClouds = document.getElementById(`meta-${lado}-thermal-clouds`);
+                        
+                        if (elemFecha) elemFecha.textContent = metadataThermal.fecha;
+                        if (elemSensor) elemSensor.textContent = metadataThermal.sensor;
+                        if (elemClouds) elemClouds.textContent = `${metadataThermal.nubes.toFixed(1)}%`;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error cargando metadatos:', error);
+                });
+        }
+        
+        function intercambiarFechas() {
+            const selectIzq = document.getElementById('fecha-izquierda');
+            const selectDer = document.getElementById('fecha-derecha');
+            
+            const temp = selectIzq.value;
+            selectIzq.value = selectDer.value;
+            selectDer.value = temp;
+            
+            actualizarComparacion();
+        }
+        
+        function resetearComparacion() {
+            if (fechasDisponibles.length >= 2) {
+                document.getElementById('fecha-izquierda').value = fechasDisponibles[1];
+                document.getElementById('fecha-derecha').value = fechasDisponibles[0];
+                actualizarComparacion();
+            }
+        }
+
+    </script>
+
+</body>
+</html>

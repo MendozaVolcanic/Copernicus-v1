@@ -1,0 +1,875 @@
+                   Posted with permission from Elsevier. A version of this article appeared in Remote Sensing of Environment v.
+                     82, pp 135-155. Single copies of this article can be downloaded and printed only for personal research and
+                                                                                        study
+                                                        Remote Sensing of Environment 82 (2002) 135 ­ 155
+                                                                                                                                                            www.elsevier.com/locate/rse
+
+            Automated volcanic eruption detection using MODIS
+
+             Robert Wright , Luke Flynn, Harold Garbeil, Andrew Harris, Eric Pilger
+
+                                       Hawaii Institute of Geophysics and Planetology, University of Hawaii, Honolulu, HI, USA
+
+                                    Received 12 October 2001; recweirvigedht@in hriegvpis.headwfaoirim.ed2u2 February 2002; accepted 4 March 2002
+
+Abstract
+
+    The moderate resolution imaging spectroradiometer (MODIS) flown on-board NASA's first earth observing system (EOS) platform,
+Terra, offers complete global data coverage every 1 ­ 2 days at spatial resolutions of 250, 500, and 1000 m. Its ability to detect emitted
+radiation in the short (4 Am)- and long (12 Am)-wave infrared regions of the electromagnetic spectrum, combined with the excellent
+geolocation of the image pixels ( f 200 m), makes it an ideal source of data for automatically detecting and monitoring high-temperature
+volcanic thermal anomalies. This paper describes the underlying principles of, and results obtained from, just such a system. Our algorithm
+interrogates the MODIS Level 1B data stream for evidence of high-temperature volcanic features. Once a hotspot has been identified, its
+details (location, emitted spectral radiance, satellite observational parameters) are written to an ASCII text file and transferred via file transfer
+protocol (FTP) to the Hawaii Institute of Geophysics and Planetology (HIGP), where the results are posted on the Internet (http://
+modis.higp.hawaii.edu). The global distribution of volcanic hotspots can be examined visually at a variety of scales using this website, which
+also allows easy access to the quantitative data contained in the ASCII files themselves. We outline how the algorithm has proven robust as a
+hotspot detection tool for a wide range of eruptive styles at both permanently and sporadically active volcanoes including Soufriere Hills
+(Montserrat), Popocate´petl (Mexico), Bezymianny (Russia), and Merapi (Java), amongst others. We also present case studies of how the
+system has allowed the onset, development, and cessation of discrete eruptive events to be monitored at Nyamuragira (Congo), Piton de la
+Fournaise (Re´union Island), and Shiveluch (Russia). D 2002 Published by Elsevier Science Inc.
+
+1. Introduction                                                              Mouginis-Mark, & Horton, 1994; Wright, Flynn, & Harris,
+                                                                             2001), lava domes (e.g. Oppenheimer, Francis, Rothery,
+   Volcanism is synonymous with heat, and over the last                      Carlton, & Glaze, 1993; Wooster, Kaneko, Nakada, &
+two decades, much research has been dedicated to studying                    Shimizu, 2000), lava lakes (e.g. Harris, Flynn, Rothery,
+how thermal infrared satellite data can be used to monitor                   Oppenheimer, & Sherman, 1999), and fumarole fields (e.g.
+the eruptive state of active volcanoes. This research can be                 Harris & Stevenson, 1997).
+conveniently divided into two groups (Flynn, Harris, &
+Wright, 2001). Initial research was concerned with the use                      Although the high-spatial-resolution (30 ­ 120 m per
+of high-spatial-, low-temporal-resolution data from the                      pixel) data provided by TM, ETM+, and the recently
+Landsat thematic mapper (TM), with Francis and McAllister                    launched advanced spaceborne thermal emission and reflec-
+(1986) the first to use TM data to detect short-wave infrared                tion radiometer (ASTER) are useful for spatially detailed
+(SWIR) radiance emitted from a growing lava dome at the                      thermal analysis, their relatively poor temporal resolution
+summit of Lascar Volcano in northern Chile. Subsequently,                    (16-day revisit period) means that they do not lend them-
+several authors have used TM and its successor, the Landsat                  selves to routine thermal monitoring. For example, although
+7 enhanced thematic mapper plus (ETM+), to analyse the                       the 1991 ­ 1993 eruption of Mount Etna lasted for 473 days,
+detailed thermal properties of active lava flows (e.g. Flynn                 only five cloud-free TM acquisitions were possible (Wright,
+                                                                             Rothery, Blake, & Pieri, 2000). As a result, volcanologists
+    * Corresponding author. Present address: Department of Geography         have looked to low-spatial- but high-temporal-resolution
+and Earth Sciences, Brunel University, Uxbridge UB8 3PH, UK. Fax: +44-       data from sensors such as the advanced very high resolution
+1895-203217.                                                                 radiometer (AVHRR), geostationary operational environ-
+                                                                             mental satellite series (GOES), and the along-track scanning
+    E-mail address: robert.wright@brunel.ac.uk (R. Wright).                  radiometer (ATSR) to satisfy the need for an operational
+                                                                             volcano monitoring capability.
+
+0034-4257/02/$ - see front matter D 2002 Published by Elsevier Science Inc.
+PII: S 0 0 3 4 - 4 2 5 7 ( 0 2 ) 0 0 0 3 0 - 5
+136  R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155
+
+   AVHRR, GOES, and ATSR have proven to be effective              fully global system. AVHRR is only used routinely in the
+eruption monitoring tools, in spite of the fact that the          North Pacific, while the use of GOES is limited to the
+volcanic features of interest are often much smaller than         Americas and the Pacific. As a result, volcanically active
+the pixel size of the instruments (AVHRR f 1 km; ATSR             areas of the globe such as Iceland, the Mediterranean, and the
+f 1 km; GOES f 4 km). This success stems from their               African Rift remain unmonitored by existing systems. The
+relatively high sampling frequency and their ability to           moderate resolution imaging spectroradiometer (MODIS),
+measure emitted radiance in the SWIR region of the electro-       launched on-board NASA's first earth observing system
+magnetic spectrum, a region in which volcanic hotspots emit       (EOS) platform ``Terra'' in December 1999, is the latest
+prodigious amounts of energy. By utilising nighttime and          space-based sensor to provide the kind of low-spatial-,
+daytime passes, AVHRR data can be acquired four times per         high-temporal-resolution data previously described. The pur-
+day for any given ground target, although this frequency          pose of this paper is to show how MODIS has been used as
+increases if more than one NOAA satellite is orbiting at any      the basis for a global volcanic eruption detection system.
+one time and at high latitudes where adjacent swaths overlap
+significantly. ATSR data are acquired twice in every 24-h         2. Principles of low-spatial-resolution volcano
+period, while GOES provides a fan image of the Earth, on           monitoring
+average, every 15 min. This high sampling frequency
+reduces the chance that a ground target will be obscured             Before describing the MODIS detection algorithm in
+by clouds and is ideal for monitoring dynamic volcanic            detail, we will first review the physical principles upon which
+phenomena. AVHRR has been used to provide detailed                low spatial thermal monitoring of hotspots is based. AVHRR
+chronologies of effusive eruptions at Mount Etna, Sicily          and GOES form the basis of two existing volcano monitoring
+(Harris, Blake, Rothery, & Stevens, 1997; Harris & Neri, in       systems (e.g. Dehn et al., 2000; Harris, Flynn, et al., 2000)
+press), and is used by the Alaskan Volcano Observatory            primarily because they detect radiance in spectral wavebands
+(AVO) to routinely monitor the many active volcanoes that         centered at 4 and 11 ­12 Am. These wavebands coincide with
+exist in the North Pacific region (Dehn, Dean, & Engle,           the wavelengths of peak emission for high-temperature
+2000; Schneider, Dean, Dehn, Miller, & Kirianov, 2000).           volcanic heat sources and ambient Earth surface temper-
+                                                                  atures, respectively. Research into hotspot detection using
+   Since 1998, GOES data have been used as the basis for          low-spatial-resolution satellite data has exploited the fact that
+an automated volcano monitoring system based at the HIGP          the presence of a high-temperature, subpixel-sized hotspot,
+(Harris, Flynn, et al., 2000; Harris et al., 2001). Using         within an otherwise thermally homogenous pixel radiating at
+direct-broadcast GOES data provided by the Naval Research         ambient temperature, causes the amount of radiance emitted
+Laboratory (Monterrey, CA), the system searches for vol-          in the SWIR to increase dramatically when compared to that
+                                                                  in the long-wave infrared (Dozier, 1981). For example, a
+canic hotspots within several 500 Â 500 pixel image ``tiles''     thermally homogenous 1-km pixel containing ground at 300
+                                                                  K will emit 0.4 and 9.5 W m À 2 sr À 1 Am À 1 at 4 and 11 Am,
+covering areas including the Lesser Antilles, Hawaii, South       respectively. However, if an active lava body radiating at 850
+and Central America, New Zealand, and the continental             K occupies 0.05% of this pixel (500 m2) the integrated
+USA. The results are posted on the Internet (http://goes.hig-     radiance (i.e. from the lava feature and the adjacent back-
+p.hawaii.edu) usually within 15 min of initial image acqui-       ground) emitted at 4 and 11 Am increases to 1.3 and 9.6 W
+sition. The GOES-based system has provided valuable               m À 2 sr À 1 Am À 1, respectively. Thus, although the presence
+insights into the development of lava flow-fields and erup-       of a subpixel-sized hotspot causes emission at 11 Am to
+tion timings at Kilauea Volcano in Hawaii (Harris, Keszthe-       increase by only 1%, the presence of the same feature causes
+lyi, et al., 1997; Harris & Thornber, 1999) and Fernandina        emission at 4 Am to increase by more than 200%.
+Volcano in the Galapagos Islands (Mouginis-Mark, Snell, &
+Ellisor, 2000). It has also been used to elucidate processes         Remotely sensed infrared radiance data therefore provide
+governing the behaviour of potentially explosive silicic lava     a tool that is well suited to identifying volcanic hotspots at
+domes at Popocate´petl, Mexico (Wright, de la Cruz-Reyna,         the pixel or subpixel scale. Section 3 reviews the properties
+Flynn, Harris, & Gomez-Palacios, in press) and Lascar             of MODIS that make it suitable for hotspot monitoring and,
+(Harris, Pilger, & Flynn, 2002).                                  in certain aspects, preferential to GOES and AVHRR for this
+                                                                  purpose.
+   Although not used in an operational mode at this time,
+several studies have illustrated the value of ATSR for mon-       3. The Moderate Resolution Imaging Spectroradiometer
+itoring volcanic activity at Lascar, Chile (Wooster, 2001),       (MODIS)
+Unzen, Japan (Wooster & Kaneko, 1998), and Mount Etna
+(Rothery, Coltelli, Pirie, Wooster, & Wright, 2001). ATSR            MODIS was launched into a sun-synchronous polar orbit
+acquires data in four infrared wavebands at a spatial resolution  on-board NASA's first EOS platform, Terra, in December
+of f 1 km at nadir. One nighttime and one daytime image are
+acquired for each point on the Earth's surface, on average,
+once every 3 days.
+
+   Although AVHRR and GOES are commonly used to
+monitor active volcanoes, neither has been integrated into a
+R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155  137
+
+1999. Terra (previously called EOS AM-1) has a 10:30 a.m.       Fig. 1. MODIS across-track response and the definition of the MODIS
+descending-node equatorial crossing time, providing one         pixel. A hotspot at a given ground location (asterisk) can be observed by
+daytime and one nighttime image in a 24-h period. Although      two adjacent pixels (arrow). Adapted from Fig. 4 in Kaufman et al. (1998).
+adjacent imaging swaths overlap significantly at high lat-
+itudes, gaps between adjacent swaths occur close to the         (Fig. 1). This does not, however, lead to ``double counting''
+equator, and, as a result, complete global coverage is          of radiance, as although the radiance from a hotspot may be
+achieved every 2 days. A second MODIS sensor is due to          shared between two pixels, the sampling period (dwell time)
+be launched in April 2002 on the next EOS platform              is always the same ( f 333 As).
+``Aqua'' (previously called EOS PM-1). As its former name
+suggests, Aqua will have an afternoon (2:30 p.m.) descend-      4. The MODIS volcano detection algorithm:
+ing-node equatorial crossing time.                               MODVOLC
+
+   In terms of hotspot detection, several features are of          The algorithm currently uses nighttime MODIS data
+particular relevance. MODIS acquires data in the important      only, and it is the development of the nighttime MODVOLC
+4- and 11-Am regions of the electromagnetic spectrum.           algorithm that we describe here. However, in order to fully
+However, whereas AVHRR and GOES provide only three              understand the rationale upon which the algorithm was
+suitable spectral channels, MODIS provides up to 10. Of         designed, it is first necessary to outline the operational
+these, three are used by the MODVOLC algorithm that we          constraints that guided its development. MODVOLC had
+describe in this paper; Bands 21, 22, and 32. Bands 21 and      to be designed to run at an early stage in the MODIS data
+22 both detect radiance in the same spectral interval (3.929 ­  chain with no other data dependencies (Kaufman et al.,
+3.989 Am), with a radiometric accuracy (expressed as noise      1998) and had to be simple enough so as not to impose a
+equivalent temperature variation; NEDT) of 2.0 and 0.07 K,      drain on the Goddard Space Flight Center (GSFC) Distrib-
+respectively. Significantly, although Band 22 has a satura-     uted Active Archive Center's (DAAC) computer resources.
+tion temperature of f 330 K, Band 21, also known as the         The MODVOLC algorithm had to be a point operation (i.e.
+``fire channel,'' was designed to have a saturation temper-     pixel by pixel), using no more than eight mathematical
+ature of f 500 K (Barnes, Pagano, & Salomonson, 1998).          operations and five bands of MODIS data. The resultant
+Unfortunately, Band 21 was only calibrated to a temperature     data files had to small enough to not take up significant
+of f 340 K (3.5% of its full dynamic range) prior to            amounts of space at the DAAC and could not be archived on
+launch, and, as a result, Band 21 data acquired during the      site (Flynn, Wright, Garbeil, Harris, & Pilger, 2002).
+first 9 months of MODIS operation are useless for precise
+quantitative purposes. However, thanks to a vicarious lunar     4.1. A review of previous automatic hotspot detection
+calibration performed in November 2000, Band 21 is now          methods
+calibrated to a temperature of f 400 K (the brightness
+temperature equivalent to Lunar reflectance at 4 Am).              Although manual identification of hotspots is relatively
+Despite these initial problems, Band 21 is a welcome            simple using 4-Am data, automatic (i.e. noninteractive)
+addition to the MODIS sensor, given the ease with which         detection is more complex because an appropriate threshold
+the AVHRR and GOES 4-Am channels saturate over high-            radiance value must be chosen to distinguish those pixels
+temperature sources. Band 32 (which images between              that contain hotspots from those that do not. This difficulty
+11.770 and 12.270 Am; NEDT = 0.05 K) also has a higher          stems from the complex nature of the 4-Am radiance signal,
+saturation brightness temperature (420 K) than its long-        because although 4-Am data are effective in highlighting the
+wave infrared counterparts on AVHRR and GOES.                   hotspots, they also record variations in the background
+Although the specified geometric accuracy of the MODIS          temperature of the surfaces surrounding the hotspot. This
+pixels was 300 m, postlaunch corrections for bias in the roll,  makes it difficult to identify automatically hotspots at the
+pitch, and yaw of the Terra platform mean that an accuracy      global scale using a single 4-Am radiance threshold, as any
+of 200 m can be expected. The geolocation of MODIS              such value will fail to account for seasonal and geographical
+pixels (which is 1 km for Bands 21, 22, and 32) is therefore    variations in the ambient background temperature. The
+well suited to the task of mapping the spatial distribution of
+volcanic hotspots.
+
+   Each MODIS image covers an area of approximately
+
+1354 Â 2030 km. Scanning is achieved by 10 simultaneous
+
+1-km strips (i.e. one strip per detector giving a 10-km
+footprint) or 20 and 40 strips for the 500- and 250-m
+resolution channels, respectively (Kaufman et al., 1998).
+Although the nominal MODIS pixel size at 4 and 11­ 12 Am
+is 1 km, a point heat source is likely to be represented by
+one or two across-track pixels. This is because the response
+function of MODIS is triangular in the across-track direction
+138  R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155
+
+situation is complicated further when using daytime data          algorithm to threshold automatically volcanic hotspots in
+due to the contribution that reflected sunlight makes to the      MODIS data within the imposed operational constraints.
+4-Am signal, which can result in anomalously reflective
+surfaces appearing ``hot'' in daytime 4-Am imagery.               4.2. MODVOLC: theoretical background and algorithm
+                                                                  development
+   These problems provided the impetus for more robust
+techniques for automatically detecting hotspots in satellite         The nature of the relationship between temperature and
+data to be developed. Such algorithms generally combine           radiance at 3.959 Am (MODIS Band 21/22) and 12.02 Am
+two distinct approaches: the spectral comparison method           (Band 32) offers the possibility for distinguishing thermally
+and the spatial comparison method. The spectral comparison        homogenous surfaces of differing temperature based on
+method is based on the fact that 4- and 11­ 12-Am bright-         differences in the slope of the Planck curve between these
+ness temperatures should be very similar for surfaces at          points (Fig. 2). Over the range À 80 to + 100 jC (sufficient
+ambient temperature, varying by only a few degrees due to         to cover the full range of ambient Earth surface temper-
+differences in atmospheric transmissivity and target emis-        atures), the difference between the radiance detected at
+sivity (although wide departures can occur over clouds). As       3.959 and 12.02 Am increases as the temperature of the
+such, it requires that the satellite radiance data are converted  surface increases.
+to brightness temperatures, as measured radiance at 4 and
+11­ 12 Am is markedly different, even for thermally homo-            Fig. 3 shows contrast-enhanced Band 22 data from a
+genous surfaces. The presence of a high-temperature radi-         MODIS Level 1B nighttime image of the Big Island of
+ator causes the 4-Am brightness temperature to increase           Hawaii, acquired on 2 February 2001 (MODIS granule ID:
+dramatically when compared to the 11-Am brightness tem-           MOD021KM.A2001033.0845.002.2001037054959.hdf).
+perature recorded for the same pixel. The magnitude of this       For several cover types identified in the image, a sample of
+temperature difference largely depends on the hotspot size        30 pixels was chosen at random for each group, and the
+and its temperature. The spectral comparison method is a          difference between the radiance measured in Bands 22 and
+much more robust way to detect hotspots than simply               32 (i.e. 22 À 32) was recorded. An active lava flow at
+thresholding raw 4-Am radiance data, because it automati-         Kilauea Volcano was also present on this date (Fig. 3,
+cally accommodates changes in the ambient background              inset), and Band 22 À 32 values were calculated for pixels
+temperature and solar heating effects. The method has been        that appeared thermally anomalous. We use Band 22 data
+used successfully as a basis for discriminating wildfires         because of its higher radiometric resolution when compared
+(Prins & Menzel, 1992) and active lava flows (Harris,             to Band 21, which improves its ability to discriminate
+Swabey, & Higgins, 1995).                                         between surfaces emitting very similar radiances. However,
+                                                                  when Band 22 was saturated, as it was for several lava flow
+   The spatial comparison method assumes that the 4-Am            pixels in this image, we used the unsaturated Band 21 values
+brightness temperature of a hotspot pixel will be signifi-        (i.e. 21 À 32). Fig. 4 shows the results. Clearly, simple
+cantly different to that of neighbouring background pixels        subtraction of the radiance measured in Band 32 radiance
+(Flasse & Ceccato, 1996). By assuming that each pixel in an       from that measured in Band 22 or 21 does not distinguish
+image is a ``potential'' hotspot and statistically comparing      the hot lava flows from the other cover types, with the lava
+its 4-Am brightness temperature to that of its neighbours,        pixels being particularly confused with the ``cold'' cloud
+positive discrimination of hotspots can be achieved when          pixel group. This is because although thermally homoge-
+the temperature difference exceeds a certain threshold.           nous blackbody surfaces can be discriminated using a
+Sometimes called the ``contextual approach,'' it accommo-         simple band subtraction operation (Fig. 2), the presence of
+dates the influence of seasonal and geographical effects on       subpixel-sized hotspots within the lava pixels causes this
+the 4-Am signal by tailoring the threshold for positive           simple relationship to break down.
+detection to the prevailing local background.
+                                                                     Fig. 5 shows a series of Planck curves for blackbodies
+   Hybrids of the spectral and contextual approaches form         radiating at a range of temperatures from À 50 to + 13 jC,
+the basis of several existing hotspot detection algorithms,       encompassing the range of nonvolcanic temperatures found
+such as the GOES automated biomass burning algorithm              in the nighttime Big Island MODIS data set. Low-temper-
+(ABBA; Prins & Menzel, 1994), the MODIS fire algorithm            ature surfaces (such as clouds and mountain tops) exhibit
+(Kaufman et al., 1998), and the HIGP GOES hotspot                 relatively small 22[21] À 32 values (i.e. a shallow sloping
+algorithm (Harris et al., 2001). However, the constraints         Planck curve between 3.959 and 12.02 Am), while warmer
+placed on the development of MODVOLC meant that we                surfaces (such as land at sea level) exhibit relatively larger
+could not utilise either approach. Restrictions on the number     22[21] À 32 values (a steeper sloping curve). Land at a
+of mathematical operations available prevented conversion         homogenous temperature of 13 jC (such as that immedi-
+of the MODIS Level 1B radiance products to brightness             ately adjacent to the active lava flow in this data set)
+temperatures (thus excluding the spectral discrimination          therefore exhibits a greater MODIS Band 22[21] À 32
+method), while the necessity for the algorithm to run as a        radiance value than do cold clouds. However, the introduc-
+point operation meant that contextual analysis could not be       tion of a subpixel-sized, high-temperature lava flow to such
+performed. As a result, we have developed an adapted
+R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155  139
+
+Fig. 2. Planck curves calculated for thermally homogenous surfaces at 3.959 and 12.02 Am. The 3.959 À 12.02 Am difference is plotted on the right-hand
+ordinate.
+
+Fig. 3. Contrast-enhanced MODIS Band 22 image of the Big Island of Hawaii, acquired at night on 2 February 2001. The image has been rotated 180j. Main
+image measures f 2354 Â 1354 km. Active lava flows associated with the ongoing eruption at Kilauea Volcano are obvious as a group of bright pixels in the
+second inset image.
+140  R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155
+
+Fig. 4. MODIS band 22[21] À 32 values calculated for several different  Band 22[21] À 32 values for same pixels portrayed in Fig. 4,
+pixel cover types within the 2 February 2001 Big Island data set.       normalised by the sum of the radiance's (i.e. MODIS band
+                                                                        [22 À 32/22 + 32], or [21 À 32/21 + 32], where the Band 22
+a pixel causes the amount of radiance emitted at 3.959 Am to            detectors were saturated). This approach, which, for con-
+increase at a much greater rate than at 12.02 Am, as                    venience, we term a normalised thermal index (NTI), allows
+discussed in Section 2. This has the effect of reducing the             much better discrimination between the lava flows and the
+slope of the Planck curve between 3.959 and 12.02 Am as                 other cover types within the image, offering the possibility
+the size of the hotspot increases. As a result, very cold               that active hotspot pixels can be automatically discriminated
+surfaces and pixels containing subpixel-sized lava flows                on the basis of an NTI threshold.
+cannot be discriminated on the basis of the MODIS Band
+22[21] À 32 radiance subtraction.                                          Fig. 7 shows the histogram of NTI values calculated for
+                                                                        all 2 748 620 pixels in the 2 February 2001 Big Island data
+   By normalising by the sum of the radiances, however, an              set. The distribution is slightly bimodal with lower values
+index value can be obtained that is weighted to those                   corresponding to relatively cold clouds and the bulk of the
+surfaces that emit substantial amounts of radiance at 3.959             higher NTI values corresponding to the ocean pixels that
+Am (i.e. the lava flows) rather than those that emit lower              dominate the scene. The inset shows the extreme right-hand
+amounts of radiance at this wavelength. Fig. 6 shows the                tail of the distribution. Manual inspection of the data
+                                                                        revealed that each of the 13 pixels with an NTI value of
+                                                                        > À 0.80 contained active lava associated with the ongoing
+                                                                        eruption at Kilauea Volcano. In this example, hotspot pixels
+                                                                        emitting more radiance at 3.959 Am are characterised by
+                                                                        higher NTI values. This makes them easier to distinguish
+                                                                        than the less intense lava pixels. These pixels, which occupy
+                                                                        positions close to the edge of the flow-field and almost
+                                                                        certainly contain larger proportions of ground at ambient
+                                                                        temperatures, have NTI values closer to those that character-
+                                                                        ise the ocean, land, and cloud pixels that comprise the bulk
+                                                                        of the histogram.
+
+                                                                           This initial analysis indicated that the NTI, which sat-
+                                                                        isfied the imposed operational constraints, could be an
+
+Fig. 5. Planck curves for a range of blackbody surfaces. Planck curves for thermally homogenous surfaces exhibit an increasing slope between 4 and 12 Am
+over the range of temperatures presented. However, this relationship breaks down for pixels containing subpixel-sized radiators, as the amount of radiance
+emitted at 4 Am increases dramatically when compared to the amount emitted at 12 Am. As a result, hotspot pixels can exhibit similar slopes to cold, thermally
+homogenous pixels.
+R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155            141
+
+Fig. 6. NTI values calculated for the same pixels as depicted in Fig. 4. The  NTI threshold that would be suitable for detecting volcanic
+NTI allows active lava pixels to be distinguished from nonvolcanic pixels     hotspots at the global scale.
+much more easily than a simple MODIS Band 22[21] À 32 difference.
+                                                                                 Some of the results are shown in Fig. 8. Targets were
+appropriate means for detecting hotspots with MODIS. As                       chosen to exhibit as much variation in background temper-
+the NTI is based on absolute radiance values, variations in                   atures as possible, with Mount Erebus (Antarctica) and Erta
+geography and season will influence its value, as MODIS                       Ale volcano (Ethiopia) end-member examples. In each
+Bands 21, 22, and 32 are all sensitive to variations in the                   instance, the extreme right-hand tail of the NTI distribution
+ambient background temperature. However, operational                          was composed solely of hotspot pixels (Fig. 8, insets). This
+constraints dictated that we establish a single threshold                     confirmed that the NTI approach could be used to automati-
+value appropriate for the entire globe. For this reason, we                   cally identify volcanic hotspots and allowed us to empiri-
+analysed MODIS nighttime images for a range of active                         cally establish a threshold that would identify as many
+volcanoes around the world to empirically establish a single                  volcanic hotspots as possible without resulting in false alerts.
+
+                                                                                 At Mount Erebus (Fig. 8a), two thermally anomalous
+                                                                              pixels associated with the active summit lava lake were
+                                                                              apparent through visual inspection of the Band 22 data. A
+                                                                              normalised index threshold of À 0.80 was sufficient to flag
+                                                                              one of these. In order to identify both, a lower threshold of
+                                                                              À 0.84 would need to be implemented. However, such a
+                                                                              value would be unstable as a means for detecting hotspots at
+                                                                              the global scale. The fact that land and ocean temperatures
+                                                                              in Ethiopia are much higher than those in Antarctica causes
+                                                                              the histogram of NTI values for Erta Ale to shift to more
+                                                                              positive values when compared to that of Erebus. This
+                                                                              positive shift in the NTI histogram means that a threshold
+                                                                              of À 0.84, although appropriate for Erebus (and by exten-
+                                                                              sion the many active volcanoes that reside in Kamchatka
+
+Fig. 7. NTI histogram of all 2 748 620 pixels in the 2 February 2001 Big Island MODIS data set. The inset shows the same data at a different scale, to highlight
+the fact that pixels containing active lava form a distinct tail to the NTI distribution.
+142  R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155
+
+Fig. 8. NTI histograms and Band 22 images derived from nighttime MODIS granules of (a) Mount Erebus (acquired on 1 May 2001), (b) Erta Ale (acquired on
+13 November 2000), (c) Etna (acquired on 8 November 2000), and (d) Soufriere Hills (acquired on 23 February 2001). In each case, the right-hand tail of the
+distribution is composed solely of hotspot pixels.
+R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155  143
+
+Fig. 8 (continued).
+144  R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155
+
+and Alaska), is inappropriate for volcanoes near the equator,  respectively. These dimensions and temperatures are more
+such as Erta Ale, where such a threshold would result in       than sufficient to cover the range of lava lakes typically
+>100,000 alerts. In the Big Island data set, where back-       observed on Earth (Flynn, Mouginis-Mark, Gradie, &
+ground temperatures (and therefore radiances) are somewhat     Lucey, 1993; Harris, Flynn, et al., 1999).
+lower than those characteristic of Ethiopia, a threshold of
+À 0.84 would result in only 44 alerts. However, visual            The curves presented in Fig. 9 illustrate how complex the
+analysis of the image data confirmed that 23 of these would    relationship between the value of the NTI and the nature of
+be false. Fig. 8c and d reveals that an NTI threshold of       the radiating surface can be. When the lava lake area is less
+À 0.80 would also be appropriate for detecting the hotspots    than 10 À 5 of the MODIS 1-km pixel, it is essentially
+evident at Soufriere Hills, Montserrat (probably hot pyro-     invisible to the sensor, and the NTI approaches an asymp-
+clastic flows emplaced on and around the 23 March 2001;        tote that corresponds to that of a thermally homogenous
+GVN, 2001a), and the summit crater hotspots at Mount           surface radiating at 25 jC (NTI f À 0.86) and À 35 jC
+Etna, without encroaching on the main body of the NTI          (NTI f À 0.97) for cases A and B, respectively. As the size
+histogram and resulting in false alerts.                       of the lava lake increases, the amount of radiance emitted
+                                                               increases at a faster rate at 3.959 Am than at 12.02 Am
+   Based on the analysis of these and many other MODIS         (Section 2), MODIS begins to ``see'' the lake, and the NTI
+images, we determined an empirical NTI threshold of            increases as a result. As the 3.959-Am bandwidth is respon-
+À 0.80 to be appropriate for nighttime global volcanic         sive to the subpixel-sized hotspots and the ground that
+hotspot detection. Nevertheless, using a single threshold      surrounds them, this occurs at a smaller lake size in Case
+value has implications for the sensitivity of our algorithm    B than in Case A, where the lake must become larger before
+to the presence of hotspots in different geographical          it makes itself distinct from the relatively ``warm'' back-
+locations. Fig. 9 provides a simple illustration of this.      ground. Potentially, therefore, the Case B lava lake could be
+Here, we have modelled the NTI response of MODIS to            detected at a smaller size than the Case A lake. However, as
+a subpixel-sized lava lake, of the kind present at Erta Ale    discussed in Section 4.1, to do so would require setting an
+(Case A) and Mount Erebus (Case B). In each case, the          NTI threshold that would be so low as to result in many
+curves show how the NTI varies as a function of back-          thousands of false alerts in Case A. Interestingly, Fig. 9
+ground temperature, lava lake size, and lava temperature,      indicates that similar lava lakes in equatorial and polar
+assuming that the lava lake is composed of a chilled lava      regions should result in almost the same NTI. However,
+crust (radiating at 400 jC) within which cracks expose         the results presented in Fig. 9 are difficult to generalise upon
+molten lava from the lake interior (radiating at 1000 jC).     as they are entirely model dependent.
+The size of the lake varies between 10 and 10,0000 m2,
+while the area of high-temperature cracks on the lake             Fig. 9 makes an important point: While the NTI index is
+surface was allowed to vary between 0.01% and 100%             useful to detect volcanic hotspots, it is not in itself a basis
+of the lake surface itself. Background temperatures were       for quantifying the intensity of the hotspot, or as a basis for
+assumed to be 25 and À 35 jC for Cases A and B,                comparative analysis of geographically disparate volcanoes.
+                                                               Interpreting the absolute NTI value is fraught because of the
+
+Fig. 9. Modelled variation in the NTI calculated for a pixel containing a subpixel-sized active lava lake. Case A refers to the NTI of a lava lake of the kind that
+might exist at warm equatorial latitudes (e.g. Erta Ale), while Case B models the NTI response of an identical lava lake at cold Polar latitudes (e.g. Mount
+Erebus). The horizontal dashed line denotes the empirically determined NTI threshold value of À 0.80, used by the MODVOLC algorithm.
+R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155  145
+
+effect of variations in background temperature on the 3.959-         The MODVOLC algorithm checks whether a pixel is a
+and 12.02-Am signals, as well as variations in the detailed       daytime or a nighttime pixel by reference to its solar zenith
+temperature characteristics of the hotspots themselves. For       angle (solar zenith, satellite zenith, and satellite azimuth
+example, the variations in background temperature that we
+model in this instance can result in a difference in NTI of
+50% for a given lava lake. Moreover, variations in the
+composition of the hotspot will also result in large variations
+in NTI. For example, a 1000-m2 Case B lava lake, which
+was vigorously overturning at the time of MODIS overpass
+(i.e. the chilled lake surface crust foundering en masse,
+exposing large areas of molten lava), would be indistin-
+guishable, on the basis of the NTI value, from a 5000-m2
+Case B lava lake in a state of relative quiescence (i.e. stable
+crust, relatively few cracks). It is therefore important to bear
+in mind that while the NTI is a reliable way to automatically
+detect volcanic hotspots, it should not be used as the basis
+for quantitative analysis. As we will go on to describe in
+Section 4.3, there is in fact no need for reliance on the NTI
+value as an indicator of hotspot intensity, because absolute
+radiance in Bands 21, 22, 28, 31, and 32 is recorded and
+reported for each pixel designated as a hotspot by the
+MODVOLC algorithm.
+
+4.3. Implementation of the algorithm
+
+   The MODVOLC algorithm has been incorporated into               Fig. 10. Flow diagram illustrating the implementation of the MODVOLC
+the EOSDIS Core System (ECS), used by NASA's Goddard              algorithm. Hotspot details written to the MODVOLC file include time
+Earth Science (GES) DAAC to process the MODIS data                detected (year/month/day/hour/minute) location (latitude/longitude), spec-
+stream. Fig. 10 illustrates the processing steps diagrammati-     tral radiance in Bands 21, 22, 28, 31, and 32 (in W m À 2 sr À 1 Am À 1),
+cally. The algorithm uses the MODIS Level 1B data stream.         satellite zenith, satellite azimuth, and solar zenith (all in degrees).
+Although MODIS is a 12-bit instrument (i.e. 4096 discrete
+measurement levels), the Level 1B data are converted from
+this 12-bit representation to a 16-bit unsigned scaled integer
+(SI) format (i.e. 0 ­ 65 535). These unsigned integers are
+subsequently converted to radiance (in W m À 2 sr À 1
+Am À 1) using calibration parameters stored within each
+MODIS hierarchical data format (hdf) Level 1B granule.
+
+   Although the SI representation allows 65 535 measure-
+ment levels, only the lower half of the scale (i.e. 0 ­32 767)
+is used to store science data. SIs in excess of 32 767 are
+designated ``reserve values,'' and are used to indicate
+various types of ``bad'' data. For example, a SI of 65 531
+indicates a dead detector, whereas a value of 65 534 indi-
+cates that the original Level 1A data were missing from the
+raw MODIS granule. The MODVOLC algorithm identifies
+bad pixels on the basis of these reserved SI values and
+excludes them from further processing. Although Bands 22
+and 21 were afflicted by dead detectors at launch, they do
+not occupy the same relative position on the MODIS
+imaging plane. As a result, Band 22 or 21 data are always
+available for each of the ten 1-km strips that comprise the
+MODIS footprint, and no hotspots are missed as a result.
+The problems caused by dead detectors, electronic crosstalk,
+and other instrument noises have subsequently been alle-
+viated by a switch from the initial ``Side A'' to the redundant
+``Side B'' MODIS electronics in November 2000.
+146                                      R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155
+
+are recorded for each pixel in the MODIS granule and         m À 2 sr À 1 Am À 1), satellite zenith, satellite azimuth, and
+stored in the .hdf file). This is done on a pixel-by-pixel   solar zenith (all in degrees).
+basis to account for those situations in which the termi-
+nator falls within the 1354-km MODIS swath. This sorting        The MODVOLC files are transferred via file transfer
+procedure is included in preparation for a daytime version   protocol (FTP) to HIGP, University of Hawaii, where the
+of the MODVOLC algorithm, which is currently under           results are displayed on the Internet (http://modis.higp.ha-
+development, and will be implemented as soon as com-         waii.edu). The front page of the website provides a global
+puter processing resources at the GSFC DAAC permit. If       view of all hotspots detected during the previous 24-h
+the pixel is a nighttime pixel, the algorithm establishes    period and can be interrogated at larger scales for the
+whether it is saturated in Band 22. This is done, again, on  incidence of hotspots at individual volcanoes. The appear-
+the basis of a SI value reserved for detector saturation     ance and functionality of the site are constantly being
+(SI = 65 533). If Band 22 is unsaturated, the NTI is         developed and improved. However, all revisions allow the
+calculated using Bands 22 and 32. If Band 22 is saturated,   data contained in the original MODVOLC files to be easily
+the NTI is calculated using Bands 21 and 32. The value is    retrieved, and allow quick access to the MODVOLC hotspot
+then compared against the empirically determined NTI         data archive.
+threshold value of À 0.80. Pixels with NTI > À 0.80 are
+considered as hotspots, and the details are written to an    5. Results
+ASCII text file given the GSFC Earth Science Data Type
+name ``MODVOLC.'' For each hotspot pixel, the MOD-           5.1. Volcanic hotspots
+VOLC file records the time when it was detected (year/
+month/day/hour/minute), its location (latitude/longitude),      MODVOLC has detected hotspots (Table 1) associated
+spectral radiance in Bands 21, 22, 28, 31, and 32 (in W      with a wide range of eruptive styles at 33 different volca-
+
+Table 1
+Volcanoes that have been identified as ``hotspots'' by MODVOLC and the number of times they have been detected for the periods 1 October 2000 to 30
+November 2000 and 1 February 2001 to 31 May 2001
+
+Volcano name (location)                  Latitude/Longitude  MODVOLC alerts                                  Nature of activity
+
+Ambrym (Vanuata)                         16.25jS, 168.12jE   8                                               Lava lake
+                                                                                                             Vent activity
+Arenal (Costa Rica)                      10.46jN, 84.70jW    1                                               Lava dome
+                                                                                                             Lava dome/pyroclastic flow
+Bagana (Papua New Guinea)                6.14jS, 155.19jE    10                                              Vent activity/lava flows
+                                                                                                             Vent activity
+Bezymianny (Russia)                      55.98jN, 160.59jE   10                                              Lava lake
+                                                                                                             Lava lake
+Big Ben (Heard Island)                   53.10jS, 73.51jE    5                                               Vent activity, lava flows
+                                                                                                             Vent activity
+Cleveland (Aleutian Islands)             52.82jN, 169.95jW   3                                               Lava dome
+                                                                                                             Lava flows
+Erebus (Antarctica)                      77.53jS, 167.17jE   58                                              Lava dome
+                                                                                                             Lava flows/vent activity
+Erta Ale (Ethiopia)                      13.60jN, 40.67jE    49                                              Lava dome
+                                                                                                             Lava dome/pyroclastic flow
+Etna (Sicily)                            37.73jN, 15.00jE;   63                                              Unknown
+                                                                                                             Vent activity
+Ibu (Halmahera)                          1.48jN, 127.63jE    2                                               Lava flows
+                                                                                                             Vent activity
+Karangetang (Siau Islands)               2.47jN, 125.29jE    10                                              Lava flows
+                                                                                                             Lava dome
+Kilauea (Hawaii)                         19.42jN, 155.29jW   87                                              Vent activity
+                                                                                                             Lava dome, block lava flow
+La´scar (Chile)                          23.37jS, 67.73jW;   4                                               Vent activity
+                                                                                                             Lava dome/pyroclastic flow
+Lopevi (Vanuata)                         16.50jS, 168.34jE   1                                               Lava dome/pryoclastic flow
+                                                                                                             Vent activity
+Mayon (Philippines)                      13.25jN, 123.68jE   2                                               Vent activity/lava flows
+                                                                                                             Caldera
+Merapi (Java)                            07.54jS, 110.44jE   20                                              Lava flows
+                                                                                                             Lava lake
+Michael (South Sandwich Islands)         57.78 S, 26.45 W    2                                               Vent activity
+
+Miyake-jima (Japan)                      34.08jN, 139.53jE   1
+
+Nyamuragira (Zaire)                      1.40jS, 29.20jE     18
+
+Pacaya (Guatemala)                       14.38jN, 90.60jW    1
+
+Piton de la Fournaise (Re´union Island)  21.23jS, 55.71jE    21
+
+Popocate´petl (Mexico)                   19.02jN, 98.62jW    38
+
+Rabaul (Papua New Guinea)                4.27jS, 152.20jE    3
+
+Santa Maria (Guatemala)                  14.75jN, 91.55jW    39
+
+Semeru (Java)                            8.11jN, 112.92jE    14
+
+Shiveluch (Russia)                       56.65jN, 161.36jE   13
+
+Soufriere Hills (Montserrat)             16.72jN, 62.18jW    28
+
+Stromboli (Italy)                        38.79jN, 15.21jE    1
+
+Tinakula (Santa Cruz Islands)            10.38jS, 165.80jE   3
+
+Tofua (Tonga)                            19.75jS, 175.07jW   1
+
+Ulawun (Papua New Guinea)                5.04jS, 151.34jE    3
+
+Villarrica (Chile)                       39.42jS, 71.93jW    1
+
+Yasur (Vanuatu)                          19.52jS, 169.43jE   2
+R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155  147
+
+noes worldwide since October 2000 (Flynn et al., 2002             MODVOLC algorithm for monitoring global volcanism. As
+provide a summary of some of these results). In this section,     noted in a previous section, gaps between adjacent MODIS
+we review some of these results to illustrate the utility of the  swaths occur close to the equator, reducing the frequency of
+
+Fig. 11. Image maps taken from the MODVOLC website (http://modis.higp.hawaii.edu) showing hotspots (green dots) detected by the MODVOLC algorithm
+at (left to right, top to bottom); Erebus, Kilauea, Erta Ale, Popocate´petl, Soufriere Hills, Mount Etna, Merapi, and Bezymianny. The location of each hotspot as
+reported by MODVOLC is shown alongside the published location (Simkin & Seibert, 1994) for comparison. Dashed boxes are 5j in latitude and longitude.
+The MODVOLC hotspots have a colour gradation, with green ­ yellow ­ red indicating increasing intensity of the 3.959-Am emitted radiance.
+148               R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155
+
+Table 2                                                                 Hawaii, a fact reflected in the large number of alerts
+Location of the hotspots detected at Erta Ale by the MODVOLC algorithm  reported by MODVOLC for this volcano (87 between 1
+during February 2001. Simkin and Siebert (1994) report a location of    October 2000 to 30 November 2000, and 1 February 2001
+40.67jE, 13.60jN for Erta Ale's summit caldera, within which these      to 31 May 2001). The hotspots observed to date have all
+hotspots lie                                                            been sited close to the coast, several kilometers southeast of
+                                                                        the current active vent (at Pu'u 'O'o). This is entirely
+Date              MODVOLC hotspot location                              consistent with the nature of the activity at the time of
+                                                                        image acquisition, whereby surface pahoehoe lava flows fed
+                  (latitude/longitude)                                  by tubes extending from the vicinity of Pu'u 'O'o are often
+                                                                        most abundant on the coastal plain.
+2 February 2001   40.653jE, 13.605jN
+4 February 2001   40.659jE, 13.604jN                                       Mount Etna is the largest and most active volcano in
+8 February 2001   40.662jE, 13.601jN                                    Europe with a documented history of eruptions stretching
+13 February 2001  40.661jE, 13.603jN                                    back almost 2000 years (Chester, Duncan, Guest, & Kil-
+15 February 2001  40.660jE, 13.601jN                                    burn, 1985). Given this level of activity, it is not surprising
+17 February 2001  40.660jE, 13.600jN                                    that MODVOLC regularly detects hotspots at its summit.
+19 February 2001  40.663jE, 13.602jN                                    Historically, eruptions at Etna can be divided into two main
+22 February 2001  40.659jE, 13.600jN                                    groups: those that initiate within its summit crater region,
+24 February 2001  40.660jE, 13.602jN                                    and those that begin at flank vents on the lower slopes of the
+                                                                        edifice (Chester et al., 1985). The ability of MODVOLC to
+data collection for volcanoes at these latitudes. Cloud cover           locate hotspot pixels to an accuracy of f 200 m will
+also prevents detection of volcanic thermal anomalies.                  therefore prove valuable in determining whether detected
+However, in spite of these sampling limitations MODVOLC                 hotspots are associated with the former or the latter. In the
+has reliably detected hotspots at both permanently and                  example presented in Fig. 11, the hotspot is clearly confined
+sporadically active volcanoes. As noted in Section 2, the               to the summit region when, consistent with field reports
+MODVOLC algorithm detects hotspots, but it does not                     describing the predominance of high-temperature Strombo-
+discriminate the nature of the hotspot. As a result, their              lian explosions within the Bocca Nuova, one of four active
+interpretation can be fraught with difficulty, as the spectral          craters at Etna's summit at this time (GVN, 2001b).
+signature of biomass burning could be mistaken for eruptive
+activity. Accurate location of where the hotspots occur                    Since eruptive activity began in 1995, Soufriere Hills
+therefore becomes critical for determining the cause of the             Volcano has devastated the southern sector of the tiny
+anomaly. The accuracy of the MODIS Level 1B geolocation                 Caribbean Island of Montserrat. The volcanic threat is posed
+( f 200 m) provides a valuable means for assessing the                  by the intermittent collapse or explosive disruption of a lava
+veracity and reliability of the MODVOLC algorithm, as we                dome growing at the volcano's summit, which results in
+can confidently compare MODVOLC detected hotspot                        pyroclastic flows sweeping down valleys on the flanks of
+locations to the positions of known volcanic activity. Fig.             the volcano (Young et al., 1998). On 23 February 2001,
+11 presents maps compiled from the MODVOLC website                      MODVOLC detected six hotspot pixels at Soufriere Hills
+showing detected hotspots for a range of volcanoes. For                 Volcano (Figs. 8d and 11). Although the growing lava dome
+comparison, the latitude and longitude of the hotspot as                is much smaller than a single 1-km MODIS pixel, this
+recorded by MODVOLC is shown alongside the coordinates                  relatively large number of hotspots is easily reconciled with
+of the summit of the volcano as published by Simkin and                 reference to field reports that describe the emplacement of
+Seibert (1994).                                                         extensive pyroclastic flows on and around the 23 February
+                                                                        eruption (GVN, 2001a).
+   Persistently active lava lakes are known to have existed
+at Erta Ale (Ethiopia) and Mount Erebus (Antarctica) for at                The previous discussion has illustrated the value of
+least 200 years, although ground observations are rare                  MODVOLC as a hotspot detection tool. We now recount
+because of their geographical isolation (Harris, Wright, &              three case studies that show how MODVOLC can be used
+Flynn, 1999; Tazieff, 1994). MODVOLC regularly detects                  to monitor the onset, development and cessation of discrete
+the hotspots associated with these lava lakes (Fig. 11; Table           eruptive events. We do this using case studies taken from
+1). The lakes in question are significantly smaller than the 1-         eruptions at Nyamuragira, Shivulech, and Piton de la Four-
+km MODIS pixel size and, as a result, only one or two                   naise.
+hotspot pixels are detected by MODIS at these volcanoes.
+Table 2 shows the locations reported for hotspots observed              5.1.1. Nyamuragira
+at Erta Ale during February 2001. The accuracy is clearly                  Nyamuragira is situated on the border between Rwanda
+good enough to be confident that the hotspots are volcanic
+in origin.                                                              and the Democratic Republic of Congo. On 6 February
+
+   Spatially extensive lava flows are an almost permanent
+characteristic of the ongoing eruption at Kilauea Volcano in
+
+Fig. 12. Top: The total amount of spectral radiance detected by MODVOLC (i.e. summed for all pixels identified as hotspots by the algorithm) during the
+February to March 2001 eruption of Nyamurgira, Democratic Republic of Congo. Bottom: Image maps taken from the MODVOLC website showing the
+distribution of the detected hotspots, with a field map of the location of the lava flows responsible for comparison (map adapted from GVN, 2001c).
+R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155  149
+150  R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155
+
+2001, a large eruption began, which lasted until mid-March     VOLC. This illustrates a significant limitation of our algo-
+2001, during which time lava flows were erupted extending      rithm. Without the original image data or, as in this instance,
+10 ­20 km along the south and west flanks of the volcano       reliable field observations, it is impossible to know how the
+(GVN, 2001c). Direct field observations are difficult          presence of meteorological or volcanic ash clouds hinders
+because the area is held by the rebel group ``Congo Rally      the detection process. This poses problems when interpret-
+for Democracy.'' As a result, MODVOLC provided an              ing MODVOLC radiance time series as a short-term
+important chronology of the spatial and temporal develop-      decrease in detected hotspot radiance may not necessarily
+ment of the eruption (GVN, 2001d). Fig. 12 shows how the       be due to changes in the intensity of the volcanic activity.
+total amount of radiance emitted at 3.959 Am, as reported by
+the MODVOLC algorithm, varied over the duration of the         5.1.2. Shiveluch
+eruption. Field reports indicate that the eruption began on 6     Shivulech is one of Kamchatka's largest and most active
+February 2001 with the opening of two fissures on the north
+and south flanks of the volcano. The northern vent erupted     volcanoes, with a long history of dome growth events and
+flows that extended 15­ 20 km due north of the volcano,        explosive eruptions. From relatively low levels in January
+while the southern vent erupted flows that extended a          and February 2001, activity increased during April 2001,
+similar distance to the southwest. The amount of radiance      and a sharp increase in seismicity prompted the Kamchatka
+detected by MODVOLC rises quickly to a peak within             Volcanic Eruptions Response Team (KVERT) to increase
+several days of the beginning of the eruption and then falls   the hazard status of the volcano on 24 April 2001 (GVN,
+by almost an order of magnitude. This is consistent with the   2001e). MODVOLC reported hotspot activity on 30 April
+common tendency of large effusive eruptions to exhibit         (Fig. 13, confirmed by manual analysis of AVHRR data by
+rapidly increasing levels of lava production during the early  AVO scientists; GVN, 2001e). MODVOLC reports a strong
+stages of the eruption (a short ``waxing'' phase; Wadge,       increase in the intensity of hotspot activity on 1 May. This
+1981) before reverting to a much longer phase of exponen-      thermal anomaly preceded intense seismic tremor on 7 May,
+tially decreasing lava production (a long ``waning'' phase;    believed to have been caused by the growth of a new lava
+Harris, Murray, et al., 2000). However, the waning phase is    dome (GVN, 2001e). On 19 May 2001, at 04:46 GMT,
+interrupted by a second sharp rise in emitted radiance         Shiveluch erupted explosively for 40 min, producing a 10-
+detected by MODVOLC on 2 March. Field reports indicate         km-high ash cloud and emplacing pyroclastic flows and hot
+that a new eruption that began on Nyamuragira's southern       avalanches in the immediate vicinity of the active dome.
+flank on the 2 March 2001 (GVN, 2001c), thus explaining        The radiance peak detected by MODVOLC some 7 h later
+this perhaps unexpected radiance increase. Although we         (point iv on Fig. 13) almost certainly relates to the emplace-
+have no ground confirmation regarding when the eruption        ment of these hot pyroclastic flows.
+ended, MODVOLC reports a decreasing radiance trend over
+the first half of March, with the last hotspot recorded on 13  5.1.3. Piton de la Fournaise
+March 2001. This is consistent with fields reports that           Piton de la Fournaise is a basaltic shield volcano that
+describe how the intensity of the lava flows decreased in
+mid-March (GVN, 2001c).                                        forms the southeastern half of Re´union Island, 700 km east
+                                                               of Madagascar. It is one of the most active oceanic volca-
+   Fig. 12 also shows field maps of the location of the lava   noes in the world, having erupted more than 100 times in
+flows produced during this eruption (GVN, 2001c) along-        the last 300 years (GVN, 2001f). Increasing volcanic tremor
+side two hotspot maps taken from the MODVOLC website.          culminated in a lava eruption on 27 March 2001 from a
+Although the MODVOLC algorithm reliably documents the          fissure on the southeastern flank of the volcano (GVN,
+relative position and dimensions of the two major flows to     2001f). MODVOLC immediately detected the hotspots
+the north and east of the volcano, a third flow to the         associated with the onset of the eruption (Fig. 13). The
+southwest goes unrecorded. Field reports (GVN, 2001c)          hotspot alignment MODVOLC reports (inset, Fig. 13) is
+show that the majority of the ash erupted during the episode   clearly consistent with the reported direction of the flows,
+was deposited to the southwest of the volcano, exactly         which extended along the southeastern flank of the volcano
+coincident with the location of this undetected flow. It is    (GVN, 2001f). The eruption ended on 4 April 2001 (GVN,
+likely that the cloud that transported this ash obscured the   2001f). MODVOLC records a declining trend in emitted
+flow from MODIS, thus preventing its detection by MOD-         radiance between 30 March and 2 April. No hotspots were
+                                                               detected by MODVOLC after this time.
+
+Fig. 13. Top: The total amount of spectral radiance detected by MODVOLC (i.e. summed for all pixels identified as hotspots by the algorithm) during the
+April ­ May 2001 eruption of Shiveluch, Russia. Image maps taken from the MODVOLC website showing the spatial location of the detected hotspots are also
+included. Images i, ii, iii, and iv were acquired on dates corresponding to points i, ii, iii, and iv on the adjacent graph. Bottom: The total amount of spectral
+radiance detected by MODVOLC (i.e. summed for all pixels identified as hotspots by the algorithm) during the March 2001 eruption of Piton de la Fournaise,
+Re´union Island. The inset shows an image map taken from the MODVOLC website on 28 March 2001. The orientation of the hotspot is clearly consistent with
+reported east ­ south ­ east direction of the lava flows.
+R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155  151
+152  R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155
+
+5.2. Further applications: wildfires and industrial hotspots    section, although they are clearly consistent with distribu-
+                                                                tions determined independently (Fig. 14b,c). A notable
+   The MODIS Fire Team have developed a complex                 exception is Rothery, Thorne, and Flynn (in press), which
+algorithm to detect, monitor, and characterise wildfires in     provides detailed ground validation (Table 1, therein) of
+order to quantify pyrogenic trace gas and aerosol emissions     MODVOLC hotspots observed in Britain over a 6-month
+during biomass burning events (Kaufman et al., 1998).           period at the beginning of 2001, attributable to sources as
+Although the MODVOLC algorithm was primarily intended           diverse as petrochemical factories, steel works, warehouse
+as a means for rapid detection of volcanic eruptions, it can    fires, and ``foot-and-mouth'' pyres. Our confidence in the
+also be used to detect wildfires and establish how their        performance and stability of the MODVOLC algorithm is
+distribution changes through time. Fig. 14a shows all           further supported by several sources of evidence. Firstly,
+hotspots detected by MODVOLC during October 2001.               hotspots detected for volcanoes such as Erta Ale, Erebus,
+Although vegetation fires occur all over the planet, there      and Popocate´petl (where the source of radiance is known to
+are certain areas where they are particularly frequent and      be contained within a relatively small and spatially invariant
+intense, with 80% of forest fires occurring within the          summit crater) consistently fall within a few seconds of arc
+tropics. The distribution of hotspots detected by MOD-          of the accepted location of the summits. Secondly, spatially
+VOLC reflects this pattern, with high concentrations occur-     extensive contiguous hotspots, such as those detected at
+ring in the savanna regions of central Africa, Central          Nyamuragira and Piton de la Fournaise, have dimensions
+America, the Orinoco and Amazonia Basins of South               and orientations wholly consistent with field-based obser-
+America, coastal regions of Australia and Southeast Asia.       vations. Thirdly, although every granule for the entire globe
+These are all fire-prone regions traditionally associated with  is subjected to the MODVOLC algorithm, we only get
+high incidences of satellite-detected hotspots. Fig. 14b and c  hotspots in areas where we expect to see them. That there
+shows hotspots detected by MODVOLC over South Amer-             are few, if any, alerts in regions that we do not expect to
+ica on 23 March and 7 June 2001. Wildfires detected by the      contain hotspots (i.e. oceans, uninhabited polar regions)
+Brazilian National Institute for Space Research (INPE)          while consistently detecting large numbers of hotspots in
+using AVHRR data on the same day are shown for compar-          areas where we do expect to find them (e.g. South America,
+ison. Although there are differences, the fire distribution     central Africa, Australia) indicates that the algorithm is both
+detected by MODVOLC bears close resemblance to that             efficient and stable.
+reported by INPE, in particular, the shift in the main burning
+zone from the Orinoco basin (Venezuela and Colombia) in            Although the MODVOLC algorithm appears to provide a
+March 2001 to the Amazon basin (Brazil) in June 2001.           robust tool for detecting hotspots at the global scale, there
+Although we do not attempt a thorough crossvalidation of        are several limitations that should be addressed. The first is
+the relative accuracy of the two products, it appears that      that the algorithm does not detect all thermally anomalous
+MODVOLC can be used to monitor the spatial and temporal         pixels associated with a particular anomaly. For example,
+distribution of wildfires.                                      manual inspection of the Big Island MODIS data set
+                                                                depicted in Fig. 3 showed that although 21 pixels were
+   MODVOLC has also proven itself capable of identifying        thermally anomalous with respect to the surrounding back-
+a range of persistent industrial hotspots, especially gas and   ground, MODVOLC only classified 13 as hotspots. This
+oil flares. Fig. 14d ­ g provides a range of examples.          problem is common to all automatic hotspot monitoring
+Hotspots are routinely detected by MODVOLC in the               methodologies and stems from a desire to eliminate false
+Campos Basin off the coast of Brazil (United States Geo-        alerts by setting relatively high threshold values. However,
+logical Survey Geological Province Code No. 6035; Klett,        the effect is compounded by the sampling regime of the
+Ahlbrandt, Schmoker, & Dolton, 1997), the Villahermosa          MODIS sensor. It is likely that the radiance from any
+Uplift (Gulf of Mexico; No. 5305), the Rub Al Khali basin       hotspot will be shared between two adjacent pixels (Fig.
+(Persian Gulf; No. 2019), and the Niger Delta (No. 7192),       1), and this dilution can result in only one of the two pixels
+amongst others.                                                 exceeding the NTI threshold or, in certain cases, the hotspot
+                                                                not being detected at all. We must stress, however, that the
+5.3. Validation and limitations of the algorithm                MODVOLC algorithm serves merely to facilitate rapid
+                                                                detection of hotspots, and for this purpose, it is not neces-
+   It is difficult to validate the accuracy, for example, of    sary to detect all thermally anomalous pixels associated with
+each of the wildfire hotspots presented in the previous         a given thermal anomaly. Although the algorithm returns
+
+Fig. 14. (a) Composite image showing all hotspots detected by MODVOLC during October 2001. (b and c) Wildfires (green dots) detected by MODVOLC in
+South America on (b) 27 March and (c) 7 June 2001. Wildfires (red dots) detected by INPE using AVHRR data on the same day are shown for comparison
+(Source, INPE-DSA). (d ­ g) Hotspots associated with gas and oil flares detected by MODVOLC during February 2001 at: Campos Basin off the coast of
+Brazil, the Villahermosa Uplift in the Gulf of Mexico, the Rub Al Khali basin in the Persian Gulf, and the Niger Delta off the coast of West Africa, respectively.
+Each dashed box measures 5j in both latitude and longitude.
+R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155  153
+154  R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155
+
+basic quantitative information for each hotspot detected, it is  operational, we anticipate that MODVOLC and its associ-
+not intended to be an all-encompassing volcanic thermal          ated website will provide an integrated resource for detect-
+analysis tool, and the original image data should be             ing, archiving, and disseminating information regarding the
+requested from the GSFC DAAC if the user intends to              global occurrence of volcanic eruptions.
+perform detailed thermal analysis. That the algorithm does
+not return image data as an output is itself a source of         Acknowledgements
+confusion when interpreting hotspot occurrence. Clearly,
+clouds prevent detection of hotspots, but without actual            The authors were supported by NASA Pathfinder grant
+image data, it is impossible to deduce their impact.             NAG5-9413. MODIS data were made available via the
+                                                                 GSFC DAAC. We would like to thank Rich Hucek (NASA,
+   Implementation of the MODVOLC algorithm was ini-              GSFC) for, thus far, 7 years of valuable assistance without
+tially hampered by data processing bottlenecks at the GSFC       which MODVOLC would not have been implemented. We
+DAAC (Flynn et al., in press), and as a result, several data     would also like to thank members of the MODLAND Fire
+gaps exist in our hotspot archive. However, this situation       Team (Chris Justice, Yoram Kaufman, Elaine Prins, Louis
+has improved markedly and at the time of writing (February       Giglio, Jackie Kendall) for insightful discussions regarding
+2002), the time lag between acquisition of the raw MODIS         global hotspot detection. The paper benefited from informal
+data and posting of the hotspot results on the MODVOLC           discussions with D. Rothery (Open University) and from
+website has fallen to between 24 and 48 h. Thus, although        formal reviews provided by M. Wooster (King's College,
+we are not yet detecting volcanic eruptions in real time, we     London) and an anonymous referee. This is HIGP
+are certainly approaching a situation of near-real-time oper-    contribution number 1216 and SOEST contribution number
+ation for the MODVOLC algorithm.                                 5976.
+
+6. Conclusions
+
+   We have outlined how MODIS data can be used as the            References
+basis for an automated system to detect and monitor
+volcanic eruptions for the entire globe. Case studies from       Barnes, W. L., Pagano, T. S., & Salomonson, V. V. (1998). Prelaunch
+several volcanoes have shown the algorithm to be robust              characteristics of the Moderate Resolution Imaging Spectroradiometer
+enough to detect a range of contrasting eruption styles and          (MODIS) on EOS-AM1. IEEE Transactions in Geoscience and Remote
+intensities, while yielding very few, if any, false alerts. By       Sensing, 36, 1088 ­ 1100.
+designing the algorithm to eliminate erroneous detection
+events, we realise that we forgo the detection of low-           Chester, D. K., Duncan, A. M., Guest, J. E., & Kilburn, C. R. J. (1985).
+intensity hotspots, but we find this preferential to the             Mount Etna: the anatomy of a volcano (p. 404). Stanford: Stanford
+situation in which the results of the algorithm cannot be            University Press.
+trusted. The algorithm simultaneously provides a tool to
+monitor the distribution of wildfires and industrial hot-        Dehn, J., Dean, K., & Engle, K. (2000). Thermal monitoring of North
+spots.                                                               Pacific volcanoes from space. Geology, 28, 755 ­ 758.
+
+   Although this paper presents results pertaining to the        Dozier, J. (1981). A method for satellite identification of surface temper-
+analysis of nighttime MODIS data, we are currently testing           ature fields of subpixel resolution. Remote Sensing of Environment, 11,
+a version of the MODVOLC algorithm that will run on the              221 ­ 229.
+daytime MODIS data stream. When operational, this will
+allow two hotspot observations per day for most areas of the     Flasse, S. P., & Ceccato, P. S. (1996). A contextual algorithm for AVHRR
+Earth. The launch of the second MODIS sensor on-board                fire detection. International Journal of Remote Sensing, 17, 419 ­ 424.
+Aqua will further enhance the utility of the MODVOLC
+system, by allowing up to four hotspot observations to be        Flynn, L. P., Harris, A. J. L., & Wright, R. (2001). Improved identification
+made (morning, afternoon, evening, and night) in a 24-h              of volcanic features using Landsat 7 ETM + . Remote Sensing of Envi-
+period. This is important in terms of fire detection, as the         ronment, 79, 1 ­ 14.
+morning and late-night overpass of Terra MODIS will miss
+the short-duration afternoon fires common in South America       Flynn, L. P., Mouginis-Mark, P. J., Gradie, J. C., & Lucey, P. G. (1993).
+and Africa (Kaufman et al., 1998). It also has important             Radiative temperature measurements at Kupaianaha lava lake, Kilauea
+implications for monitoring dynamic volcanic phenomenon,             Volcano, Hawai'i. Journal of Geophysical Reasearch, 98, 6461 ­ 6476.
+such as advancing lava flows, by providing a more dense
+temporal sample.                                                 Flynn, L. P., Mouginis-Mark, P. J., & Horton, K. A. (1994). Distribution of
+                                                                     thermal areas on an active lava flow field: landsat observations of
+   The examples described in this paper show that MODIS              Kilauea, Hawai'i, July 1991. Bulletin of Volcanology, 56, 284 ­ 296.
+can be used to automatically detect and monitor spatially
+and temporally dynamic thermal phenomenon. When fully            Flynn, L. P., Wright, R., Garbeil, H., Harris, A. J. L., & Pilger, E. (2002). A
+                                                                     global thermal alert using MODIS: initial results from 2000 ­ 2001.
+                                                                     Advances in Environmental Monitoring and Modeling, 1, 5 ­ 36.
+
+                                                                 Francis, P. W., & McAllister, R. (1986). Volcanology from space; using
+                                                                     Landsat thematic mapper data in the Central Andes. Eos, Transactions
+                                                                     of the American Geophysical Union, 67, 170 ­ 171.
+
+                                                                 GVN (2001a). Soufriere Hills. Bulletin of the Global Volcanism Network,
+                                                                     26(2), 7 ­ 9.
+
+                                                                 GVN (2001b). Etna. Bulletin of the Global Volcanism Network, 26(5), 6 ­ 7.
+                                                                 GVN (2001c). Nyamuragira. Bulletin of the Global Volcanism Network,
+
+                                                                     26(3), 7 ­ 8.
+                                                                 GVN (2001d). Nyamuragira. Bulletin of the Global Volcanism Network
+
+                                                                     26(1), 7.
+R. Wright et al. / Remote Sensing of Environment 82 (2002) 135­155              155
+
+GVN (2001e). Shiveluch. Bulletin of the Global Volcanism Network, 26(4),        Mouginis-Mark, P. J., Snell, H., & Ellisor, R. (2000). GOES satellite and
+    2 ­ 4.                                                                          field observations of the 1998 eruption of Volcan Cerro Azul, Gala´pa-
+                                                                                    gos Islands. Bulletin of Volcanology, 62, 188 ­ 198.
+GVN (2001f). Piton de la Fournaise. Bulletin of the Global Volcanism
+    Network, 26(5), 4 ­ 6.                                                      Oppenheimer, C., Francis, P. W., Rothery, D. A., Carlton, R. W. T., &
+                                                                                    Glaze, L. S. (1993). Infrared image analysis of volcanic thermal fea-
+Harris, A. J. L., Blake, S., Rothery, D. A., & Stevens, N. F. (1997). A             tures: Lascar Volcano, Chile, 1984 ­ 1992. Journal of Geophysical Re-
+    chronology of the 1991 to 1993 Etna eruption using advanced very high           search, 98, 4269 ­ 4286.
+    resolution radiometer data: implications for real-time thermal volcano
+    monitoring. Journal of Geophysical Research, 102, 7985 ­ 8003.              Prins, E. M., & Menzel, W. P. (1992). Geostationary satellite detection of
+                                                                                    biomass burning in South America. International Journal of Remote
+Harris, A. J. L., Flynn, L. P., Dean, K., Pilger, E., Wooster, M., Okubo, C.,       Sensing, 13, 2783 ­ 2799.
+    Mouginis-Mark, P., Garbeil, H., Thornber, C., De La Cruz-Reyna, S.,
+    Rothery, D., & Wright, R. (2000). Real-time monitoring of volcanic hot      Prins, E. M., & Menzel, W. P. (1994). Trends in South American biomass
+    spots with satellites. In P. J. Mouginis-Mark, J. A. Crisp, & J. H. Fink        burning detected with the GOES visible infrared spin scan radiometer
+    (Eds.), Remote sensing of active volcanism. American Geophysical                atmospheric sounder from 1983 to 1991. Journal of Geophysical Re-
+    Union Monograph: Vol. 116. (pp. 139 ­ 159). (Washington, DC).                   search, 99, 16719 ­ 16735.
+
+Harris, A. J. L., Flynn, L. P., Rothery, D. A., Oppenheimer, C., & Sherman,     Rothery, D. A., Coltelli, M., Pirie, D., Wooster, M. J., & Wright, R. (2001).
+    S. B. (1999). Mass flux measurements at active lava lakes: implications         Documenting surface magmatic activity at Mount Etna using ATSR
+    for magma recycling. Journal of Geophysical Research, 104, 7117 ­               remote sensing. Bulletin of Volcanology, 63, 387 ­ 397.
+    7136.
+                                                                                Rothery, D. A., Thorne, M. T., & Flynn, L. P. (in press). MODIS hot spot
+Harris, A. J. L., Keszthelyi, L., Flynn, L. P., Mouginis-Mark, P. J., Thornb-       alerts in Britain and the North Sea during the first half of 2001. Interna-
+    er, C., Kauahikaua, J., Sherrod, D., Trusdell, F., Sawyer, M. W., &             tional Journal of Remote Sensing.
+    Flament, P. (1997). Chronology of the episode 54 eruption at Kilauea
+    Volcano, Hawai'i, from GOES-9 satellite data. Geophysical Research          Schneider, D. J., Dean, K. G., Dehn, J., Miller, T. P., & Kirianov, V. U.
+    Letters, 24, 3281 ­ 3284.                                                       (2000). Monitoring and analyses of volcanic activity using remote sens-
+                                                                                    ing data at the Alaska Volcano Observatory: case study for Kamchatka,
+Harris, A. J. L., Murray, J. B., Aries, S. E., Davies, M. A., Flynn, L. P.,         Russia, December 1997. In P. J. Mouginis-Mark, J. A. Crisp, & J. H.
+    Wooster, M. J., Wright, R., & Rothery, D. A. (2000). Effusion rate              Fink (Eds.), Remote sensing of active volcanism. American Geophysical
+    trends at Etna and Krafla and their implication for eruptive mechanisms.        Union Monograph: Vol. 116. (pp. 65 ­ 85). (Washington, DC).
+    Journal of Volcanology and Geothermal Research, 102, 237 ­ 270
+    (Washington, DC) .                                                          Simkin, T., & Siebert, L. (1994). Volcanoes of the world (2nd ed.) (p. 368).
+                                                                                    Tucson, AZ: Geoscience Press.
+Harris, A. J. L., & Neri, M. (in press). Volumetric observations of the 1999
+    Bocca Nuova eruption: pressurized drainage of a shallow chamber or          Tazieff, H. (1994). Permanent lava lakes: observed facts and induced mech-
+    pulsed supply? Journal of Volcanology and Geothermal Research.                  anisms. Journal of Volcanology and Geothermal Research, 63, 3 ­ 11.
+
+Harris, A. J. L., Pilger, E., & Flynn, L. P. (2002). Web-based hot spot         Wadge, G. (1981). The variation of magma discharge during basaltic erup-
+    monitoring using GOES: what it is and how it works. Advances in                 tions. Journal of Volcanology and Geothermal Research, 11, 139 ­ 168.
+    Environmental Monitoring and Modeling, 1, 37 ­ 69.
+                                                                                Wooster, M. J. (2001). Long-term infrared surveillance of Lascar Volcano:
+Harris, A. J. L., Pilger, E., Flynn, L. P., Garbeil, H., Mouginis-Mark, P. J.,      contrasting activity cycles and cooling pyroclastics. Geophysical Re-
+    Kauahikaua, J., & Thornber, C. (2001). Automated, high temporal res-            search Letters, 28, 847 ­ 850.
+    olution, thermal analysis of Kilauea volcano, Hawai'i, using GOES
+    satellite data. International Journal of Remote Sensing, 22, 945 ­ 967.     Wooster, M. J., & Kaneko, T. (1998). Satellite thermal analyses of lava
+                                                                                    dome effusion rates at Unzen Volcano, Japan. Journal of Geophysical
+Harris, A. J. L., & Stevenson, D. S. (1997). Thermal observations of open           Research, 103, 20935 ­ 20947.
+    degassing conduits and fumaroles at Stromboli and Vulcano using re-
+    motely sensed data. Journal of Volcanology and Geothermal Research,         Wooster, M. J., Kaneko, T., Nakada, S., & Shimizu, H. (2000). Discrim-
+    76, 175 ­ 198.                                                                  ination of lava dome activity styles using satellite-derived thermal struc-
+                                                                                    tures. Journal of Volcanology and Geothermal Research, 102, 97 ­ 118.
+Harris, A. J. L., Swabey, S. E. J., & Higgins, J. (1995). Automated thresh-
+    olding of active lavas using AVHRR data. International Journal of           Wright, R., de la Cruz-Reyna, S., Flynn, L. P., Harris, A. J. L., & Gomez-
+    Remote Sensing, 16, 3681 ­ 3686.                                                Palacios, J. J. (in press). Infrared satellite monitoring at Popocatepe´tl:
+                                                                                    explosions, exhalations, and cycles of dome growth. Journal of Geo-
+Harris, A. J. L., & Thornber, C. R. (1999). Complex effusive events at              physical Research.
+    Kilauea as documented by the GOES satellite and remote video cam-
+    eras. Bulletin of Volcanology, 61, 382 ­ 395.                               Wright, R., Flynn, L. P., & Harris, A. J. L. (2001). Evolution of lava flow-
+                                                                                    fields at Mount Etna, 27 ­ 28 October 1999, observed by Landsat 7
+Harris, A. J. L., Wright, R., & Flynn, L. P. (1999). Remote monitoring of           ETM + . Bulletin of Volcanology, 63, 1 ­ 7.
+    Mount Erebus Volcano, Antarctica, using Polar orbiters: progress and
+    prospects. International Journal of Remote Sensing, 20, 3051 ­ 3071.        Wright, R., Rothery, D. A., Blake, S., & Pieri, D. C. (2000). Improved
+                                                                                    remote sensing estimates of lava flow cooling: a case study of the
+Kaufman, Y. J., Justice, C. O., Flynn, L. P., Kendall, J. D., Prins, E. M.,         1991 ­ 1993 Mount Etna eruption. Journal of Geophysical Research,
+    Giglio, L., Ward, D. E., Menzel, W. P., & Setzer, A. W. (1998). Potential       105, 23681 ­ 23694.
+    global fire monitoring from EOS-MODIS. Journal of Geophysical Re-
+    search, 103, 32215 ­ 32238.                                                 Young, S. R., Sparks, R. S. J., Aspinall, W. P., Lloyd, L. L., Miller, A. D.,
+                                                                                    Robertson, R. E. A., & Shepherd, J. B. (1998). Overview of the erup-
+Klett, T. R., Ahlbrandt, T. S., Schmoker, J. W., & Dolton, G. L. (1997).            tion of Soufriere Hills Volcano, Montserrat, 18 July 1995 to December
+    Ranking of the world's oil and gas provinces by known petroleum                 1997. Geophysical Research Letters, 25, 3389 ­ 3392.
+    volumes. USGS Open-File Report 97-463.
+

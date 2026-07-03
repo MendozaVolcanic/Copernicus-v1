@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alta Resolución — Planet / Vantor</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0e17; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; }
+
+        .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex-shrink: 0; }
+        .header h1 { font-size: 1em; color: #58a6ff; }
+        .badge { padding: 2px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold; }
+        .badge-planet { background: #2563eb; color: #fff; }
+        .badge-vantor { background: #059669; color: #fff; }
+        .badge-exp { background: #f0883e; color: #000; }
+
+        .toolbar { display: flex; gap: 10px; padding: 8px 16px; background: #0d1117; border-bottom: 1px solid #21262d; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+        .ctrl-label { font-size: 0.78em; color: #8b949e; }
+        select { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; padding: 5px 10px; border-radius: 6px; font-size: 0.82em; }
+        .btn { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; padding: 5px 14px; border-radius: 6px; font-size: 0.82em; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
+        .btn:hover { background: #30363d; }
+        .btn-planet { background: #1d4ed8; border-color: #2563eb; color: #fff; }
+        .btn-planet:hover { background: #2563eb; }
+        .btn-vantor { background: #065f46; border-color: #059669; color: #fff; }
+        .btn-vantor:hover { background: #059669; }
+        .zoom-info { font-size: 0.75em; color: #484f58; }
+
+        .layout { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: 240px; min-width: 240px; overflow-y: auto; background: #0d1117; border-right: 1px solid #21262d; }
+        .map-area { flex: 1; position: relative; }
+        #map { width: 100%; height: 100%; }
+
+        .volcan-item { padding: 8px 14px; border-bottom: 1px solid #161b22; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .volcan-item:hover { background: #161b22; }
+        .volcan-item.selected { background: #1c2333; border-left: 3px solid #58a6ff; }
+        .v-dot { width: 8px; height: 8px; border-radius: 50%; background: #f85149; flex-shrink: 0; }
+        .v-name { font-size: 0.82em; color: #e6edf3; }
+        .v-coord { font-size: 0.68em; color: #484f58; }
+        .zona-hdr { padding: 5px 14px; background: #161b22; font-size: 0.68em; font-weight: 700; color: #58a6ff; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px solid #21262d; position: sticky; top: 0; }
+
+        /* Panel info flotante */
+        .info-panel { position: absolute; bottom: 16px; right: 16px; width: 280px; background: #161b22; border: 1px solid #30363d; border-radius: 8px; z-index: 1000; overflow: hidden; }
+        .info-panel-header { padding: 8px 14px; background: #1c2128; border-bottom: 1px solid #21262d; }
+        .info-title { font-size: 0.9em; font-weight: 700; color: #e6edf3; }
+        .info-sub { font-size: 0.72em; color: #8b949e; margin-top: 2px; }
+        .info-body { padding: 10px 14px; }
+        .info-row { display: flex; justify-content: space-between; font-size: 0.78em; padding: 3px 0; border-bottom: 1px solid #21262d; }
+        .info-row:last-child { border-bottom: none; }
+        .info-row .lbl { color: #8b949e; }
+        .info-btns { padding: 10px 14px; display: flex; gap: 8px; border-top: 1px solid #21262d; }
+        .info-btns a { flex: 1; text-align: center; padding: 7px; border-radius: 6px; font-size: 0.8em; font-weight: 600; text-decoration: none; }
+
+        .tip { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); z-index: 1000; background: rgba(22,27,34,0.92); border: 1px solid #30363d; border-radius: 20px; padding: 6px 14px; font-size: 0.75em; color: #8b949e; pointer-events: none; white-space: nowrap; }
+
+        /* Resolución badge en mapa */
+        .res-badge { position: absolute; top: 12px; right: 12px; z-index: 1000; background: rgba(22,27,34,0.92); border: 1px solid #30363d; border-radius: 6px; padding: 6px 12px; font-size: 0.75em; }
+        .res-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+        .res-row:last-child { margin-bottom: 0; }
+        .res-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Alta Resolución Comercial</h1>
+    <span class="badge badge-planet">Planet</span>
+    <span class="badge badge-vantor">Vantor</span>
+    <span class="badge badge-exp">EXPERIMENTAL</span>
+    <span style="font-size:0.75em;color:#8b949e;">Visualización directa — sin descarga de cuota</span>
+</div>
+
+<div class="toolbar">
+    <span class="ctrl-label">Volcán:</span>
+    <select id="sel-volcan" onchange="irAVolcan()"></select>
+
+    <span class="ctrl-label">Plataforma:</span>
+    <select id="sel-plataforma">
+        <option value="planet">Planet Explorer (3-5m)</option>
+        <option value="vantor">Vantor</option>
+        <option value="ambos">Comparar ambos</option>
+    </select>
+
+    <a id="btn-abrir" href="#" target="_blank" class="btn btn-planet" onclick="abrirPlataforma()">
+        Abrir en Planet →
+    </a>
+
+    <span class="zoom-info">Las plataformas abren en nueva pestaña centradas en el volcán seleccionado. No se consume cuota de descarga.</span>
+</div>
+
+<div class="layout">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="map-area">
+        <div id="map"></div>
+        <div class="tip">Selecciona un volcán en la lista o haz clic en el mapa</div>
+        <div class="res-badge">
+            <div class="res-row"><div class="res-dot" style="background:#2563eb"></div><span style="color:#c9d1d9">Planet: 3-5m diario</span></div>
+            <div class="res-row"><div class="res-dot" style="background:#059669"></div><span style="color:#c9d1d9">Vantor: &lt;1m (comercial)</span></div>
+            <div class="res-row"><div class="res-dot" style="background:#58a6ff"></div><span style="color:#8b949e">Sentinel-2: 10m (gratis)</span></div>
+            <div class="res-row"><div class="res-dot" style="background:#8b949e"></div><span style="color:#8b949e">Landsat: 30m (gratis)</span></div>
+        </div>
+        <div class="info-panel" id="info-panel" style="display:none">
+            <div class="info-panel-header">
+                <div class="info-title" id="info-nombre"></div>
+                <div class="info-sub" id="info-zona"></div>
+            </div>
+            <div class="info-body">
+                <div class="info-row"><span class="lbl">Latitud</span><span id="info-lat"></span></div>
+                <div class="info-row"><span class="lbl">Longitud</span><span id="info-lon"></span></div>
+                <div class="info-row"><span class="lbl">Resolución Planet</span><span>3-5 m/px</span></div>
+                <div class="info-row"><span class="lbl">Resolución Vantor</span><span>&lt;1 m/px</span></div>
+                <div class="info-row"><span class="lbl">Revisita Planet</span><span>Diaria (PlanetScope)</span></div>
+            </div>
+            <div class="info-btns">
+                <a id="link-planet" href="#" target="_blank" style="background:#1d4ed8;color:#fff;">Planet →</a>
+                <a id="link-vantor" href="#" target="_blank" style="background:#065f46;color:#fff;">Vantor →</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../volcanes.js"></script>
+<script>
+// Desde volcanes.js (single source of truth). Esta vista solo lista los 43
+// volcanes principales (sin sub-vistas zoom de Melimoyu/Mentolat/Hudson).
+const VOLCANES = Object.fromEntries(
+    Object.entries(window.VOLCANES_CONFIG)
+        .filter(([, c]) => !c.vista_zoom_de)
+);
+
+// Zoom level 14 ≈ escala 1:8000, buena para ver cráteres en Planet
+const PLANET_ZOOM = 14;
+const VANTOR_ZOOM = 15;
+
+function planetUrl(lat, lon) {
+    // Planet Explorer: lat, lon, zoom en la URL
+    return `https://www.planet.com/explorer/#lat=${lat.toFixed(5)}&lng=${lon.toFixed(5)}&zoom=${PLANET_ZOOM}`;
+}
+
+function vantorUrl(lat, lon) {
+    // Vantor viewer: ajustar según estructura real de su plataforma
+    return `https://vantor.com/?lat=${lat.toFixed(5)}&lng=${lon.toFixed(5)}&zoom=${VANTOR_ZOOM}`;
+}
+
+// ─── Mapa ────────────────────────────────────────────────────────────────────
+const map = L.map('map').setView([-35, -71], 5);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 19
+}).addTo(map);
+
+const markers = {};
+let seleccionado = null;
+
+// Agregar marcadores
+for (const [nombre, v] of Object.entries(VOLCANES)) {
+    const m = L.circleMarker([v.lat, v.lon], {
+        radius: 7, fillColor: '#f85149', color: '#f85149', weight: 1.5,
+        opacity: 0.9, fillOpacity: 0.5
+    }).addTo(map);
+    m.on('click', () => seleccionar(nombre));
+    m.bindTooltip(nombre, { permanent: false, direction: 'top' });
+    markers[nombre] = m;
+}
+
+// ─── Sidebar ─────────────────────────────────────────────────────────────────
+const sel = document.getElementById('sel-volcan');
+const sidebar = document.getElementById('sidebar');
+const ORDEN_ZONAS = ['Norte','Centro','Sur','Austral'];
+
+// Agrupar por zona
+const porZona = {};
+for (const [nombre, v] of Object.entries(VOLCANES)) {
+    if (!porZona[v.zona]) porZona[v.zona] = [];
+    porZona[v.zona].push(nombre);
+}
+
+for (const zona of ORDEN_ZONAS) {
+    if (!porZona[zona]) continue;
+    const hdr = document.createElement('div');
+    hdr.className = 'zona-hdr';
+    hdr.textContent = zona;
+    sidebar.appendChild(hdr);
+
+    for (const nombre of porZona[zona]) {
+        const v = VOLCANES[nombre];
+        const item = document.createElement('div');
+        item.className = 'volcan-item';
+        item.id = 'item-' + nombre;
+        item.addEventListener('click', () => seleccionar(nombre));
+
+        const dot = document.createElement('div');
+        dot.className = 'v-dot';
+        const info = document.createElement('div');
+        const nm = document.createElement('div');
+        nm.className = 'v-name';
+        nm.textContent = nombre;
+        const coord = document.createElement('div');
+        coord.className = 'v-coord';
+        coord.textContent = `${v.lat.toFixed(2)}°S, ${Math.abs(v.lon).toFixed(2)}°W`;
+        info.appendChild(nm);
+        info.appendChild(coord);
+        item.appendChild(dot);
+        item.appendChild(info);
+        sidebar.appendChild(item);
+
+        // Selector
+        const opt = document.createElement('option');
+        opt.value = nombre;
+        opt.textContent = nombre;
+        sel.appendChild(opt);
+    }
+}
+
+// ─── Lógica selección ─────────────────────────────────────────────────────────
+function seleccionar(nombre) {
+    seleccionado = nombre;
+    const v = VOLCANES[nombre];
+
+    // Actualizar sidebar
+    document.querySelectorAll('.volcan-item').forEach(i => i.classList.remove('selected'));
+    const item = document.getElementById('item-' + nombre);
+    if (item) {
+        item.classList.add('selected');
+        item.scrollIntoView({ block: 'nearest' });
+    }
+
+    // Actualizar selector
+    document.getElementById('sel-volcan').value = nombre;
+
+    // Volar al volcán
+    map.flyTo([v.lat, v.lon], 12, { duration: 1 });
+
+    // Resaltar marcador
+    for (const [n, m] of Object.entries(markers)) {
+        m.setStyle({ radius: n === nombre ? 11 : 7, fillOpacity: n === nombre ? 0.9 : 0.5 });
+    }
+
+    // Panel info
+    document.getElementById('info-nombre').textContent = nombre;
+    document.getElementById('info-zona').textContent = 'Zona ' + v.zona;
+    document.getElementById('info-lat').textContent = v.lat.toFixed(4) + '°';
+    document.getElementById('info-lon').textContent = v.lon.toFixed(4) + '°';
+    document.getElementById('link-planet').href = planetUrl(v.lat, v.lon);
+    document.getElementById('link-vantor').href = vantorUrl(v.lat, v.lon);
+    document.getElementById('info-panel').style.display = 'block';
+
+    // Actualizar botón toolbar
+    actualizarBotonAbrir(nombre, v);
+}
+
+function actualizarBotonAbrir(nombre, v) {
+    const plat = document.getElementById('sel-plataforma').value;
+    const btn = document.getElementById('btn-abrir');
+    if (plat === 'planet') {
+        btn.href = planetUrl(v.lat, v.lon);
+        btn.textContent = 'Abrir en Planet →';
+        btn.className = 'btn btn-planet';
+    } else if (plat === 'vantor') {
+        btn.href = vantorUrl(v.lat, v.lon);
+        btn.textContent = 'Abrir en Vantor →';
+        btn.className = 'btn btn-vantor';
+    } else {
+        // Abrir ambos
+        btn.href = planetUrl(v.lat, v.lon);
+        btn.textContent = 'Abrir Planet + Vantor →';
+        btn.className = 'btn btn-planet';
+        btn.onclick = function(e) {
+            e.preventDefault();
+            window.open(planetUrl(v.lat, v.lon), '_blank');
+            window.open(vantorUrl(v.lat, v.lon), '_blank');
+        };
+        return;
+    }
+    btn.onclick = null;
+}
+
+function irAVolcan() {
+    const nombre = document.getElementById('sel-volcan').value;
+    if (nombre && VOLCANES[nombre]) seleccionar(nombre);
+}
+
+function abrirPlataforma() {
+    if (!seleccionado) return;
+    const v = VOLCANES[seleccionado];
+    actualizarBotonAbrir(seleccionado, v);
+}
+
+document.getElementById('sel-plataforma').addEventListener('change', () => {
+    if (seleccionado) actualizarBotonAbrir(seleccionado, VOLCANES[seleccionado]);
+});
+
+// Seleccionar Villarrica por defecto
+seleccionar('Villarrica');
+</script>
+</body>
+</html>

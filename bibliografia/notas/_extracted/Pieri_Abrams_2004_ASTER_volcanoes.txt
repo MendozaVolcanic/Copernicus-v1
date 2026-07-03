@@ -1,0 +1,857 @@
+
+===== PAGE 1 =====
+MODIS and ASTER synergy for characterizing thermal volcanic activity
+S.W. Murphy a,⁎, R. Wright b, C. Oppenheimer c, C.R. Souza Filho a
+a University of Campinas (UNICAMP), Brazil
+b University of Hawai'i at Mānoa, USA
+c Cambridge University, UK
+a b s t r a c t
+a r t i c l e
+i n f o
+Article history:
+Received 3 July 2012
+Received in revised form 31 October 2012
+Accepted 2 December 2012
+Available online xxxx
+Keywords:
+Volcano
+Remote sensing
+Erta Ale
+Kilauea
+Kliuchevskoi
+Lascar
+ASTER
+MODIS
+Volcanic activity is diverse in its manifestations and spans wide temporal and spatial scales. Monitoring
+volcanoes with any single sensor system can only provide a limited perspective on the nature of such activity
+because of trade-offs between spatial, temporal and spectral resolution. Spaceborne observations of volcanoes
+are thus optimized by utilizing data from different and complementary remote sensing instruments. This
+study examines the combined use of the Moderate Resolution Imaging Spectroradiometer (MODIS) and the
+Advanced Spaceborne Thermal Emission and Reﬂection Radiometer (ASTER) for analyzing thermal anomalies
+from four separate volcanoes: Erta 'Ale (Ethiopia), Kīlauea (Hawai'i), Láscar (Chile) and Kliuchevskoi (Russia).
+MODIS provides a high temporal resolution (daily) but low spatial resolution (~1 km) dataset and is used to
+measure volcanic thermal radiance. ASTER provides relatively high spatial resolution (~90 m) image data and
+is used to deﬁne the size of thermal features, albeit at a poorer temporal frequency. Erta 'Ale and Kīlauea
+have been erupting continuously over the 11-year study period and their thermal emission signatures reveal
+a persistent baseline on which occasional increases in thermal output, associated with more profuse effusions
+of lava, are superimposed. Kliuchevskoi also displays occasional peaks in thermal activity due to the eruption
+of lava however intervening periods are characterized by weak or absent thermal anomalies. Láscar, on the
+other hand, provides an example of volcanic activity that is difﬁcult for MODIS-type sensors to detect. It is
+characterized by fumarolic activity that is too low in temperature and too spatially limited to be readily detect-
+able with its coarser instantaneous ﬁeld of view (i.e., pixel size). However, high resolution data from ASTER can
+be used to supplement and complement the MODIS dataset. Beyond characterizing the size of thermal anoma-
+lies ASTER can also provide constraints on their shape, location and orientation and is capable of detecting
+relatively subtle thermal anomalies given its high spatial resolution thermal infrared wavebands. These qualities
+permitted the identiﬁcation of a thermal precursor to lava ﬂows at Kliuchevskoi. The precursor, which was
+associated with a rising lava lake, is characterized as an increase in the size and intensity of ASTER-detected
+thermal anomalies situated in the active crater. Wavelet analysis of the MODIS dataset was also carried out.
+This revealed the time scales over which radiant output waxed and waned during individual eruptive episodes
+as well as the repose time between episodes. Such information might be useful in forecasting the likely duration
+and onset of future eruptions.
+© 2012 Elsevier Inc. All rights reserved.
+1. Introduction
+Volcanoes can be hazardous to both people and property yet also
+provide valuable insights into dynamic processes on Earth. It is neces-
+sary to monitor active volcanoes to mitigate the risks that they pose
+and to improve our understanding of these complex physical systems.
+Volcanic activity involves the transfer of mass and heat to the
+Earth's surface. The surface temperature and emissivity of a physical
+body determine the amount of energy it radiates at any given
+wavelength. Planck's law describes this relationship, which is modiﬁed
+to account for spectral emissivity as follows:
+L λ; T
+ð
+Þ ¼ ελc1λ−5= exp c2
+λT
+
+
+−1
+h
+i
+ð1Þ
+where L(λ,T) is spectral radiance (W m−2 sr−1 μm−1) as a func-
+tion of wavelength (λ) and kinetic temperature (T), ελ is spectral
+emissivity, and c1 and c2 are the radiation constants (i.e., c1=
+2hc2=1.19·10−16 W m2 sr−1 and c2=hc/k=1.439·10−2 m K;
+where h is the Planck constant, c the speed of light and k the
+Boltzmann constant).
+This work explores the use of polar-orbiting satellites for monitoring
+volcanic thermal radiance from space. The types of sensors used for this
+purpose can be classiﬁed into two broad categories: i) high to moderate
+Remote Sensing of Environment 131 (2013) 195–205
+⁎ Corresponding author. Tel.: +55 19 96233360.
+E-mail address: samsammurphy@gmail.com (S.W. Murphy).
+0034-4257/$ – see front matter © 2012 Elsevier Inc. All rights reserved.
+http://dx.doi.org/10.1016/j.rse.2012.12.005
+Contents lists available at SciVerse ScienceDirect
+Remote Sensing of Environment
+journal homepage: www.elsevier.com/locate/rse
+
+===== PAGE 2 =====
+spatial resolution (i.e., b100 m pixel−1) but low temporal resolution
+(i.e., >10 day) imagers, and ii) high temporal (i.e., 1≤day) but low
+spatial resolution (i.e., ≥1 km) imagers. The two categories will be
+referred to as i) high spatial resolution and ii) high temporal resolution
+for the remainder of this article. We note that although the meaning of
+adjectives such as ‘advanced’, ‘high’ and ‘moderate’ change with time as
+far as capabilities are concerned they have still been used widely to
+name many of the existing orbital imagers. High spatial resolution
+systems that have been used to monitor volcanic thermal radiance
+include: the Thematic Mapper onboard Landsat 4 and 5 (e.g.,, Francis
+& Rothery, 1987; Glaze et al., 1989; Oppenheimer, 1991; Rothery et
+al., 1988), the Optical Sensor on the Japanese Earth Resources
+Satellite-1 (JERS-1) (e.g., Dean et al., 1998; Denniss et al., 1996), the
+Enhanced Thematic Mapper Plus on Landsat 7 (e.g., Flynn et al., 2001;
+Patrick et al., 2004; Wright et al., 2001), the Advanced Land Imager on
+the Earth Observing-1 mission (e.g., Donegan & Flynn, 2004), and the
+Advanced Spaceborne Thermal Emission and Reﬂection Radiometer
+(ASTER) onboard the Terra satellite (e.g., Murphy et al., 2011; Rose &
+Ramsey, 2009; Vaughan & Hook, 2006). On the other hand high tem-
+poral resolution polar orbiters include: the Advanced Very High
+Resolution Radiometer (AVHRR) ﬂown on the NOAA satellite series
+(e.g., Harris et al., 1997; Tramutoli, 1998), and the Moderate Resolution
+Imaging Spectroradiometer (MODIS) (e.g., Kervyn et al., 2008; Koeppen
+et al., 2011; Wright et al., 2002; Wright et al., 2004) onboard both the
+Terra and Aqua satellites. The temporal and spectral resolution of
+MODIS, as well as its global coverage and reliable geometric and radio-
+metric calibration, led to its application in the world's ﬁrst automated
+system for global volcano monitoring, i.e., MODVOLC (Wright et al.,
+2002; Wright et al., 2004).
+Volcanic phenomena span a wide range of temporal and spatial
+scales. It may take years, decades or longer for magma to migrate to
+the surface, whilst a pyroclastic ﬂow can be emplaced in minutes. A
+volcanic ash plume can extend over thousands of kilometers yet ejec-
+ta are typically meter scale or less. This disparity means that there is
+no single sensor in existence that is capable of acquiring data over
+the spatial and temporal scales exhibited by all of Earth's volcanoes.
+Volcano monitoring efforts therefore need to integrate and interro-
+gate data from networks of sensors. From a volcanologist's pers-
+pective an ideal network would include terrestrial, airborne and
+spaceborne sensors. In practice, since most of Earth's potentially
+active and active volcanoes are subject to at best only rudimentary
+ground-based monitoring, orbital sensors are a crucial data source
+for tracking global volcanism.
+The Terra satellite, which carries both the ASTER and a MODIS
+system, offers an excellent opportunity to explore the potential of
+combining both high spatial and high temporal resolution datasets
+for monitoring volcanoes from space (e.g., Hirn et al., 2008;
+Vaughan & Hook, 2006; Vaughan et al., 2008). The ASTER sensor con-
+sists of three separate subsystems in the visible and near-infrared
+(VNIR), short-wave infrared (SWIR) and thermal infrared (TIR) with
+respective pixel sizes of 15, 30 and 90 m. The SWIR subsystem ceased
+to provide useful Earth observation data in 2008 due to a cooler
+malfunction although the VNIR and TIR instruments continue to oper-
+ate normally. MODIS has 32 spectral channels in the VNIR, SWIR, mid
+infrared (MIR) and TIR wavelengths with a nominal pixel resolution
+of 1 km and a temporal resolution of 24 h. Multiple simultaneous
+viewing opportunities are possible as both sensors are carried by
+the same satellite platform.
+The aim of this work is to compare how two different sensor clas-
+ses report the temporal, spatial and thermal characteristics of a range
+of target volcanoes. The targets were chosen because they display
+different eruptive characteristics and would therefore be useful in
+testing the performance of high temporal resolution (i.e. MODIS
+class) and high spatial resolution (i.e. ASTER class) sensor systems
+at cataloging different styles of volcanic activity. The term “style”
+here is simpliﬁed to mean whether thermal activity is any of the
+following: low temperature, high temperature, small, large, persistent
+or not persistent. A decadal time series has been used to a give a
+longer term perspective on this.
+2. Study areas
+Four different volcanoes have been investigated: i) Kīlauea (Hawai'i),
+ii) Láscar (Chile), iii) Erta 'Ale (Ethiopia) and iv) Kliuchevskoi (Kamchatka,
+Russia). Each site represents a markedly different type of volcanic setting:
+i) intra-plate ‘hot spot’ volcanism with frequent effusive basaltic erup-
+tions (Kīlauea), ii) a continental-oceanic subduction zone with persistent
+degassing, sporadic lava dome growth and intermittent explosions
+(Láscar), iii) a continental rift zone with an active lava lake (Erta 'Ale)
+and iv) a volcanic arc (Kliuchevskoi). These sites were selected for their
+contrasted settings and eruptive styles, enabling a more thorough evalu-
+ation of the capabilities and limitations of each sensor.
+3. Metrics for volcanic thermal activity
+This study was concerned with the characterization of thermally
+anomalous surfaces. Two metrics that quantify different aspects of
+such surfaces are deﬁned. The ﬁrst (MOD*) uses MODIS data to
+describe spectral intensity. The second (AST*) estimates the size of
+anomalous areas using the ASTER sensor.
+3.1. MOD* (high temporal resolution volcanic radiance)
+The MODIS dataset used in this study is comprised of all the avail-
+able nighttime, calibrated radiance scenes (i.e., MOD02 1km) and
+their corresponding geolocation products (i.e., MOD03) acquired for
+each volcano by MODIS-Terra since its launch in 1999. These data
+are available from the Level 1 and Atmosphere Archive and Distribution
+System (LAADS) maintained by the NASA Goddard Space Flight Center.
+Over the study period (i.e., 1 January 2000 to 1 January 2012) there are
+3709 scenes for Erta 'Ale, 5391 scenes for Kliuchevskoi, 4261 scenes for
+Kīlauea and 3772 scenes for Láscar (i.e., a total of 17,133 MOD02 1KM
+scenes). The combined size of this data set (i.e., 1.7 Tb) was reduced
+by cropping scenes and selecting pertinent spectral channels.
+The MOD* metric is designed to represent the overall amount of MIR
+radiance from thermally anomalous areas. Given the IFOV of the MODIS
+instrument the vast majority of thermal anomalies will be subpixel in
+size. A radiance measurement from a single detector element will there-
+fore often contain contributions from volcanically active areas and
+non-active background areas. We have used channel 21 (i.e., 3.929–
+3.989 μm) to characterize the radiance from volcanically active areas
+and channel 32 (i.e., 11.77–12.270 μm) to characterize the radiance
+from non-active background areas. This is because MIR detector arrays
+(e.g., channel 21) are much more sensitive to volcanic temperatures
+(i.e., hundreds of degrees Celsius) than TIR detector arrays (e.g., channel
+32). To illustrate this point let us consider an isothermal background
+surface at 20 °C that occupies the entire IFOV of detector elements in
+channel 21 and 32; the radiance from each channel will be 0.5 and
+8.1 W m−2 sr−1 μm−1, respectively. In the case that the IFOV also
+contained a second isothermal surface with a temperature of 500 °C
+and area of 100 m2 (i.e., 0.01% of MODIS pixel) then the radiance from
+each channel would be 11.72 and 9.32, respectively. That is, the TIR
+radiance in channel 32 will increase by 14.8% whilst the MIR radiance
+in channel 21 will increase by 2232%. The MOD* metric uses this
+relationship to deﬁne anomalous radiance in channel 21 as follows:
+MOD ¼
+X
+n
+i¼1
+Li−Li;bkgd
+ð2Þ
+where n is the number of anomalous pixels, Li is the spectral radiance,
+and Li,bkgd the background spectral radiance, of the ith anomalous
+pixel in channel 21. The background radiance was calculated by using
+196
+S.W. Murphy et al. / Remote Sensing of Environment 131 (2013) 195–205
+
+===== PAGE 3 =====
+the brightness temperature in channel 32 as a proxy for the tempera-
+ture of the non-active background areas. This background temperature
+(i.e., from TIR wavelengths) was then used to calculate background
+radiance (i.e., in MIR wavelengths) for channel 21. A pixel is considered
+to be anomalous if its Normalized Thermal Index (i.e., NTI) exceeds a
+threshold value. The NTI (Eq. (3)) utilizes the relative sensitivity of
+MIR and TIR wavelengths outlined above to detect thermally active
+volcanic targets from space (Wright et al., 2002).
+NTI ¼ L22−L32
+L22 þ L32
+ð3Þ
+where L22 and L32 are spectral radiance measurements from MODIS
+channels 22 and 32, respectively. MODIS channels 22 and 21 cover the
+same spectral region but have different saturation limits (i.e., brightness
+temperatures of around 60 and 225 °C, respectively) and radiometric
+accuracy (i.e., noise equivalent temperature variation, NEΔT, of 0.07
+and 2.0 K, respectively). If saturation occurs in channel 22 then radiance
+from channel 21 was automatically used instead. A global threshold of
+−0.8 was proposed by Wright et al. (2004) to identify volcanic thermal
+anomalies from nighttime MODIS scenes. This global threshold was set
+relatively high to avoid false alarms. To increase anomaly detection
+sensitivity it is possible to deﬁne volcano-speciﬁc thresholds
+(e.g.,Kervyn et al., 2008; Koeppen et al., 2011). To ﬁnd an optimal
+local NTI threshold we ﬁrst calculated the frequency distribution
+of all NTI values for each volcano (Fig. 1).
+The NTI values that correspond to volcanic hot-spots represent a
+tiny percentage of pixels at the extreme right hand tail of the distribu-
+tion, pixels that are not anomalous will correspond almost exclusively
+to NTI values in the rest of the distribution. An optimal threshold
+needs to be found to limit the number of false positives and missed
+anomalies. This was achieved by checking that the spatial distribution
+of anomalies was reasonable throughout the time series (Fig. 2) and
+that anomalies did not display seasonal variations through time
+(Fig. 3). The bimodality of the Kīlauea histogram (Fig. 1B) is due the
+presence of both land and water in the area used to calculate local
+NTI values at this volcano. The locations of anomalous pixels were
+recorded on a scene by scene basis and anomaly frequency maps
+were calculated for each volcano (Fig. 2).
+These maps depict the frequency with which an anomalous NTI
+value was detected at a given location over an 11 year period. Zero
+frequency areas are ﬁlled in using MODIS visible wavebands to
+provide a geographic context. Local NTI histograms (Fig. 1) were
+calculated from the entirety of scenes depicted in Fig. 2, the MOD*
+time series was calculated from smaller areas outlined using a
+white, dashed box. Fig. 2A shows that activity at Erta 'Ale is conﬁned
+to the summit caldera. The fairly large (i.e., several km2) but low
+frequency region to the NNW is associated with the Alu-Dalafﬁlla
+ﬁssure eruption of November 2008. Activity at Kīlauea is more spatially
+extensive and mainly corresponds with the lavas erupted on the
+volcano's East Rift Zone (Fig. 2B). Dotted around the Big Island are
+areas which contained short-lived thermal activity (i.e., low probability
+areas). They have previously been interpreted as resulting from vegeta-
+tion ﬁres (Koeppen et al., 2011). This might also be the cause of similar
+low probability areas surrounding Kliuchevskoi (Fig. 2C). Volcanic
+anomalies can be observed over both Kliuchevskoi and Bezymianny.
+Láscar's thermal features are constrained solely to the active summit
+crater (Fig. 2D). Clearly anomaly frequency maps display the likely
+location of thermally anomalous areas over time, as such, they might
+be useful during hazard planning exercises. They also help more
+generally to distinguish effusive activity (i.e., Kīlauea) from lava
+domes or lakes situated in craters (i.e., Láscar and Erta 'Ale).
+Kliuchevskoi combines both types of behavior. Thus, even if we knew
+nothings about these volcanoes beforehand it would be possible from
+Fig. 2 to determine that they exhibit different types of volcanic activity.
+Annual anomaly frequency maps for each volcano are provided in the
+supplementary material.
+3.2. AST* (Size of anomalous areas)
+This study uses the ASTER TIR at-surface radiance product (AST_09T)
+which is geometrically, radiometrically, and atmospherically corrected
+by the Land Processes Distributed Active Archive Center (LP DAAC) of
+the United States Geological Survey (USGS). We obtain terrestrial
+surface temperatures from this product using the Normalized Emissivity
+Method (Realmuto, 1990) with maximum emissivity set to 0.97. The
+ASTER Surface Kinetic Temperature (AST_08) product, which is based
+on the TES algorithm (Gillespie et al., 1998), was not used in this
+study because we could not verify whether the empirical relationship
+between laboratory-derived emissivity values and spectral contrast
+Fig. 1. The frequency distribution of MODIS Normalized Thermal Index (NTI) at A) Erta
+'Ale, B) Kīlauea, C) Kliuchevskoi and D) Láscar. Optimal local anomaly thresholds are
+shown using a solid, red line. The global MODVOLC threshold is shown using a dashed,
+gray line for comparison. (For interpretation of the references to color in this ﬁgure
+legend, the reader is referred to the web version of this article.)
+197
+S.W. Murphy et al. / Remote Sensing of Environment 131 (2013) 195–205
+
+===== PAGE 4 =====
+Fig. 2. Spatial distribution of anomaly frequency as detected by MODIS between 1st January 2000 to 1st January 2012 at A) Erta 'Ale, B) Kīlauea, C) Kliuchevskoi, and D) Láscar.
+Fig. 3. The MOD* time series (blue bars) is a measure of volcanic radiance [W m−2 sr−1 μm−1]; the AST* time series (ﬁlled circles with a dotted trend line) represents the size of
+thermally anomalous areas [1000's m2]. Pink bars depict discrete eruptive episodes. (For interpretation of the references to color in this ﬁgure legend, the reader is referred to the
+web version of this article.)
+198
+S.W. Murphy et al. / Remote Sensing of Environment 131 (2013) 195–205
+
+===== PAGE 5 =====
+would apply in an active volcanic setting. An inspection for cloud cover
+was carried out on the temperature image. If clouds completely
+obscured the volcano so that it could not be located visually in a TIR
+image then that scene was removed from the dataset.
+The AST* metric utilizes the relatively high spatial resolution of
+the ASTER sensor to measure the size of thermally anomalous areas.
+AST ¼ A:n
+ð4Þ
+where A is the nominal area of an ASTER pixel (i.e., 8100 m2) and n*
+is the number of anomalous pixels in a given scene. ASTER pixels
+were identiﬁed as anomalous if their temperature above background
+exceeded 40 °C. This threshold was selected to ensure an extremely
+low false alarm rate (i.e., perhaps zero) and to avoid the incorporation
+of too many ephemeral, low temperature gas plumes. The motivation
+for ﬁltering cool gas plumes is that they can change dramatically in size
+on time scales that are orders of magnitude greater than the revisit time
+of the sensor (i.e., minutes compared to days or weeks) and will there-
+fore produce scatter in the data that masks other, more persistent ther-
+mal features.
+Even at the spatial resolution of ASTER TIR bands (i.e., 90 m) it is
+likely that its individual detector elements will measure radiance
+from surfaces at markedly different temperatures over hot volcanic
+targets. Any one pixel temperature will therefore give only a qualita-
+tive measure of volcanic thermal heating. However, given that the
+AST* metric is restricted to measuring the size of thermally anomalous
+areas, it remains robust against this effect of subpixel thermal mixing.
+Although anomalous pixels could be identiﬁed using pixel radiance
+instead of pixel temperature we have utilized the latter because it is
+more stable against potentially variable spectral emissivity proﬁles as
+well as wavelength dependent absorption features (e.g. due to SO2 or
+ash aerosols). ASTER TIR channels will saturate quite frequently over
+hot volcanic targets (i.e., saturation brightness temperatures≈97 °C),
+especially given their relatively small IFOV, this issue was also avoided
+by limiting the AST* metric to measuring just the size of thermal
+anomalies.
+The temperature above background was calculated by subtracting a
+background temperature from the NEM temperature array. The back-
+ground temperature was deﬁned as the average pixel temperature in
+the background area. This area was deﬁned as an annulus around the
+active crater at Erta 'Ale, Kliuchevskoi and Láscar and as a collection of
+user-deﬁned points at Kīlauea. The methodology for determining the
+optimal size of an annulus is described in detail by Murphy et al.
+(2011). Hot volcanic features (e.g., lava or pyroclastic ﬂows) occasionally
+crossed the background area (i.e., at Kliuchevskoi). The corresponding
+pixels were automatically screened from the background area using a
+threshold of twice the standard deviation of the entire temperature
+array (i.e., an area of ~62 km2). The search area used to ﬁnd anomalous
+ASTER pixels included (and extended beyond) the background area to
+ensure that all volcanic thermal features were included in the AST*
+metric.
+Lava ﬂows, pyroclastic ﬂows and ash/gas plumes typically travel in
+a preferred direction from a stratocone due to local topography or
+wind direction. The 2D projection that these features create in an
+image acquired from space could, for illustrative purposes, be deﬁned
+as a narrow arc (b20°) originating from the active crater. The relative
+magnitude of the area of intersection between an arc (i.e. an active
+volcanic feature) and an annulus (i.e. the background area) and the
+total area of the annulus is given by:
+α
+A ¼ θ
+2π
+ð5Þ
+where α is the area of intersection, A is the size of the background
+area, and θ is the angular width of the arc in radians. For a 20° arc
+(i.e., 0.35 rad) the area of intersect would be 5.6% of the background
+area. Therefore pixels which contain contributions from cold ash
+plumes or warm volcanogenic material (i.e., that were not hot enough
+to be automatically removed by the clipping procedure) would still
+have a limited effect on the background temperature. The geometry
+of an annulus is therefore naturally stable against the intrusion of
+fresh volcanogenic material. Furthermore the circular nature of the
+annulus acts towards balancing the preferential solar heating effects
+that are created by varying amounts of solar irradiance around the
+volcanic ediﬁce. Therefore the annulus approach for calculating
+background temperatures from stratocones is favored in this work.
+At the Kīlauea shield volcano, which frequently exhibits active lava
+ﬂow ﬁelds covering several km2, the annulus approach was not possible.
+The background area was therefore deﬁned as a collection of user-
+deﬁned points around the ﬂow ﬁeld in this case. We note that a single
+background temperature cannot accurately characterize such an exten-
+sive area given that signiﬁcant, non-volcanic variations in terrestrial
+temperatures occur across it. The annulus methodology (i.e., used for
+all volcanoes but Kīlauea) is estimated to provide background tempera-
+tures to within 5 °C based on inspection of radial temperature gradients
+from the active crater, as decribed in Murphy et al. (2011). The
+user-deﬁned points (i.e., used for Kīlauea only) give background tem-
+peratures to within 15 °C (i.e. twice the maximum standard deviation
+of the background data points).
+3.3. Wavelet analysis
+Wavelet analysis reveals the periodicity in a time series of data. A
+wavelet is a wave function of ﬁnite duration (i.e., it is localized). The
+Morlet wavelet was used with a central frequency of 6 for this study. A
+continuous wavelet transform will convert data from the time domain
+to a time-frequency domain through the convolution of a time series
+with translated (i.e. moved in time) and scaled (i.e. stretched) versions
+of the original wavelet function. This involves evaluating the integral
+of the product of the data points with the wavelet function. Conceptually
+this equates to quantifying the amount of overlap between the area
+under the curve deﬁned by the data points and the area under the
+curve deﬁned by the wavelet function. Power is the metric of this over-
+lap. As power is calculated for a range of translation and scale parame-
+ters the resulting wavelet transform will represent how well the
+wavelet and the data match at different locations in time and at different
+periods of oscillation. A period of oscillation is the length of time over
+which an oscillation occurs (i.e., it is equivalent to the reciprocal of
+frequency). Power was normalized by the maximum value in each
+transform. This provides a unitless measure of periodicity that varies
+from zero to one. A practical guide to wavelet analysis is given by
+Torrence and Compo (1998). Examples of wavelet analysis in volcanol-
+ogy include studies of thermal image data from handheld infrared
+cameras (Spampinato et al., 2012) and geochemical time series measur-
+ing plume composition (Boichu et al., 2010; Oppenheimer et al., 2009).
+4. Results
+4.1. Time series
+Fig. 3 shows the entire MOD*and AST* datasets. They span the
+period between 24 February 2000 (i.e., the ﬁrst available scene) and 1
+January 2012. Erta 'Ale and Kīlauea (Fig. 3A,B) have been erupting
+continuously over the study period. Kliuchevskoi and Láscar (Fig. 3C,D)
+underwent intermittent eruptive episodes that are displayed using
+pink shading. Eruptive histories are mostly obtained from reports of
+the Global Volcanism Program of the Smithsonian Institute (Venzke et
+al., 2002-).
+Erta'Ale was frequently active throughout the 11 year study period.
+MOD* values are generally below 5 W m−2 sr−1 μm−1 (i.e., 99.3% of
+data points), although peaks in thermal output do occasionally exceed
+this value (i.e., up to a maximum MOD* of 14.4). There are two periods
+199
+S.W. Murphy et al. / Remote Sensing of Environment 131 (2013) 195–205
+
+===== PAGE 6 =====
+were MOD* values remain close to zero for months at a time (i.e., June–
+November 2003 and October 2004 to April 2005). This may indicate that
+the height of the lava lake was particularly low during these periods.
+Conversely, episodes characterized by high lava lake levels – as
+observed in the ﬁeld (e.g., November 2010 overﬂow) – correspond
+with peaks in MOD* values (i.e., 7.0 in this case). Variations in lava
+lake height are controlled by a number of factors, including magma
+reservoir pressure, vesiculation and conduit–crater morphology.
+The size of the thermal anomaly, as given by the AST* metric,
+varies between roughly 1 and 4×105 m2 (i.e., 1–5 ASTER pixels).
+The linear Pearson correlation coefﬁcient between AST* and MOD*
+is 0.54. That is, the size of thermally anomalous areas as measured
+by ASTER does not show a particularly strong correlation with the
+MIR radiance measured by MODIS. This is because the radiance emitted
+from the lava lake varies considerably more than the size of the lava lake.
+Radiant output can change signiﬁcantly for a given lake area, for exam-
+ple, through convective overturning of the lake surface and bubble burst,
+both of which result in varying exposure of hot, incandescent material
+through time.
+Kīlauea is the most consistently active volcano in this study and is
+characterized by frequent ﬁssure, ﬂank and crater eruptions of low viscos-
+ity basalt lava. These effusive eruptions often result in tube fed ﬂows that
+are capable of traveling several kilometers from the source vent. Conse-
+quently the MOD* time series displays a relatively high average of
+7.5 W m−2 sr−1 μm−1 with peaks exceeding 50 W m−2 sr−1 μm−1
+(i.e. coincident with outbreaks from the lava tubes). Several episodes of
+elevated thermal emission are apparent (e.g., January–September 2005,
+July 2007 to April 2008, and July 2008). The latest of these is particularly
+signiﬁcant because it was the largest in the data set (i.e., MOD* of 232;
+7th July 2008), it occurred during the eruption of three simultaneously
+lava fountains (Smithsonian Institution, 2010) and yet was completely
+missed by the ASTER sensor. Although high spatial resolution imagers,
+such as ASTER, are more likely to miss such short lived dynamic events,
+the imagery that they provide offers superior constraints on the size,
+shape, orientation and location of thermal anomalies. For example, a
+lava ﬂow ﬁeld imaged simultaneously by both sensors on 7 June 2003
+(Fig. 4) exhibits individual lava tubes of varying age that clearly form
+an interconnected network in the ASTER image (Fig. 4A), whilst it is
+only possible to determine the orientation and length of the overall
+ﬂow ﬁeld in the MODIS image (Fig. 4B). High spatial resolution data,
+as exempliﬁed here by ASTER, would clearly be more useful for opera-
+tional assessment of i) damage to local infrastructure (e.g., buildings,
+roads, etc.), ii) future ﬂow direction (especially given that surface
+breakouts occur from the tubes), and iii) the risk of ﬁre (e.g., through
+proximity to combustible material), given timely availability of the
+image, or a high-level monitoring product derived from the image.
+The size of thermal anomalies at Kīlauea has a mean AST* value of
+8.9×105 m2
+(i.e.,
+110 pixels)
+with
+a
+standard
+deviation
+of
+9.6×105 m2 (i.e., 118 pixels). They can therefore be very large yet
+also vary signiﬁcantly in size through time. The most extensive anomaly
+in the AST* series is 5.55×106 m2 (i.e., 685 pixels). The correlation
+coefﬁcient between AST* and MOD* is 0.65 (i.e. anomaly size and MIR
+radiance are more closely matched at this volcano than at Erta 'Ale).
+Kliuchevskoi exhibits a more sporadic eruptive style, often spending
+prolonged periods of time with no, or very limited, signs of thermal
+activity (Fig. 3C). There are four major peaks in the MOD* series i) 20
+January to 7 April 2005, ii) 22 April to 25 June 2007, iii) 30 October
+2008 to 10 January 2009, and iv) 1 November 2009 to 1 November
+2010. These correspond with Strombolian eruptions and lava ﬂows
+(Venzke et al., 2002-). The ﬁrst three major peaks are fairly symmetric
+and last around 2–3 months. The forth is asymmetric and last for
+about a year, with a prolonged period of Strombolian activity, followed
+by more extensive lava ﬂows and culminating in a Vulcanian eruption
+(Venzke et al., 2002-) after which time thermal activity came to an
+abrupt end.
+The maximum MOD* values for the symmetric peaks are, in
+consecutive order: 88.6, 145.8 and 144.9. These peaks have mean
+MOD* values of 10.4, 30.0 and 11.8, respectively. The forth major peak
+displays a higher maximum MOD* value (i.e., 166.7) and a lower
+mean MOD* value (6.9). The maximum extents of thermal anomalies
+during these four major episodes range from 5.6×105 to 9.6×105 m2.
+That is, they are comparable in size to Kīlauea ﬂows, although overall
+slightly smaller. Correlation between AST* and MOD* is relatively high
+overall (i.e. 0.85). The increased correlation between size and intensity
+at Kliuchevskoi compared to Kīlauea is probably because lava ﬂows
+from Kliuchevskoi's stratocone do not form tubes. At Kīlauea however
+the formation of tubes means that radiance from these ﬂows will
+depend on the proportion of exposed to concealed lava.
+Inspection of ASTER scenes reveals a thermal precursor to two of
+the lava ﬂow events at Kliuchevskoi (Fig. 5). The precursor is deﬁned
+Fig. 4. Brightness temperatures from A) ASTER channel 10 and B) MODIS channel 22 of the Pu'u 'Ō'ō ﬂow ﬁeld on the 7th June 2003. ASTER is able to characterize the size, shape,
+location and orientation of individual lava ﬂow tubes.
+200
+S.W. Murphy et al. / Remote Sensing of Environment 131 (2013) 195–205
+
+===== PAGE 7 =====
+by thermal anomalies that are situated within the summit crater and that
+increase in both size and intensity through time. The increase in size is
+interpreted as resulting from an increasing amount of ponded lava in
+the active crater, as has been observed in the ﬁeld (Smithsonian
+Institution, 2009). The increase in intensity is due to greater radiant
+heat loss from the lava surface, which is dependent on both size and
+temperature. After the precursory inﬁlling of the summit crater, lava
+breached the crater rim and descended the ﬂanks of the volcano
+(Smithsonian Institution, 2007, 2009). Such observations could be
+used to create simple, automated thermal precursors to lava ﬂow activ-
+ity at Kliuchevskoi and other similar volcanoes. If, for example, an alert
+had been based on detection of 5 or more pixels situated in the active
+crater with a temperature above background of at least 40 °C, then
+both lava ﬂow events could have been anticipated two weeks before
+they were seen descending the ediﬁce. This demonstrates the utility
+that moderate to high spatial resolution datasets can provide when
+their revisit periods are adequate to capture changing levels of activity.
+Láscar displays very low MOD*, i.e., mainly lower than 0.5 and
+with a maximum of 2.5 (Fig. 3D). Scatter in MODIS anomalies, created
+by imperfect correction for MIR background radiance and atmos-
+pheric effects, can result in negative anomaly values. Thermal activity
+at this volcano, characterized by persistent degassing from fumaroles
+in and around the active crater, is particularly difﬁcult for low spatial
+resolution sensors such as MODIS to detect because the thermally
+active region is low in temperature and relatively small in size
+compared to the instantaneous ﬁeld of view (IFOV) of the sensor.
+Consequently the radiation falling on any one detector element
+contains a limited contribution from the target area. ASTER, on the
+other hand, regularly detects thermal anomalies at Láscar. AST* values
+range from roughly 10,000 to 40,000 m2 in size. These anomalies are
+probably due to varying degrees of fumarolic activity from the active
+crater (Murphy et al., 2011). The higher spatial resolution (i.e. smaller
+IFOV) of ASTER allows it to detect relatively subtle thermal anomalies.
+Fig. 6 illustrates this point by displaying an ASTER image of a persistent
+thermal anomaly in Láscar's active crater (Fig. 6A) juxtaposed with a
+contemporaneous MODIS image acquired over the same area (Fig. 6B).
+The anomaly is evident in the ASTER image yet remains completely
+undetected by the MODIS sensor.
+4.2. Wavelet power spectra
+The high temporal resolution of MODIS lends itself to more
+detailed time series analysis. A continuous wavelet transform was
+applied to the MOD* time series of a) Erta 'Ale, b) Kīlauea and c)
+Kliuchevskoi (Fig. 7). Shown for each volcano are i) the original MOD*
+time series, and ii) the wavelet power spectrum. The axes of the wavelet
+power spectrum are time against period of oscillation. Time is plotted in
+years (x-axis) and period of oscillation is plotted in years (left y-axis)
+using a log base 2 scale and also in the equivalent amount of days
+(right y-axis). Power is represented using a color scale. Peaks in the
+power spectrum (i.e. warmer colors) indicate periodicity in the time
+series at the corresponding time and period of oscillation. During the
+convolution process wavelets may be translated towards (or beyond)
+the edge of the ﬁnite time series, especially at longer periods, producing
+spurious results in the corresponding part of the power spectrum. This
+region is known as the cone of inﬂuence and is represented in gray to
+leave only the reliable part of the power spectrum visible. Certain
+instances in time are highlighted in the power spectrum using a vertical,
+dashed white line. The corresponding period against power plot for each
+of these time slices is displayed in Fig. 8.
+Erta 'Ale (Fig. 7Aii) displays two time intervals revealing a periodic-
+ity of approximately 1/2 a year centered around June 2002 and August
+2007. The latter event also shows signiﬁcant periodicity at 1/16 to 1/4
+of a year (i.e., 23–91 days). A time slice of the power spectrum at
+these two times (i.e. time slice 1 and 2) is displayed in Fig. 8. These
+time slices also clearly show low period signals (i.e. around 2 days)
+that are approximately contemporaneous with sharp peaks in the
+MOD* time series (Fig. 7Ai). A strong periodicity (i.e., power=0.93)
+occurs at a long period (i.e., 4 years) around the turn of 2006
+(Fig 7Aii). It is associated with the spacing between the two periodicity
+events highlighted in time slice 1 and 2. This spacing is actually closer to
+5 years than 4 but is not reliably deﬁnable within this power spectrum
+because the corresponding periodicity falls into the cone of inﬂuence.
+To characterize longer period events, such as this one, it is necessary
+to have a longer time series. Less prominent peaks also appear in the
+power spectrum of Erta 'Ale. Most remarkable among these are perhaps
+the dual periodicity component at 6.16×10−3 and 2.3×10−2 years
+(i.e., 2 and 8 days) because they reoccur throughout much of the time
+series and therefore appear to be characteristic periods of oscillation at
+this volcano.
+Kīlauea displays strong periodicity at a period of 2.5 years with
+maximum power of this feature occurring around October 2006
+(Fig. 7Bii). This long period signal is overlain at different times with
+shorter period oscillations. Time slices 3 and 4 (Fig. 8) display some
+of the multiple periodicity components in the Kīlauea power spec-
+trum. The long (i.e. 2.5 year) period is the dominant feature in these
+time slices however both also show periodicity at around 1/4 of a
+year and at 2 days. Time slice 3 also shows a peak in periodicity at
+around 1 year which is equivalent to the duration of the overall
+waxing and waning in radiance in the corresponding time series
+(Fig. 7Bi). A strong low period oscillation (i.e. 2.6 days) in the
+power spectrum occurs during a short sharp peak in MOD* values
+around July 2008.
+The four major eruptive episodes at Kliuchevskoi dominate both
+the time series and the wavelet power spectrum (Fig. 7Cii). The
+three symmetric events each show a waxing and waning of measured
+Fig. 5. Thermal precursors to lava ﬂow activity at Kliuchevskoi are characterized by anomalies in the active crater that increase in size and intensity.
+201
+S.W. Murphy et al. / Remote Sensing of Environment 131 (2013) 195–205
+
+===== PAGE 8 =====
+radiance with a periodicity of approximately 0.25 to 0.5 years (e.g., time
+slice 5 in Fig. 8). The maximum periodicity event (i.e. power=1) for
+Kliuchevskoi is displayed in time slice 5 (i.e., period=3.5 days;
+centered on the 31st May 2007). It occurred at the same time that a
+new lava ﬂow was reported to have moved down the East ﬂank of the
+volcano (Smithsonian Institution, 2007). Periodicity during the episode
+with more persistent Strombolian activity (i.e., time slice 6) displays
+more clearly separated peaks in period at 2.5, 16.5, 47 and 204 days.
+The fairly regular spacing (i.e., repose) of the last 3 eruptive episodes
+resulted in a 1.5 year periodicity centered around the turn of 2009.
+5. Discussion
+The MODIS and ASTER sensors provide datasets with their own
+particular advantages and disadvantages. MODIS channel 21 will
+very rarely saturate, even over hot volcanic targets, and can therefore
+be reliably used to provide a measure of volcanic thermal radiation if
+the target is hot and/or large enough. The daily revisit time of the
+MODIS sensor also allows dynamic volcanic events to be character-
+ized in relatively high temporal detail. This sampling frequency
+could be improved further still, if necessary, by inclusion of data
+from the other MODIS sensor (i.e., on the Aqua satellite) as might
+be of critical importance during a volcanic crisis. The higher spatial
+resolution of the ASTER sensor, on the other hand, allows the spatial
+characteristics of thermal anomalies to be quantiﬁed more accurately
+and also facilitates the detection of subtle thermal anomalies. These
+capabilities permitted the identiﬁcation of a thermal precursor to
+lava ﬂows at Kliuchevskoi. Unfortunately the probability of ASTER
+capturing such precursor events is limited by the fact that it is not a
+mapping mission (i.e. does not acquire data continuously).
+The low spatial resolution of MODIS leaves the sensor incapable of
+monitoring the type of thermal activity expressed by Láscar during
+the study period (i.e., predominantly fumarolic). There are plenty of
+other (potentially hazardous) volcanoes around the world that are
+similarly difﬁcult for MODIS to monitor. Fortunately ASTER can
+provide a complimentary dataset that, when used in conjunction
+with MODIS datasets, results in a synergy with better overall
+temporal, spatial and radiometric resolution. This can be used to ob-
+tain more information on a greater range of volcanic activity than ei-
+ther sensor could offer individually.
+This is the ﬁrst time to our knowledge that wavelet analysis has
+been applied over such a long (i.e., 11 year) data set of volcanic radi-
+ance. This enabled us to identify oscillations on weekly, monthly and
+yearly time scales. Very short period events (i.e., a few days) can be
+created by a burst of thermal activity such as from a short lived lava
+ﬂow or lava fountain. It is possible, however, that similar oscillations
+in radiance – as seen from space – might also occur due to changes in
+cloud cover over a thermally stable target. Very short period events
+should therefore be interpreted with care and scenes should be inspected
+for cloud cover.
+Long period events could be better resolved if the overall time
+series were more extensive. This reﬂects the need for continuous
+collections of data over multiple years and, eventually, decades.
+Fortunately the next generation of high temporal resolution polar-
+orbiting satellites are coming through (i.e., Suomi National Polar-
+orbiting Partnership (Suomi NPP), Sentinel 3, and the Global Change
+Observation Mission climate change series (GCOM-C). Wavelet analysis
+provides new constraints on the probability of the duration and repose
+of future events, and could be used as input into decision making tools
+such as the Bayesian event tree model for eruption forecasting, i.e., BET
+EF (Marzocchi et al., 2008).
+6. Conclusion
+This study investigated 11 year time series of MODIS and ASTER
+thermal anomalies (i.e., using the metrics MOD* and AST*, respectively).
+MOD* measures the radiance emitted by a volcano and AST* measures
+the size of thermally anomalous areas. This is the ﬁrst time (to our
+knowledge) that two sensors of this type have been used to compare
+such long time series of the intensity and size of thermal anomalies.
+We show practical examples of the relative strengths of each sensor
+and how they can be used to improve overall understanding of volcanic
+activity at a number of distinctly different volcanoes.
+Fig. 6. Contemporaneous images of A) ASTER channel 10 and B) MODIS channel 22 of Láscar taken on 2nd October 2000. ASTER is capable of detecting subtle thermal anomalies that
+may fall below the MODIS detection limit. Láscar's active crater is highlighted using a red dashed circle.
+202
+S.W. Murphy et al. / Remote Sensing of Environment 131 (2013) 195–205
+
+===== PAGE 9 =====
+The high temporal resolution MOD* metric was also analyzed
+using continuous wavelet transforms. Given the length of the time
+series it was possible to determine periods over which thermal
+activity waxes and wanes at a particular volcano as well as to charac-
+terize repose time between thermal events. This might be useful in
+guiding forecasts on the duration and onset of future eruptions. It also
+Fig. 7. Wavelet transforms of MOD* time series for A) Erta'Ale, B) Kīlauea and C) Kliuchevskoi. Shown are i) the original MOD* time series and ii) its wavelet power spectrum. Time
+slices of the power spectrum (shown in Fig. 8) are depicted here using dashed white lines.
+203
+S.W. Murphy et al. / Remote Sensing of Environment 131 (2013) 195–205
+
+===== PAGE 10 =====
+facilitates the comparison of the time scales over which different volca-
+noes erupt. The AST* metric allowed the size of thermal anomalies to be
+determined in relatively high detail, it also facilitates the detection of
+subtle thermal anomalies, both of these characteristics led to the identi-
+ﬁcation of a thermal precursor to lava ﬂow at Kliuchevskoi. It is useful,
+therefore, to explore synergies between high temporal and high spatial
+resolution datasets.
+Time series plots, images and movies can be thought of as volcano
+monitoring products. These products could be made automatically and
+provided free of charge to volcano observatories and other interested
+parties. This would increase the science return from existing and
+future missions, raise the global proﬁle of the space agency or
+corporation that provides the data and also contribute positively
+to society, especially to those at risk from volcanic hazards, be it
+either directly (e.g., local inhabitants) or indirectly (e.g., airplane
+passengers and international businesses).
+Acknowledgments
+ASTER and MODIS data were provided by NASA through LP DAAC
+and LAADS, respectively. SM would like to thank the Coordenação de
+Aperfeiçoamento de Pessoal de Nível Superior (CAPES) for a doctoral
+scholarship and the Conselho Nacional de Desenvolvimento Cientíﬁco e
+Tecnológico (CNPq) for a revisiting researcher grant that supported a
+fruitful 4 month period at the University of Hawai'i at Mānoa. RW
+acknowledges NASA grant NN08AF08G. CO thanks the NERC National
+Centre for Earth Observation for generous support (Dynamic Earth
+Theme 6; grant # NE/F001487/1). CRSF acknowledges CNPq grant
+303563/2008-7. Thoughtful reviews from two anonymous reviewers
+greatly improved the manuscript. Wavelet software was provided by
+C. Torrence and G. Compo, and is available at URL: http://atoc.colorado.
+edu/research/wavelets/.
+Appendix A. Supplementary data
+Supplementary data associated with this article can be found in the
+online version, at doi:10.1016/j.rse.2012.12.005. These data include
+Google maps of the most important areas described in this article.
+References
+Boichu, M., Oppenheimer, C., Tsanev, V., & Kyle, P. R. (2010). High temporal resolution
+SO2 ﬂux measurements at Erebus volcano, Antarctica. Journal of Volcanology and
+Geothermal Research, 190, 325–336.
+Smithsonian Institution. (2007). Kliuchevskoi. Bulletin of the Global Volcanism Network,
+27:03.
+Smithsonian Institution. (2009). Kliuchevskoi. Bulletin of the Global Volcanism Network.
+34:03.
+Smithsonian Institution. (2010). Kilauea. Bulletin of the Global Volcanism Network. 35:
+01.
+Dean, K., Servilla, M., Roach, A., Foster, B., & Engle, K. (1998). Satellite monitoring of
+remote volcanoes improves study efforts in Alaska. EOS. Transactions of the American
+Geophysical Union, 79, 413–423.
+Denniss, A. M., Harris, A. J. L., Carlton, R. W., Francis, P. W., & Rothery, D. A. (1996). The 1993
+Lascar pyroclastic ﬂow imaged by JERS-1. International Journal of Remote Sensing, 17,
+1975–1980.
+Donegan, S. J., & Flynn, L. P. (2004). Comparison of the response of the landsat 7 enhanced
+thematic mapper plus and the earth observing-1 advanced land imager over active
+lava ﬂows. Journal of Volcanology and Geothermal Research, 135, 105–126.
+Flynn, L. P., Harris, A. J. L., & Wright, R. (2001). Improved identiﬁcation of volcanic
+features using Landsat 7 ETM+. Remote Sensing of Environment, 78, 180–193.
+Francis, P. W., & Rothery, D. A. (1987). Using the Landsat Thematic Mapper to detect
+and monitor active volcanoes — An example from Lascar volcano, northern Chile.
+Geology, 15, 614–617.
+Gillespie, A., Rokugawa, S., Matsunaga, T., Cothern, J. S., Hook, S., & Kahle, A. B. (1998).
+A temperature and emissivity separation algorithm for Advanced Spaceborne
+Thermal Emission and Reﬂection Radiometer (ASTER) images. IEEE Transactions
+on Geoscience and Remote Sensing, 36, 1113–1126.
+Glaze, L., Francis, P. W., & Rothery, D. A. (1989). Measuring thermal budgets of active
+volcanoes by satellite remote sensing. Nature, 338, 144–146.
+Harris, A. J. L., Butterworth, A. L., Carlton, R. W., Downey, I., Miller, P., Navarro, P., et al.
+(1997). Low-cost volcano surveillance from space: case studies from Etna, Kraﬂa,
+Cerro Negro, Fogo, Lascar and Erebus. Bulletin of Volcanology, 59, 49–64.
+Hirn, B., Di Bartola, C., & Ferrucci, F. (2008). Spaceborne Monitoring 2000–2005 of the
+Pu'u 'O'o-Kupaianaha (Hawaii) Eruption by Synergetic Merge of Multispectral
+Payloads ASTER and MODIS. IEEE Transactions on Geoscience and Remote Sensing,
+46, 2848–2856.
+Kervyn, M., Ernst, G. G. J., Harris, A. J. L., Belton, F., Mbede, E., & Jacobs, P. (2008).
+Thermal remote sensing of the low-intensity carbonatite volcanism of Oldoinyo
+Lengai, Tanzania. International Journal of Remote Sensing, 29, 6467–6499.
+Koeppen, W. C., Pilger, E., & Wright, R. (2011). Time series analysis of infrared satellite
+data for detecting thermal anomalies: A hybrid approach. Bulletin of Volcanology,
+73, 577–593.
+Marzocchi, W., Sandri, L., & Selva, J. (2008). BET_EF: a probabilistic tool for long- and
+short-term eruption forecasting. Bulletin of Volcanology, 70, 623–632.
+Murphy, S. W., de Souza Filho, C. R., & Oppenheimer, C. (2011). Monitoring volcanic
+thermal anomalies from space: Size matters. Journal of Volcanology and Geothermal
+Research, 203, 48–61.
+Oppenheimer, C. (1991). Lava ﬂow cooling estimated from Landsat Thematic Mapper
+infrared data — The Lonquimay eruption (Chile, 1989). Journal of Geophysical
+Research - Solid Earth, 96, 21865–21878.
+Oppenheimer, C., Lomakina, A. S., Kyle, P. R., Kingsbury, N. G., & Boichu, M. (2009).
+Pulsatory magma supply to a phonolite lava lake. Earth and Planetary Science Letters,
+284, 392–398.
+Patrick, M., Dean, K., & Dehn, J. (2004). Active mud volcanism observed with Landsat 7
+ETM+. Journal of Volcanology and Geothermal Research, 131, 307–320.
+Realmuto, V. (1990). Separating the effects of temperature and emissivity: Emissivity
+spectrum normalization. 2nd TIMS Workshop (pp. 31–55). Pasadena, CA: Jet Propul.
+Lab: JPL Publication.
+Rose, S., & Ramsey, M. (2009). The 2005 eruption of Kliuchevskoi volcano: Chronology
+and processes derived from ASTER spaceborne and ﬁeld-based data. Journal of
+Volcanology and Geothermal Research, 184, 367–380.
+Rothery, D. A., Francis, P. W., & Wood, C. A. (1988). Volcano monitoring using short
+wavelength infrared data from satellites. Journal of Geophysical Research-Solid
+Earth and Planets, 93, 7993.
+Spampinato, L., Oppenheimer, C., Cannata, A., Montalto, P., Salerno, G., & Calvari, S.
+(2012). On the time-scale of thermal cycles associated with open-vent degassing.
+Bulletin of Volcanology, 1–12.
+Torrence, C., & Compo, G. P. (1998). A practical guide to wavelet analysis. Bulletin of the
+American Meteorological Society, 79, 61–78.
+Tramutoli, V. (1998). Robust AVHRR techniques (RAT) for environmental monitoring:
+Theory and applications. In G. Z. E. Cecchi (Ed.), Earth Surface Remote Sensing.
+(pp. 101–113) (Ii).
+Fig. 8. Time slices of wavelet power against period.
+204
+S.W. Murphy et al. / Remote Sensing of Environment 131 (2013) 195–205
+
+===== PAGE 11 =====
+Vaughan, R. G., & Hook, S. J. (2006). Using satellite data to characterize the temporal
+thermal behavior of an active volcano: Mount St. Helens, WA. Geophysical
+Research Letters, 33.
+Vaughan, R. G., Kervyn, M., Realmuto, V., Abrams, M., & Hook, S. J. (2008). Satellite
+measurements of recent volcanic activity at Oldoinyo Lengai, Tanzania. Journal of
+Volcanology and Geothermal Research, 173, 196–206.
+Venzke, E., Wunderman, R. W., McClelland, L., Simkin, T., Luhr, J. F., & Siebert, L., et al.
+(Eds.). (2002). Global Volcanism, 1968 to the Present. Smithsonian Institution. Global
+Volcanism Program Digital Information Series [GVP-4 (http://www.volcano.si.edu/
+reports/). Last accessed on 31st October 2012]
+Wright, R., Flynn, L., Garbeil, H., Harris, A., & Pilger, E. (2002). Automated volcanic eruption
+detection using MODIS. Remote Sensing of Environment, 82, 135–155.
+Wright, R., Flynn, L. P., Garbeil, H., Harris, A. J. L., & Pilger, E. (2004). MODVOLC:
+Near-real-time thermal monitoring of global volcanism. Journal of Volcanology
+and Geothermal Research, 135, 29–49.
+Wright, R., Flynn, L. P., & Harris, A. J. L. (2001). Evolution of lava ﬂow-ﬁelds at Mount
+Etna, 27–28 October 1999, observed by Landsat 7 ETM+. Bulletin of Volcanology,
+63, 1–7.
+205
+S.W. Murphy et al. / Remote Sensing of Environment 131 (2013) 195–205

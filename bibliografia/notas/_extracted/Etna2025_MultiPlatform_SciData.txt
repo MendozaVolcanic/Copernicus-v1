@@ -1,0 +1,403 @@
+
+
+=== PAGE 1 ===
+1
+Scientific Data |         (2025) 12:1353  | https://doi.org/10.1038/s41597-025-05545-0
+www.nature.com/scientificdata
+Multi-platform satellite-derived 
+products during the 2025 Etna 
+eruption
+G. Ganci    ✉, G. Bilotta, M. Dozzo, F. Spina, F. Zuccarello, R. Cristofaro, R. Guardo, M. Spina & 
+A. Cappello ✉
+Earth Observation data are playing an increasingly central role in volcanology, enabling high-resolution 
+assessments of the timing, magnitude, and explosivity of eruptive events. A comprehensive suite 
+of satellite-derived products is provided here, documenting the February 2025 eruption of Mt. Etna 
+(Italy), the first eruption fully monitored also by the third-generation Meteosat satellite, providing 
+unprecedented mid-infrared spatial and temporal resolution. Daily Planet’s acquisitions enabled 
+consistent monitoring of lava flow evolution, while a post-eruptive Pléiades triplet allowed for the 
+development of an updated digital surface model and precise estimation of the deposits thickness. 
+The dataset includes: time averaged discharge rates (TADR) from MODIS, SEVIRI, VIIRS, and FCI 
+sensors; lava flow areal expansion from Skysat and PlanetScope imagery; deposit thickness from DSMs 
+differencing; SO2 mass flux from TROPOMI; a 5 m-resolution DSM from Pléiades imagery (March 6th, 
+2025). Combined analysis of SO2 emissions and TADR improves understanding of magma supply and 
+eruptive output. Furthermore, the products provided offer critical data for analyzing multi-temporal 
+morphological changes and hazard assessment studies.
+Background & Summary
+In February 2025, a new eruptive phase both effusive and explosive started on Mt Etna (Italy). The explosive-type 
+activity began on February 6th, 2025 with a modest and episodic Strombolian activity produced by a vent located 
+in the western sector of the South-East Crater (SEC), while on February 8th, a new effusive phase began, fed by 
+an eruptive fissure opened at the base of the Bocca Nuova (BN) crater at an elevation of ~3,050 meters above 
+sea level (a.s.l.). The lava flow advanced rather rapidly southwestward over a snow-covered surface, reaching a 
+quote of ~2,150 meters a.s.l. on February 11th and 1,960 meters a.s.l. on February 13th. The interaction between 
+the lava and the snowpack caused sudden explosions projecting incandescent fragments of lava up to several 
+tens of meters away. Weak explosive activity was also detected from a vent located between the SEC and the BN 
+(Fig. 1). The explosive activity produced mild volcanic ash emissions, which were rapidly dispersed by the winds 
+and deposited in the immediate proximity of the volcano summit. On February 12th, 14th and 16th, the analysis 
+of images from the INGV-OE video surveillance system, together with field observations, showed an increase 
+in volcanic ash emission with an eruptive column not exceeding 5,500 meters a.s.l. After a reduction in effusive 
+activity at the vents below the BN and interruption of the SEC’s explosive activity, lava emission resumed from 
+February 22th, accompanied by the return of Strombolian activity at the SEC on February 23th. This activity 
+continued until the morning of the 25th, when Strombolian activity at the SEC again came to a halt and the 
+effusive rate decreased significantly. In the evening of February 27th, the SEC reactivated with Strombolian 
+explosions, followed by the resumption of effusive activity from the vent at the base of BN.
+A small lava overflow was also observed from the southern rim of SEC on February 24th and 28th. Moreover, 
+the presence of fissures, cracks and a new pit crater on the southern flank of the BN were detected, with an inter-
+mittent emission of steam.
+The effusive activity beneath the BN generated multiple lava branches, which expanded on the upper south-
+western flank, thus enlarging the upper part of the lava field that had been forming since February 8th (Fig. 1). In 
+the evening of February 28th, explosive activity at SEC gradually decreased and came to a halt during the night. 
+Istituto Nazionale di Geofisica e Vulcanologia, Osservatorio Etneo, Catania, Italy. ✉e-mail: gaetana.ganci@ingv.it; 
+annalisa.cappello@ingv.it
+Data Descriptor
+OPEN
+
+
+=== PAGE 2 ===
+2
+Scientific Data |         (2025) 12:1353  | https://doi.org/10.1038/s41597-025-05545-0
+www.nature.com/scientificdata
+www.nature.com/scientificdata/
+Flashes at the effusive fissure below the BN were still visible at dawn on March 1st, and a faint active lava flow 
+was observed until March 2nd.
+This eruption is a magnificent example of how a multitude of information from satellite imagery has made it 
+possible to reconstruct and quantify in real time the evolution of the different phases of eruptive activity. Here 
+we provide the different products we retrieved, including the expansion of the lava field, the average eruptive 
+rates and volumes emitted, as well as the thickness of volcanic deposits (Table 1).
+A brief description of the main characteristics of the different satellite imagery used (Table 1) is reported 
+below.
+The Spinning Enhanced Visible and Infrared Imager (SEVIRI) is the primary payload of the Meteosat Second 
+Generation geostationary satellites. The mission, which was launched in 2002, acquires data on 11 spectral chan-
+nels at 3 km spatial resolution at nadir, with an additional panchromatic high-resolution channel (1 km spatial 
+resolution at nadir). The primary acquisition service provides a full disk image of the Earth every 15 minutes, 
+with a sub-satellite longitude of 0°. A Rapid Scan Service (RSS) is also available, that only scans the upper third 
+of the full disk and provides an image every 5 minutes. The RSS satellite is typically located at 9.5° longitude east; 
+8 of the 11 standard channels are in the infrared and one of these (Channel 4, 3.9 µm central wavelength) can be 
+used to monitor and characterize high temperature events, such as forest fires and volcanic eruptions, especially 
+paired with Channel 10 (10.8 µm central wavelength).
+The Flexible Combined Imager (FCI) is the successor of the SEVIRI sensor onboard the Meteosat Third 
+Generation geostationary satellites. The mission was launched in December 2023 and acquires data over 16 
+spectral channels with a spatial resolution that varies from 0.5 km to 2 km at nadir. The infrared channels at 
+3.8 µm and 10.5 µm are particularly important for volcanic monitoring, as they are captured in High Resolution 
+mode with a spatial resolution of 1 km at nadir and a temporal frequency of 10 minutes.
+The Visible Infrared Imaging Radiometer Suite (VIIRS) instrument observes and collects global satellite obser-
+vations that span the visible and infrared wavelengths across land, ocean, and atmosphere. It has 22 channels 
+ranging from 0.41 μm to 12.01 μm. Five of these channels are high-resolution image bands or I-bands (375 m 
+spatial resolution), and sixteen serve as moderate-resolution bands or M-bands (750 m spatial resolution). It is 
+mounted on the NOAA-20 and NOAA-21 weather satellites of the joint Suomi-NPP mission.
+The Moderate Resolution Imaging Spectroradiometer (MODIS) instrument was launched in 1999 with Terra 
+and in 2002 with Aqua spacecrafts. It has a viewing swath width of 2,330 km and views the entire surface of the 
+Fig. 1  (a) Summit area of Etna volcano, showing the main craters, the eruptive vents and fissures (in red) and 
+the lava flows (yellow area) emitted during the February 2025 eruption. (b) Location of Etna in Sicily, Italy. (c) 
+Etna’s eruptive activity at sunset on February 16th, 2025. Photograph by Francesco Zuccarello.
+Spatial Resolution
+Temporal Resolution
+Product
+SEVIRI
+3 km (nadir)
+every 15’
+every 5’ (RSS)
+TADR, Lava Volume
+FCI
+1  km (nadir)
+every 10’
+TADR, Lava Volume
+VIIRS
+375 m (nadir)
+750 m (nadir)
+twice daily
+TADR, Lava volume
+MODIS
+1 km (nadir)
+twice daily
+TADR, Lava volume
+Skysat
+0.5 m
+on demand
+Lava flow fields
+PlanetScope
+3 m
+daily
+Lava flow fields
+Pléiades
+0.5 m
+on demand
+DSM, 3D map of volcanic deposits
+TROPOMI
+5.5 × 3.5 km^2
+daily
+SO2 mass
+Table 1.  Satellite imagery used in this study alongside the spatial and temporal resolution and the main derived 
+products. TADR = Time-Averaged Discharge Rate, DSM = Digital Surface Model.
+
+
+=== PAGE 3 ===
+3
+Scientific Data |         (2025) 12:1353  | https://doi.org/10.1038/s41597-025-05545-0
+www.nature.com/scientificdata
+www.nature.com/scientificdata/
+Earth every one to two days. Its detectors measure 36 spectral bands and it acquires data at three spatial res-
+olutions: 250 m, 500 m, and 1,000 m. The emissive bands at 1 km spatial resolution allow monitoring the land 
+surface temperature and also the high temperatures associated with volcanic eruptions.
+SkySat is a constellation of ~15 high-resolution Earth imaging satellites able to image revisit any location on 
+Earth up to 10 times daily (a daily collection capacity of 4,000 km2/day.) SkySat images are approximately 50 
+centimeters per pixel resolution and are acquired in the RGB bands plus a near infrared channel. They are owned 
+and operated by the commercial company Planet Labs1.
+PlanetScope is a constellation of approximately 130 satellites, able to image the entire land surface of the 
+Earth every day (a daily collection capacity of 200 million km2/day) at approximately 3 meters per pixel reso-
+lution. Since the first launch in 2014, three PlanetScope instrument types have been released. The last one, the 
+SuperDove, acquires data in the red, green, blue, near infrared, as well as a new red edge, green I, coastal blue, 
+and yellow channels. Planescope is owned and operated by the commercial company Planet Labs1.
+The Pléiades satellite constellation (Pléiades 1 A and 1B, launched respectively in 2011 and 2012) delivers 
+very high resolution optical imagery with a daily revisit capability for any point on Earth. The sensor acquires 
+data in tri-stereo configuration allowing for the three-dimensional reconstruction of the Earth surface for a 
+range of remote sensing applications in the fields of cartography, agriculture, forestry, hydrology and geological 
+prospecting.
+TROPOspheric Monitoring Instrument (TROPOMI), which was launched in October 2017 aboard the ESA 
+and Copernicus Sentinel-5 Precursor satellite, is specifically designed for atmospheric observations and provides 
+a spatial resolution of 3.5 × 5.5 km2 per pixel on the ground. The operational algorithm for SO2 detection on 
+TROPOMI uses the differential optical absorption spectroscopy (DOAS) method2. The TROPOMI instrument 
+captures data across four spectral regions (i.e., ultraviolet, visible, near-infrared, and short-wave infrared) ena-
+bling the detection of SO2 along with several other gases (O3, NO2, CO, CH4, and HCHO) and aerosols3.
+Methods
+Satellite data were promptly elaborated to monitor the eruptive activity of Etna during the 2025 February erup-
+tion. In particular, we processed SEVIRI, MODIS, VIIRS and FCI data using the CL-HOTSAT system to esti-
+mate the effusion rate and hence the lava flow volume, providing quantitative information about the different 
+phases of the eruption. Moreover, we retrieved the thickness distribution of volcanic deposits by differencing 
+successive digital topographies obtained by Pléiades imagery using the MicMac software. We also extracted the 
+evolution of the lava flow field using Skysat and PlanetScope data, and estimated the sulfur dioxide total mass on 
+Sentinel-5P TROPOMI imagery using a new clustering approach implemented in Google Earth Engine.
+Details about the algorithms used, data processing and analyses, are reported below.
+Estimation of the time-averaged discharge rate and erupted volumes. 
+CL-HOTSAT is a satellite 
+thermal monitoring system specifically designed for Mt Etna4, but successfully applied also to other volcanic 
+areas5,6. It ingests multi-spectral satellite data acquired by SEVIRI, MODIS and VIIRS sensors. CL-HOTSAT 
+was recently specialized to process FCI data. For this sensor, we used the georeferencing datasets present in the 
+NetCDF files, which provide the per row and per column satellite view angle in radians, limited to the specific 
+chunk presented in the file. Once georeferencing information is converted into a form digestible by standard GIS 
+software, and radiance information is obtained by calibrating the digital numbers, the script writes to disk a new 
+raster, georeferenced through selected ground control points. This raster can be fed to the existing CL-HOTSAT 
+system for further processing. The system uses the difference between the Middle Infrared and the Thermal 
+Infrared bands and provides hotspot location in an automatic fashion. In the case of FCI we used the IR3.8 and 
+the IR 10.5 bands. The hotspot algorithm is contextual and employs the well-known position of the volcanoes 
+searching a threshold in a portion of the image considered “non volcanic”. For each hotspot pixel, the radiant heat 
+flux is computed by following the MIR radiance approach7. This information can be converted into Time-Average 
+Discharge Rate (TADR, i.e. the effusion rate averaged over given periods), from which the erupted volume is 
+obtained by integration, in case of effusive eruptions.
+Development of digital surface models and 3D mapping of volcanic deposits. 
+To estimate the 
+thickness distribution of the deposit and the lava volume emitted during the February 2025 Etna eruption, we 
+used a topographic approach relying on the difference of Pléiades-derived DSMs. Pléiades images were processed 
+using the free and open source MicMac photogrammetric library8. The pre-eruptive DSM was derived from a 
+Pléaides triplet acquired on December 27th, 2023, while the post-eruptive DSM was obtained from the July 15th, 
+2024 and the March 6th, 2025, acquisitions. Since the March 6th acquisition was partially affected by cloud cover-
+age, a fusion algorithm was applied to build a smoother homogeneous post-eruptive product9.
+In order to reconstruct the 3D distribution of volcanic deposits minimizing the errors due to misalignments, 
+we co-registered10 and then subtracted the two DSMs. The volume was calculated by integrating the thickness 
+distribution over the area covered by the deposits. The uncertainty was quantified by multiplying the area and 
+the standard deviation of terrain residuals outside of the deposits.
+Tracking of lava flow emplacement. 
+To ensure a detailed periodic mapping of lava flow advancement, we 
+applied a semi-automatic thresholding and change detection algorithm, which has been successfully used during 
+recent effusive eruptions at Etna11,12. First, Skysat and Planetscope images were imported into the GIS (specifi-
+cally GRASS and QGIS) and RGB composites (using the RED, GREEN and near infrared spectral bands) were 
+created to highlight the characteristics of the lava and detect changes associated with the emplacement of new 
+lava among subsequent acquisitions. In this way, we obtained the boundaries of the lava flow on 9, 11, 12, 17, 21, 
+
+
+=== PAGE 4 ===
+4
+Scientific Data |         (2025) 12:1353  | https://doi.org/10.1038/s41597-025-05545-0
+www.nature.com/scientificdata
+www.nature.com/scientificdata/
+24, 26 February and 4 March (the final field). At first glance, we used Skysat images that have a higher resolution 
+and therefore provide greater detail. In case of partial cloudiness or ash plume coverage, the Skysat images were 
+complemented with Planetscope images acquired on the same day. GIS was also used to calculate the areas and 
+perimeters.
+Estimation of the sulfur dioxide total mass. 
+Sulfur dioxide (SO2) total mass was calculated on 
+Sentinel-5P TROPOMI imagery, applying two different clustering techniques on the open-source Google Earth 
+Engine computing platform. For the analysis, we exploited the offline Level 3 product at 15 km, applying a Simple 
+Non-Iterative Clustering (SNIC) algorithm segmentation and then a k-means unsupervised classifier, followed by 
+the application of a threshold for highlighting SO2-contaminated pixels13. Specifically, we calculated the density 
+for each of the classes derived from the previous clustering. The density is defined as the ratio between the total 
+mass value of sulfur dioxide (obtained by summing the SO2 values of each pixel within the class) and the relative 
+number of pixels contained in that class. Ultimately, we selected only those classes with a density higher than 
+0.00028 mol/m2, which provided an optimal value for the eruptive events occurring at Etna. This approach for 
+object-based image analysis is designed to more accurately characterize sulfur dioxide, avoiding interference from 
+noise that could derive, for example, from the sensor instrumentation onboard the satellites or from the lighting 
+and atmospheric conditions14.
+Data Records
+The data record associated with this work consists of different products (Fig. 2), whose details about format and 
+external links are provided below. All data are shared under the CC BY 4.0 use license and available at the link 
+https://doi.org/10.6084/m9.figshare.28759586.
+Time-averaged discharge rate and erupted volumes. 
+We provide the TADR and volumes (with 
+related uncertainties) extracted from SEVIRI, MODIS, FCI and VIIRS imagery from 8 February to 2 March 2025, 
+which have been elaborated by the CL-HOTSAT system. We also provide location in terms of latitude and longi-
+tude for the hotspot pixels for each sensor. These estimates are supplied as an xlsx file with a tab for each sensor 
+and one for the cumulative volumes (TADR&Volumes.xlsx). Date is expressed in Greenwich Mean Time (GMT) 
+as dd/mm/yyyy hh.mm; minimum, mean and maximum value for TADR are expressed in m3/s; minimum, mean 
+and maximum value for cumulative volumes in m3; latitude and longitude are expressed in decimal degrees.
+Digital surface models and 3D mapping of volcanic deposits. 
+We provide the most updated digital 
+topography of Etna, obtained from Pléiades imagery acquired on March 6th, 2025 (Etna_DSM_25_5m.tif). The 
+DSM covers an area of about 95 km2, including the summit craters of Mt Etna and the Valle del Bove. It is pro-
+vided as a Geotiff, with a spatial resolution of 5 meters. Coordinates refer to the WGS-84 ellipsoid; the map pro-
+jection is UTM (Zone 33 North). The 3D mapping of volcanic deposits, which shows the thickness distribution of 
+the final lava flow field, is provided as GEOTIFF (lava_flow_thickness.tiff), with elevations in meters relative to 
+the WGS-84 UTM 33 North Coordinate System (EPSG: 32633).
+Lava flow emplacement. 
+The actual fields of the lava flow emplaced during the February 2025 Etna erup-
+tion were retrieved for the following days: 9, 11, 12, 17, 21, 24, 26 February and 4 March. They are provided as 
+vector shapefiles into the WGS084 UTM 33 North Coordinate System (EPSG: 32633), showing the areal develop-
+ment and the advancement of the lava front. The shapefile’s attribute table includes fields called “area” and “perim-
+eter” that contain the measurements of each map feature (lava_flow_fields.zip). The areas show an increment 
+from 0.054 to ~0.94 km2, which represents the total lava coverage.
+Sulfur dioxide total mass. 
+The retrieval of sulfur dioxide is provided in a csv file with the date expressed 
+as dd/mm/yyyy and the minimum, mean and maximum total mass values in ktons (SO2_Total Mass.csv). Some 
+data are marked as “not available” (“N.A.”), since they do not exceed the measurable detection limit by TROPOMI 
+for SO2, in terms of the lowest concentration that can be reliably detected (equal to 0.0124 ton).
+Daily maps of pixels containing SO2 are also provided in GeoTiff format (SO2_maps.zip), which are georef-
+erenced to the WGS-84 UTM 33 North coordinate system (EPSG: 32633).
+Technical Validation
+The height accuracy of the March 6th, 2025 DSM was estimated by using GPS Ground Control Points available 
+on Etna volcano15. We performed a comparison between these points and the elevations of the DSM (excluding 
+those falling inside volcanic deposits), finding residuals ranging between −3.6 and 2.8 m, with a mean value of 
+0.02 m and a standard deviation of 1.61 m, which represents the vertical accuracy of the DSM.
+The DSM difference provides an estimation of the bulk lava volume, i.e. by including the vesicularity of the 
+lava and possible cavities/tunnels, while CL-HOTSAT provides lava volume by integrating the TADR obtained 
+from thermal multispectral images, i.e. based on the radiating portion of the volcanic deposits. By comparing 
+the bulk volume from DSM difference (5.05 ± 0.9 × 106 m3) and the average volume from multispectral data 
+(5.37 ± 0.8 × 106 m3), we found a difference of about 320,000 m3, which is well within the measurement errors7. 
+The validation of the average volume from multispectral data was also done considering the estimates performed 
+using drones, thermal cameras and field observations (INGV-OE, 2025a-d). These suggested an average volume 
+of 0.25 × 106 m3 on February 11th, 2.1 × 106 m3 on February 16th, 3.5 × 106 m3 on February 24th and 4.5 × 106 
+m3 on March 2nd, with an uncertainty of 40%. Considering our satellite-derived estimates at 12:00 UTC of the 
+same days, we obtain average volumes of 0.57 × 106 m3 on February 11th, 2.05 × 106 m3 on February 16th, 4.61 
+× 106 m3 on February 24th and 5.37 × 106 m3 on March 2nd.
+
+
+=== PAGE 5 ===
+5
+Scientific Data |         (2025) 12:1353  | https://doi.org/10.1038/s41597-025-05545-0
+www.nature.com/scientificdata
+www.nature.com/scientificdata/
+The trend of the TADR estimated by CL-HOTSAT for the four different sensors is coherent and in line with 
+the areal expansion of the lava flow field, with the maximum length reached just after the first TADR peak of 
+February 16th. This was also confirmed by the field measurements made by the INGV personnel, who followed 
+the advancement of the lava field and the minimum elevation reached16–18.
+The SO2 mass flux is also in agreement with the TADR and in accordance with the SO2 measured from the 
+ground, which both present two peaks towards higher values on February 20th and 26th19.
+The lava flow emplacement was validated using independent measurements obtained from drones, thermal 
+cameras and field observations16–19. In particular, we considered the maximum length of the main branch, the 
+altitude reached by the front and the area covered by the lava. On February 11th, 16th, and 24th (extending to 
+March 2nd), INGV-OE documented progressive lava flow lengths of 2.6 km, 4.2 km, and a peak of 4.3 km —
+reaching elevations of 2150, 1860, and 1840 m a.s.l.— with corresponding flow areas expanding from 1.3 × 105 
+m2 to 3 × 105 m2 and eventually stabilizing at 7 × 105 m2. Our satellite-derived measurements indicate compa-
+rable or slightly greater flow lengths of 2.7 km (2160 m a.s.l.), 4.2 km (1860 m a.s.l.), and 4.3 km (1850 m a.s.l.), 
+along with broader spatial extents of 1.6 × 105 m2, 4.1 × 105 m2, 7.6 × 105 m2, and reaching 9.4 × 105 m2 on 
+March 2nd.
+Code availability
+No specific code was developed for this study.
+Received: 9 April 2025; Accepted: 3 July 2025;
+Published: xx xx xxxx
+References
+	 1.	 Planet Team. Planet Application Program Interface: In Space for Life on Earth. San Francisco, CA. https://api.planet.com (2025).
+	 2.	 Platt, U.; Stutz, J. Differential Optical Absorption Spectroscopy (DOAS)—Principles and Applications; Springer: Berlin/Heidelberg, 
+Germany (2008).
+Fig. 2  The different satellite-derived products retrieved for the Etna 2025 eruption. (a) The TADR from SEVIRI 
+(yellow diamonds), FCI (green diamonds), MODIS (red diamonds), and VIIRS (blue diamonds) data, together 
+with the daily SO2 total mass from TROPOMI (gray bars); (b) The evolution of the lava flow field from Skysat 
+and PlanetScope imagery; (c) The volcanic deposits obtained by differencing Pléiades-derived DSMs.
+
+
+=== PAGE 6 ===
+6
+Scientific Data |         (2025) 12:1353  | https://doi.org/10.1038/s41597-025-05545-0
+www.nature.com/scientificdata
+www.nature.com/scientificdata/
+	 3.	 Veefkind, J. P. P. et al. TROPOMI on the ESA Sentinel-5 Precursor: A GMES mission for global observations of the atmospheric 
+composition for climate, air quality and ozone layer applications. Remote Sens. Environ. 120, 70–83 (2012).
+	 4.	 Ganci, G., Bilotta, G., Cappello, A., Hérault, A. & Del Negro, C. HOTSAT: a multiplatform system for the satellite thermal 
+monitoring of volcanic activity, in Detecting Modelling and Responding to Effusive Eruptions, eds A. Harris, T. De Groeve, F. Garel 
+& S. A. Carn, (London: Geological Society), 426 (2016).
+	 5.	 Cappello, A. et al. Lava flow hazard modeling during the 2014-2015 Fogo eruption, Cape Verde. J. Geophys. Res. Solid Earth 121, 
+2290–2303, https://doi.org/10.1002/2015JB012666 (2016).
+	 6.	 Pailot-Bonnétat, S. et al. Anatomy of thermal unrest at a hydrothermal system: case study of the 2021–2022 crisis at Vulcano. Earth 
+Planets Space 75, 159, https://doi.org/10.1186/s40623-023-01913-5 (2023).
+	 7.	 Wooster, M. J., Zhukov, B. & Oertel, D. Fire radiative energy for quantitative study of biomass burning: Derivation from the BIRD 
+experimental satellite and comparison to MODIS fire products. Remote Sens. Environ. 86, 83–107 (2003).
+	 8.	 Rupnik, E., Daakir, M. & Pierrot Deseilligny, M. MicMac – A free, open-source solution for photogrammetry [Software]. Open 
+geospatial data, softw. stand. 2(1), 14, https://doi.org/10.1186/s40965-017-0027-2 (2017).
+	 9.	 Ganci, G., Cappello, A. & Neri, M. Data fusion for satellite-derived earth surface: The 2021 topographic map of Etna Volcano. 
+Remote Sensing 15(1), 198, https://doi.org/10.3390/rs15010198 (2023).
+	10.	 Nuth, C. & Kääb, A. Co-registration and bias corrections of satellite elevation data sets for quantifying glacier thickness change. The 
+Cryosphere 5(1), 271–290, https://doi.org/10.5194/tc-5-271-2011 (2011).
+	11.	 Cappello, A. et al. Satellite-driven modeling approach for monitoring lava flow hazards during the 2017 Etna eruption. Ann. 
+Geophys. 62, 2, https://doi.org/10.4401/ag-7792 (2019). (2019).
+	12.	 Cappello, A., Bilotta, G. & Ganci, G. Modeling of Geophysical Flows through GPUFLOW. Appl. Sci 12, 4395, https://doi.org/10.3390/
+app12094395 (2022).
+	13.	 Dozzo, M., Aiuppa, A., Bilotta, G., Cappello, A. & Ganci, G. A New Algorithm for the Global-Scale Quantification of Volcanic SO2 
+Exploiting the Sentinel-5P TROPOMI and Google Earth Engine. Remote Sens. 17, 534, https://doi.org/10.3390/rs17030534 (2025).
+	14.	 Khairunnisa, K. et al. Superpixel-Based Stripe Noise Removal for Satellite Imageries. J. Nas. Tek. Elektro Dan Teknol. Inf. 12, 124–130 
+(2023).
+	15.	 Ganci, G. et al. 3D Lava flow mapping of the 17–25 May 2016 Etna eruption using tri-stereo optical satellite data. Ann. Geophys. 61. 
+https://doi.org/10.4401/ag-7875 (2019).
+	16.	 INGV-OE. Bollettino Settimanale sul monitoraggio vulcanico, geochimico e sismico del vulcano Etna dell’11/02/2025, Rep. N° 
+7/2025, https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-
+multidisciplinari/986-bollettino-Settimanale-sul-monitoraggio-vulcanico-geochimico-e-sismico-del-vulcano-Etna-
+del-2025-02-11/file (2025a).
+	17.	 INGV-OE. Bollettino Settimanale sul monitoraggio vulcanico, geochimico e sismico del vulcano Etna del 18/02/2025, Rep. N° 
+8/2025, https://www.ct.ingv.it/joomlatools-files/docman-files/multidisciplinari/BollettinoSettimanaleEtna20250218.pdf (2025b).
+	18.	 INGV-OE. Bollettino Settimanale sul monitoraggio vulcanico, geochimico e sismico del vulcano Etna del 25/02/2025, Rep. N° 
+9/2025, https://www.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-
+multidisciplinari/990-bollettino-Settimanale-sul-monitoraggio-vulcanico-geochimico-e-sismico-del-vulcano-Etna-
+del-2025-02-25/file (2025c).
+	19.	 INGV-OE. Bollettino Settimanale sul monitoraggio vulcanico, geochimico e sismico del vulcano Etna del 04/03/2025, Rep. N° 
+10/2025, https://soweb.ct.ingv.it/index.php/monitoraggio-e-sorveglianza/prodotti-del-monitoraggio/bollettini-settimanali-
+multidisciplinari/991-bollettino-Settimanale-sul-monitoraggio-vulcanico-geochimico-e-sismico-del-vulcano-Etna-
+del-2025-03-04/file (2025d).
+Acknowledgements
+This research was supported by the INGV project Pianeta Dinamico (grant number: CUP D53J19000170001) 
+funded by the Italian Ministry of University and Research (“Fondo finalizzato al rilancio degli investimenti 
+delle amministrazioni centrali dello Stato e allo sviluppo del Paese”, legge 145/2018), Volcanological Theme 
+SAFARI (An Artificial Intelligence-based StrAtegy For volcAno hazaRd monItoring from space). Thanks are due 
+to EUMETSAT for SEVIRI and FCI data (www.eumetsat.int) and to NASA for MODIS (modis.gsfc.nasa.gov) 
+and VIIRS data (earthdata.nasa.gov/data/instruments/viirs). TROPOMI data are made accessible thanks to the 
+Google Earth Engine Platform (https://earthengine.google.com/). We would like to thank Planet Labs, Inc. for 
+providing the Skysat and PlanetScope imagery through the Education and Research Program, and the Mt Etna 
+supersite initiative (http://geo-gsnl.org/supersites/permanent-supersites/mt-etna-volcano-supersite-new/) for 
+providing Pléiades imagery.
+Author contributions
+G.G.: Conceptualization. A.C., M.S., R.C., M.D., F.S., R.G., F.Z.: Visualization, Data Curation. G.G., A.C., G.B: 
+Investigation. G.B.: Formal analysis. G.G, G.B.: FCI, SEVIRI, MODIS data processing. G.G., F.S.: VIIRS data 
+processing. M.D.: TROPOMI data processing. A.C.: Planet data processing. G.G.: Pléiades data processing. All 
+authors contributed to writing and revising the manuscript, have approved the submission of the final version of 
+the manuscript and take full responsibility for the manuscript.
+Competing interests
+The authors declare no competing interests.
+Additional information
+Correspondence and requests for materials should be addressed to G.G. or A.C.
+Reprints and permissions information is available at www.nature.com/reprints.
+Publisher’s note Springer Nature remains neutral with regard to jurisdictional claims in published maps and 
+institutional affiliations.
+
+
+=== PAGE 7 ===
+7
+Scientific Data |         (2025) 12:1353  | https://doi.org/10.1038/s41597-025-05545-0
+www.nature.com/scientificdata
+www.nature.com/scientificdata/
+Open Access This article is licensed under a Creative Commons Attribution-NonCommercial- 
+NoDerivatives 4.0 International License, which permits any non-commercial use, sharing, distribu-
+tion and reproduction in any medium or format, as long as you give appropriate credit to the original author(s) 
+and the source, provide a link to the Creative Commons licence, and indicate if you modified the licensed mate-
+rial. You do not have permission under this licence to share adapted material derived from this article or parts of 
+it. The images or other third party material in this article are included in the article’s Creative Commons licence, 
+unless indicated otherwise in a credit line to the material. If material is not included in the article’s Creative 
+Commons licence and your intended use is not permitted by statutory regulation or exceeds the permitted 
+use, you will need to obtain permission directly from the copyright holder. To view a copy of this licence, visit 
+http://creativecommons.org/licenses/by-nc-nd/4.0/.
+ 
+© The Author(s) 2025

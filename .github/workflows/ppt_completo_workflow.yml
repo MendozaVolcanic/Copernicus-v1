@@ -1,0 +1,159 @@
+# ============================================================================
+# WORKFLOW: PPT EVALUACIÓN COMPLETA (TODOS LOS VOLCANES)
+# ============================================================================
+# Genera GIFs + PPTs para todos los volcanes en el rango de fechas indicado.
+# - GIFs e individual PPTs → se commitean al repo (tamaño razonable)
+# - PPT combinado (todos los volcanes) → se sube a GitHub Releases y se
+#   ELIMINA del filesystem antes del commit para que NUNCA entre en git.
+#   Siempre hay solo UN release con el último PPT combinado. Se descarga
+#   desde la sección "Releases" del repositorio (panel derecho).
+# Borra GIFs anteriores de timelapses_ppt/ antes de generar los nuevos.
+# ============================================================================
+
+name: PPT Evaluación Completa (Todos los Volcanes)
+
+# Serializa con los workflows que pushean a main (no pisar el push del cron/watcher).
+concurrency:
+  group: push-main
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      fecha_inicio:
+        description: 'Fecha inicio (YYYY-MM-DD)'
+        required: true
+        default: '2026-03-01'
+      fecha_fin:
+        description: 'Fecha fin (YYYY-MM-DD)'
+        required: true
+        default: '2026-03-30'
+
+permissions:
+  contents: write
+
+jobs:
+  generar-gifs-y-ppts:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          pip install Pillow requests pandas python-pptx numpy lxml
+
+      - name: Verificar plantilla
+        run: |
+          if [ ! -f "docs/plantillas/Cambios_morfologicos.pptx" ]; then
+            echo "❌ Plantilla NO encontrada: docs/plantillas/Cambios_morfologicos.pptx"
+            exit 1
+          fi
+          echo "✅ Plantilla encontrada"
+
+      - name: Limpiar GIFs anteriores de timelapses_ppt
+        run: |
+          echo "🗑️  Eliminando GIFs anteriores..."
+          find docs/sentinel2 -path "*/timelapses_ppt/*.gif" -delete 2>/dev/null || true
+          echo "✅ Limpieza completada"
+
+      - name: Generar timelapses para el rango seleccionado
+        env:
+          FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
+          FECHA_FIN: ${{ github.event.inputs.fecha_fin }}
+        run: |
+          echo "🎬 Generando GIFs: $FECHA_INICIO → $FECHA_FIN"
+          python timelapse_generator.py
+
+      - name: Generar PPTs para todos los volcanes
+        env:
+          FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
+          FECHA_FIN: ${{ github.event.inputs.fecha_fin }}
+        run: |
+          echo "📊 Generando PPTs..."
+          python ppt_generator.py
+
+      - name: Publicar PPT combinado en GitHub Releases
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
+          FECHA_FIN: ${{ github.event.inputs.fecha_fin }}
+        run: |
+          PPT_FILE=$(find docs/reportes -name "Evaluacion_Completa_*.pptx" | head -1)
+
+          if [ -z "$PPT_FILE" ]; then
+            echo "⚠️  No se encontró PPT combinado, saltando release"
+          else
+            SIZE_MB=$(du -m "$PPT_FILE" | cut -f1)
+            echo "📦 PPT combinado: $PPT_FILE ($SIZE_MB MB)"
+
+            # Eliminar release anterior (siempre solo hay 1)
+            gh release delete "ppt-evaluacion-completa" --yes 2>/dev/null || echo "ℹ️  No había release anterior"
+
+            # Crear nuevo release con el PPT como asset descargable
+            gh release create "ppt-evaluacion-completa" "$PPT_FILE" \
+              --title "📊 PPT Evaluación Completa — $FECHA_INICIO → $FECHA_FIN" \
+              --notes "$(cat <<EOF
+          ## PPT Evaluación Completa — Todos los Volcanes
+
+          **Período:** $FECHA_INICIO → $FECHA_FIN
+          **Volcanes:** 43 volcanes activos de Chile
+          **Contenido:** 1 slide por volcán con timelapse RGB + ThermalFalseColor
+
+          ### Cómo descargar
+          Haz click en el archivo **.pptx** de abajo para descargarlo directamente.
+          EOF
+          )" \
+              --latest=false
+
+            echo "✅ PPT publicado en Releases"
+            echo "🔗 https://github.com/${{ github.repository }}/releases/tag/ppt-evaluacion-completa"
+
+            # ─── CLAVE: borrar el archivo ANTES del commit ───────────────────
+            # El PPT ya está en Releases. Si queda en el filesystem, git lo
+            # intentaría commitear. Borrándolo aquí es imposible que entre.
+            rm -f "$PPT_FILE"
+            echo "🗑️  PPT combinado eliminado del filesystem (ya está en Releases)"
+          fi
+
+      - name: Guardar GIFs e individual PPTs en GitHub
+        run: |
+          git config user.name "PPTCompletoBot"
+          git config user.email "pptcompleto@copernicus.com"
+
+          # Por seguridad: eliminar cualquier Evaluacion_Completa_*.pptx residual
+          rm -f docs/reportes/Evaluacion_Completa_*.pptx 2>/dev/null || true
+
+          # Agregar GIFs e individual PPTs (solo docs/sentinel2/)
+          git add docs/sentinel2/ 2>/dev/null || true
+
+          if git diff --quiet --staged; then
+            echo "⚠️ No hay archivos nuevos para guardar"
+            exit 0
+          fi
+
+          git commit -m "PPT Completo: ${{ github.event.inputs.fecha_inicio }} → ${{ github.event.inputs.fecha_fin }} (GIFs + PPTs individuales)"
+
+          max_retries=5
+          retry_count=0
+          while [ $retry_count -lt $max_retries ]; do
+            echo "📤 Intento $((retry_count + 1))..."
+            git add docs/sentinel2/ 2>/dev/null || true
+            git pull origin main --rebase -X ours || true
+            git add docs/sentinel2/ 2>/dev/null || true
+            if git push origin main; then
+              echo "✅ Push exitoso"
+              exit 0
+            fi
+            retry_count=$((retry_count + 1))
+            [ $retry_count -lt $max_retries ] && sleep $((retry_count * 3))
+          done
+
+          echo "❌ Push falló después de $max_retries intentos"
+          exit 1

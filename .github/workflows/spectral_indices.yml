@@ -1,0 +1,85 @@
+name: Descarga Indices Espectrales (NDVI/NBR/SWIR)
+
+on:
+  schedule:
+    - cron: '0 22 * * *'  # 22:00 UTC (después del workflow principal a 20:00)
+  workflow_dispatch:
+    inputs:
+      volcanes:
+        description: 'Volcán específico (vacío = todos)'
+        required: false
+        default: ''
+      fechas:
+        description: 'Número de fechas recientes por volcán'
+        required: false
+        default: '2'
+
+# FIX 2026-05-17: concurrency para evitar runs simultáneos que pisan commits
+# FIX 2026-06-14: grupo COMPARTIDO 'push-main' (ver copernicus.yml) para serializar
+# todos los workflows que pushean a main y evitar que se pisen entre si.
+concurrency:
+  group: push-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  descargar-indices:
+    runs-on: ubuntu-latest
+    # FIX 2026-05-17: timeout para evitar workflows colgados
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        # FIX 2026-06-07: requirements.txt (incluye tifffile, antes faltaba).
+        run: pip install -r requirements.txt
+
+      - name: Descargar indices espectrales
+        env:
+          SH_CLIENT_ID: ${{ secrets.SH_CLIENT_ID }}
+          SH_CLIENT_SECRET: ${{ secrets.SH_CLIENT_SECRET }}
+          # Cuenta backup para failover automatico (vacios si no estan cargados).
+          SH_CLIENT_ID_2: ${{ secrets.SH_CLIENT_ID_2 }}
+          SH_CLIENT_SECRET_2: ${{ secrets.SH_CLIENT_SECRET_2 }}
+        run: |
+          VOLCAN="${{ github.event.inputs.volcanes }}"
+          FECHAS="${{ github.event.inputs.fechas }}"
+          FECHAS=${FECHAS:-2}
+
+          if [ -n "$VOLCAN" ]; then
+            python spectral_downloader.py --volcan "$VOLCAN" --fechas "$FECHAS"
+          else
+            python spectral_downloader.py --fechas "$FECHAS"
+          fi
+
+      - name: Commit indices
+        run: |
+          git config user.name "SpectralBot"
+          git config user.email "spectral@copernicus.com"
+          git add docs/sentinel2/**/*_NDVI.png docs/sentinel2/**/*_NBR.png docs/sentinel2/**/*_SWIR_Anomaly.png 2>/dev/null || true
+          if git diff --quiet --staged 2>/dev/null; then
+            echo "Sin indices nuevos"
+          else
+            NUEVOS=$(git diff --staged --stat | tail -1)
+            git commit -m "spectral: $NUEVOS"
+            # FIX 2026-05-17: merge seguro en vez de "rebase -X ours"
+            git fetch origin main
+            if ! git merge --ff-only origin/main; then
+              echo "No fast-forward posible, rebase con preferencia a remoto..."
+              if ! git pull origin main --rebase -X theirs; then
+                echo "Conflicto detectado. Abortando para evitar perder cambios remotos."
+                git rebase --abort 2>/dev/null || true
+                exit 1
+              fi
+            fi
+            git push origin main || true
+          fi

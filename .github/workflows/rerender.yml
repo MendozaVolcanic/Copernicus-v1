@@ -1,0 +1,100 @@
+name: Re-render dirigido (tras cambiar evalscript)
+
+# Re-renderiza productos de volcanes especificos sobrescribiendo los PNG ya
+# bajados. Util tras cambiar un evalscript (ej. la curva True Color) para que las
+# imagenes historicas reflejen el cambio sin re-descargar TODO el repo.
+# Inputs por env (nunca ${{ }} inline en el shell) — leccion de ppt_via_issue.
+
+on:
+  workflow_dispatch:
+    inputs:
+      volcanes:
+        description: 'Volcanes (CSV, ej: Nevados de Chillan,Nevados de Longavi)'
+        required: true
+      dias:
+        description: 'Ventana de dias hacia atras'
+        required: false
+        default: '30'
+      tipos:
+        description: 'Productos a re-renderizar (CSV, ej: RGB)'
+        required: false
+        default: 'RGB'
+      sobrescribir:
+        description: 'Sobrescribir existentes (true/false)'
+        required: false
+        default: 'true'
+
+# Mismo grupo que los demas que pushean a main: serializa, no se pisan.
+concurrency:
+  group: push-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  rerender:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Configurar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Re-renderizar volcanes
+        env:
+          SH_CLIENT_ID: ${{ secrets.SH_CLIENT_ID }}
+          SH_CLIENT_SECRET: ${{ secrets.SH_CLIENT_SECRET }}
+          SH_CLIENT_ID_2: ${{ secrets.SH_CLIENT_ID_2 }}
+          SH_CLIENT_SECRET_2: ${{ secrets.SH_CLIENT_SECRET_2 }}
+          # Inputs por ENV (no interpolados con ${{ }} en el shell).
+          VOLCANES: ${{ github.event.inputs.volcanes }}
+          DIAS: ${{ github.event.inputs.dias }}
+          TIPOS: ${{ github.event.inputs.tipos }}
+          SOBRE: ${{ github.event.inputs.sobrescribir }}
+        run: |
+          SOBRE_FLAG=""
+          if [ "$SOBRE" = "true" ]; then SOBRE_FLAG="--sobrescribir"; fi
+          # Recorre la CSV (separador coma). Cada nombre puede tener espacios.
+          IFS=',' read -ra LISTA <<< "$VOLCANES"
+          for v in "${LISTA[@]}"; do
+            v_trim="$(echo "$v" | sed 's/^ *//;s/ *$//')"
+            [ -z "$v_trim" ] && continue
+            echo "=== Re-render: $v_trim (tipos=$TIPOS, dias=$DIAS) ==="
+            # --volcan valida contra la lista de volcanes activos (rechaza lo invalido).
+            python sentinel2_downloader.py --volcan "$v_trim" --dias "$DIAS" --tipos "$TIPOS" $SOBRE_FLAG --skip-json
+          done
+          # Regenerar el JSON de fechas desde el filesystem.
+          python sentinel2_downloader.py --only-json
+
+      - name: Guardar cambios
+        env:
+          VOLCANES: ${{ github.event.inputs.volcanes }}
+          DIAS: ${{ github.event.inputs.dias }}
+          TIPOS: ${{ github.event.inputs.tipos }}
+        run: |
+          git config user.name "RerenderBot"
+          git config user.email "rerender@copernicus.local"
+          git add docs/sentinel2/
+          if git diff --quiet --staged; then
+            echo "Sin cambios para guardar"
+            exit 0
+          fi
+          git commit -m "rerender: $VOLCANES ($TIPOS, ultimos $DIAS d)"
+          for i in 1 2 3 4 5; do
+            git fetch origin main
+            if ! git merge --ff-only origin/main; then
+              git pull origin main --rebase -X theirs || { git rebase --abort 2>/dev/null || true; exit 1; }
+            fi
+            git push origin main && break
+            sleep $((i*3))
+          done

@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sala de Monitoreo — Copernicus-v1</title>
+<style>
+  /* ============================================================
+     SALA DE MONITOREO — Pantalla vertical 1080x1920
+     Foco: las TARJETAS son lo central. Toolbar mínimo arriba.
+     - Selector de zona: Todos | Norte | Centro | Sur | Austral
+     - Cards cuadradas + object-fit: contain (no se corta el volcán)
+     - ?rotate=1 fuerza rotación CSS si la pantalla NO está
+       rotada a nivel de Windows (señal cableada a TV "torcida").
+     ============================================================ */
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #e6edf3; --muted: #8b949e; --accent: #58a6ff;
+    --s2: #58a6ff; --landsat: #e67e22;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: var(--bg); color: var(--text);
+    font-family: -apple-system, 'Segoe UI', Roboto, sans-serif;
+    overflow: hidden;
+  }
+
+  body.rotate {
+    /* Para pantalla física 1920x1080 instalada rotada SIN rotación de SO.
+       Activar con ?rotate=1 en la URL. El body queda con el ancho/alto
+       intercambiados y rotado 90° en sentido horario. */
+    width: 100vh;
+    height: 100vw;
+    transform: rotate(90deg);
+    transform-origin: top left;
+    position: absolute;
+    top: 0; left: 100vw;
+  }
+
+  /* Layout principal: toolbar mínimo + grid + footer compacto */
+  body {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100vh;
+  }
+
+  /* === TOOLBAR superior (reemplaza el banner azul gigante) === */
+  nav.toolbar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 14px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .zonas {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .btn-zona {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 6px 14px;
+    border-radius: 18px;
+    cursor: pointer;
+    font-size: 0.95em;
+    font-weight: 600;
+    transition: all 0.15s;
+  }
+  .btn-zona:hover { color: var(--text); border-color: var(--accent); }
+  .btn-zona.active {
+    background: var(--accent);
+    color: #0d1117;
+    border-color: var(--accent);
+  }
+  .toolbar-right {
+    display: flex; align-items: center; gap: 12px;
+    font-size: 0.85em; color: var(--muted);
+  }
+  .sensor-indicator {
+    padding: 4px 12px;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 0.9em;
+    color: white;
+  }
+  .sensor-indicator.s2 { background: var(--s2); }
+  .sensor-indicator.landsat { background: var(--landsat); }
+  .clock {
+    font-family: 'Consolas', monospace;
+    color: var(--text);
+    font-size: 1em;
+    font-weight: 600;
+  }
+
+  /* === MAIN: grid de tarjetas (lo central) === */
+  main {
+    padding: 8px 10px;
+    overflow: hidden;
+  }
+
+  .grid-volcanes {
+    display: grid;
+    gap: 6px;
+    align-content: start;
+    height: 100%;
+  }
+
+  /* TODOS los volcanes (conteo dinamico segun TODOS_VOLCANES): 4 cols, subs SIDE-BY-SIDE */
+  body[data-zona="todos"] .grid-volcanes {
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 1fr;
+  }
+  /* Por zona (9-13 volcanes): 3 cols, cards grandes, subs APILADOS
+     verticalmente para aprovechar todo el alto de 1080x1920 */
+  body[data-zona="Norte"]   .grid-volcanes,
+  body[data-zona="Centro"]  .grid-volcanes,
+  body[data-zona="Sur"]     .grid-volcanes,
+  body[data-zona="Austral"] .grid-volcanes {
+    grid-template-columns: repeat(3, 1fr);
+    grid-auto-rows: 1fr;
+  }
+  /* En vista por zona: subs apilados RGB encima de SWIR */
+  body:not([data-zona="todos"]) .card-body {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 1fr 1fr !important;
+  }
+
+  /* === CARD === */
+  .card {
+    background: var(--surface);
+    border: 1.5px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.3s;
+    min-height: 0;
+    position: relative;   /* ancla del badge de cuenta regresiva */
+  }
+  .card.s2-active { border-color: var(--s2); }
+  .card.landsat-active { border-color: var(--landsat); }
+  /* NUEVA IMAGEN: indicador visible desde lejos en el kiosko.
+     Borde rojo que PULSA + sombra que late. Se ve "de cruzar la sala". */
+  .card.nueva-hoy {
+    border-color: #ff2d2d;
+    animation: pulso-nueva 1.4s ease-in-out infinite;
+  }
+  @keyframes pulso-nueva {
+    0%, 100% {
+      border-color: #ff2d2d;
+      box-shadow: 0 0 8px rgba(255,45,45,0.55), inset 0 0 4px rgba(255,45,45,0.25);
+    }
+    50% {
+      border-color: #ff6b6b;
+      box-shadow: 0 0 22px rgba(255,45,45,0.95), inset 0 0 10px rgba(255,45,45,0.4);
+    }
+  }
+  /* Punto rojo que late, antes del nombre del volcan */
+  .dot-nueva {
+    display: inline-block;
+    width: 0.7em; height: 0.7em;
+    border-radius: 50%;
+    background: #ff2d2d;
+    margin-right: 5px;
+    flex-shrink: 0;
+    animation: pulso-dot 1.4s ease-in-out infinite;
+    box-shadow: 0 0 6px rgba(255,45,45,0.9);
+  }
+  @keyframes pulso-dot {
+    0%, 100% { transform: scale(1);   opacity: 1; }
+    50%      { transform: scale(1.35); opacity: 0.65; }
+  }
+
+  .card-header {
+    background: rgba(0,0,0,0.55);
+    padding: 3px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  /* En vista por zona el header va OVERLAY sobre la imagen
+     (gradient transparente abajo) para no robar pixeles verticales */
+  body:not([data-zona="todos"]) .card {
+    position: relative;
+  }
+  body:not([data-zona="todos"]) .card-header {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 2;
+    background: linear-gradient(180deg, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0) 100%);
+    border-bottom: none;
+  }
+  .card-header h3 {
+    margin: 0; color: white;
+    font-size: 0.85em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.85);
+  }
+  .card-header .badge {
+    padding: 1px 6px; border-radius: 8px;
+    font-size: 0.7em; font-weight: 700;
+    flex-shrink: 0;
+    margin-left: 6px;
+  }
+  .badge-fecha {
+    background: rgba(255,255,255,0.15);
+    color: white;
+    font-family: 'Consolas', monospace;
+  }
+  .badge-nuevo {
+    background: #dc2626; color: white;
+    animation: blink 1.2s infinite;
+  }
+  /* Imagen Landsat provisional Level-1 (TOA, sin correccion atmosferica).
+     Ambar = "ojo, no es el producto final". Se reemplaza por L2 al publicarse. */
+  .badge-l1 {
+    background: #b45309; color: #ffedd5;
+    font-size: 0.62em; font-weight: 700;
+    cursor: help;
+  }
+  /* Chip visible durante los 30s de vista zoom (crater/detalle) de un volcan. */
+  .badge-zoom {
+    background: #7c3aed; color: #fff;
+    font-size: 0.62em; font-weight: 700;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  /* Body con 2 sub-imágenes lado a lado.
+     FIX 2026-05-17: aspect-ratio: 1/1 en .card-sub conflictuaba con
+     grid-auto-rows: 1fr. La altura efectiva de la img quedaba menor
+     que la sub-card → sensación de "cortado". Drop del aspect-ratio
+     + object-fit: contain. Puede haber barras negras finas según
+     cell ratio, pero el volcán se ve completo. */
+  .card-body {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #000;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .card-sub {
+    position: relative;
+    background: #000;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+  }
+  .card-sub img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    display: block;
+  }
+  /* Cuenta regresiva al proximo paso satelital: esquina inferior DERECHA
+     de la tarjeta. No topa con el nombre (arriba-izq), la fecha (arriba-der)
+     ni los labels de banda (abajo-izq de cada sub-imagen). */
+  .card-countdown {
+    position: absolute;
+    bottom: 2px; right: 3px;
+    z-index: 3;
+    background: rgba(0,0,0,0.62);
+    color: #cdd9e5;
+    padding: 2px 7px;
+    border-radius: 8px;
+    font-size: 0.62em;
+    font-weight: 600;
+    white-space: pre-line;   /* permite 2 lineas: paso + ventana */
+    text-align: right;
+    line-height: 1.25;
+    max-width: calc(100% - 6px);  /* nunca desborda: envuelve en tarjetas angostas */
+    text-shadow: 0 1px 2px rgba(0,0,0,0.85);
+  }
+  .card-countdown .cd-ventana {
+    display: block;
+    font-weight: 500;
+    font-size: 0.92em;
+    color: #9aa7b3;          /* ventana de incertidumbre, mas tenue */
+  }
+  .card-countdown.img-camino { color: #ffd479; }
+  .card-countdown.img-camino .cd-ventana { color: #d8b364; }
+  /* Pasada la ventana P95 de publicacion sin imagen: dato genuinamente atrasado */
+  .card-countdown.atrasado { color: #ff6b6b; }
+  .card-countdown.atrasado .cd-ventana { color: #e89090; }
+  /* Barra de progreso de publicacion: el punto "ahora" avanza de paso (izq) al
+     limite "a mas tardar" (der); la marca gris es la hora habitual (mediana). */
+  .card-countdown .cd-barra {
+    position: relative; width: 100%; min-width: 92px;
+    height: 4px; margin-top: 5px;
+    background: #21262d; border-radius: 2px;
+  }
+  .card-countdown .cd-barra .cd-tick {
+    position: absolute; top: -2px; width: 2px; height: 8px;
+    background: #8b949e; transform: translateX(-1px);
+  }
+  .card-countdown .cd-barra .cd-dot {
+    position: absolute; top: -3px; width: 9px; height: 9px;
+    border-radius: 50%; background: #ffd479;
+    border: 1.5px solid rgba(0,0,0,0.65); transform: translateX(-4.5px);
+  }
+  /* Abajo-izquierda: arriba topaba con el nombre del volcan cuando el
+     header va overlay sobre la imagen (vista por zona) */
+  .card-sub .sub-label {
+    position: absolute; bottom: 2px; left: 3px;
+    background: rgba(0,0,0,0.6); color: white;
+    padding: 0 4px; border-radius: 3px;
+    font-size: 0.6em; font-weight: 600;
+  }
+  .card-sub .placeholder {
+    color: var(--muted);
+    font-size: 0.7em;
+    text-align: center;
+  }
+
+  /* === FOOTER compacto === */
+  footer {
+    background: var(--surface);
+    padding: 4px 14px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.78em;
+    color: var(--muted);
+    flex-shrink: 0;
+  }
+  .progress-bar {
+    width: 140px; height: 4px;
+    background: #1c2128; border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%; background: var(--accent);
+    transition: width 0.5s linear;
+  }
+  .ctrl-pause {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 3px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8em;
+  }
+  .ctrl-pause:hover { background: rgba(255,255,255,0.15); }
+
+  /* === BANDA DE ESTADO GLOBAL (stale / sin conexion) ===
+     La Sala es kiosko desatendido 24/7. Si los datos envejecen o el refresco
+     falla repetido, el muro debe gritarlo: si no, sigue mostrando imagenes
+     viejas con cara de "en vivo". Oculta por defecto, visible solo en alarma. */
+  .estado-global {
+    display: none;
+    background: #b91c1c;
+    color: #fff;
+    font-weight: 800;
+    font-size: 0.95em;
+    text-align: center;
+    padding: 6px 14px;
+    letter-spacing: 0.02em;
+    border-bottom: 2px solid #ff6b6b;
+    animation: blink 1.6s infinite;
+  }
+  .estado-global.visible { display: block; }
+  .estado-global.sin-conexion { background: #7c2d12; border-bottom-color: #fb923c; }
+
+  /* En landscape (debug en monitor normal), 5 cols para Todos */
+  @media (orientation: landscape) {
+    body[data-zona="todos"] .grid-volcanes {
+      grid-template-columns: repeat(6, 1fr);
+    }
+    body[data-zona="Norte"]   .grid-volcanes,
+    body[data-zona="Centro"]  .grid-volcanes,
+    body[data-zona="Sur"]     .grid-volcanes,
+    body[data-zona="Austral"] .grid-volcanes {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+</style>
+</head>
+<body data-zona="todos">
+
+<nav class="toolbar">
+  <div class="zonas" id="zonas-bar">
+    <button class="btn-zona active" data-zona="todos" id="btn-zona-todos">Todos</button>
+    <button class="btn-zona" data-zona="Norte">Norte</button>
+    <button class="btn-zona" data-zona="Centro">Centro</button>
+    <button class="btn-zona" data-zona="Sur">Sur</button>
+    <button class="btn-zona" data-zona="Austral">Austral</button>
+  </div>
+  <div class="toolbar-right">
+    <span class="sensor-indicator s2" id="sensor-badge">Sentinel-2</span>
+    <span id="info-imagenes">Color Verdadero | SWIR</span>
+    <span class="clock" id="reloj">--:--:--</span>
+  </div>
+</nav>
+
+<div class="estado-global" id="estado-global"></div>
+
+<main>
+  <div class="grid-volcanes" id="grid"></div>
+</main>
+
+<footer>
+  <span id="footer-status">Cargando datos...</span>
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <span>Próximo sensor: <strong id="next-sensor-time">--</strong></span>
+    <div class="progress-bar"><div class="progress-fill" id="prog-refresh"></div></div>
+    <button class="ctrl-pause" id="btn-pause">⏸️ Pausar</button>
+  </div>
+  <span>Copernicus-v1 · S2 / L8-9</span>
+</footer>
+
+<script src="volcanes.js"></script>
+<script>
+// ============================================================
+// CONFIG
+// ============================================================
+const ZONAS = window.VOLCANES_POR_ZONA;
+const VISTAS_ZOOM = window.VISTAS_ZOOM || {};
+const TODOS_VOLCANES = window.TODOS_VOLCANES;
+
+const ROTACION_SENSOR_MS = 60000;       // 60s S2 ↔ Landsat
+const REFRESCO_DATOS_MS = 60*1000;      // recargar JSON cada 1 min (kiosko)
+const HARD_RELOAD_MS = 6*60*60*1000;    // location.reload() cada 6 h (anti-leak)
+
+// Imagenes Sentinel-2 desde raw.githubusercontent (sentinel2/ se excluye del artifact de Pages).
+const REPO_BASE = 'https://raw.githubusercontent.com/MendozaVolcanic/Copernicus-v1/main';
+const REPO_LANDSAT_BASE = 'https://raw.githubusercontent.com/MendozaVolcanic/Landsat-v1/master';
+const REPO_LANDSAT = `${REPO_LANDSAT_BASE}/docs/landsat`;
+
+// Mapa padre -> vista zoom (derivado de vista_zoom_de en la config). La Sala
+// PLIEGA la vista zoom dentro de la card del volcan padre (no como card aparte):
+// durante el minuto S2 en pantalla muestra 30s la panoramica y 30s el detalle del
+// crater. Solo S2 (las vistas zoom no tienen producto Landsat).
+const CFG = window.VOLCANES_CONFIG || {};
+const PADRE_A_ZOOM = {};
+const NOMBRES_ZOOM = new Set();
+Object.entries(CFG).forEach(([nombre, c]) => {
+  if (c && c.vista_zoom_de) {
+    PADRE_A_ZOOM[c.vista_zoom_de] = nombre;   // 1 vista zoom por padre (caso actual)
+    NOMBRES_ZOOM.add(nombre);
+  }
+});
+const MITAD_ROTACION_MS = ROTACION_SENSOR_MS / 2;   // 30s: mitad del minuto S2
+const LANDSAT_JSON_URL = `${REPO_LANDSAT_BASE}/docs/fechas_disponibles_landsat.json`;
+// Prediccion de proximas pasadas (cuenta regresiva por tarjeta).
+// S2 vive en este repo; Landsat en el repo externo (raw).
+const PRED_S2_URL = 'proximas_pasadas.json';
+const PRED_LANDSAT_URL = `${REPO_LANDSAT_BASE}/docs/proximas_pasadas_landsat.json`;
+// Niveles Landsat: {volcan: {fecha: 'L1'}}. Solo lista las L1 (provisionales,
+// TOA sin correccion atmosferica; se reemplazan por L2 cuando USGS las publica).
+const NIVELES_LANDSAT_URL = `${REPO_LANDSAT_BASE}/docs/niveles_landsat.json`;
+let nivelesLandsat = {};
+// Ventana de disponibilidad de la imagen TRAS el paso (auditada con git):
+//   S2: modo 6-8 h (67% de escenas). Landsat: min ~30 h, mediana ~44 h.
+// Landsat: con el hibrido L1+L2 la imagen aparece ~1 dia (bajamos la L1-RT que
+// USGS publica ~T+0/T+1, sin esperar la cola larga del L2). La L2 final llega
+// despues y reemplaza la L1 en silencio. Antes (solo L2) era ~1-2 días o más.
+const VENTANA_IMG = { s2: '~6-8 h', landsat: '~1 día' };
+let predS2 = null, predLandsat = null;
+
+// ============================================================
+// ESTADO
+// ============================================================
+let sensorActual = 's2';
+// FIX 2026-06-01: prioridad URL > localStorage > default.
+// Antes era localStorage > URL. Esto causaba que si en un kiosko se
+// cliqueaba Sur por accidente (toque fantasma de pantalla tactil, o
+// alguien tocando), el localStorage quedaba congelado y cada hard reload
+// volvia a Sur ignorando la URL del bookmark. Ahora el bookmark
+// ?zona=Austral es la fuente de verdad inmutable.
+const ZONAS_VALIDAS = ['todos','Norte','Centro','Sur','Austral'];
+let zonaActual = (function() {
+  // 1) URL query param SIEMPRE gana (bookmark del kiosko es la verdad)
+  const qz = new URLSearchParams(location.search).get('zona');
+  if (qz && ZONAS_VALIDAS.includes(qz)) {
+    // Sincronizar localStorage para que cualquier click posterior tenga
+    // un baseline consistente, pero el proximo hard reload volvera al
+    // valor de la URL.
+    try { localStorage.setItem('sala_zona', qz); } catch (e) {}
+    return qz;
+  }
+  // 2) Sin query param, usar localStorage si esta
+  try {
+    const saved = localStorage.getItem('sala_zona');
+    if (saved && ZONAS_VALIDAS.includes(saved)) return saved;
+  } catch (e) {}
+  return 'todos';
+})();
+let fechasS2 = null;
+let fechasLandsat = null;
+let pausado = false;
+let tiempoSensorRestante = ROTACION_SENSOR_MS;
+let vistaZoomActiva = false;   // true = las cards plegables muestran el crater
+let cardsConZoom = [];         // descriptores de cards con vista zoom (reset por render)
+// Salud del refresco para el kiosko desatendido (Fix stale-global):
+//   ciclosFallidos = refrescos consecutivos sin lograr datos (>2 => sin conexion)
+//   DIAS_STALE     = umbral de edad de la imagen mas fresca (revisita S2 ~5d
+//                    nominal por satelite; damos margen sobre los ~2.3d combinados)
+let ciclosFallidos = 0;
+const DIAS_STALE = 5;
+const MAX_CICLOS_FALLIDOS = 2;
+
+// Rotación CSS opcional (?rotate=1) para pantalla cableada rotada sin OS rotation
+if (new URLSearchParams(location.search).get('rotate') === '1') {
+  document.body.classList.add('rotate');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+async function init() {
+  try {
+    const r = await fetch('fechas_disponibles_copernicus.json?t=' + Date.now());
+    fechasS2 = await r.json();
+  } catch (e) {
+    document.getElementById('footer-status').textContent = 'Error cargando JSON S2';
+  }
+  try {
+    const r = await fetch(LANDSAT_JSON_URL + '?t=' + Date.now());
+    fechasLandsat = await r.json();
+  } catch (e) {
+    console.warn('No se pudo cargar JSON Landsat', e);
+    fechasLandsat = {};
+  }
+  // Predicciones de proximas pasadas (no bloquean el render si fallan)
+  await Promise.allSettled([
+    fetch(PRED_S2_URL + '?t=' + Date.now()).then(r => r.json()).then(j => predS2 = j),
+    fetch(PRED_LANDSAT_URL + '?t=' + Date.now()).then(r => r.json()).then(j => predLandsat = j),
+    fetch(NIVELES_LANDSAT_URL + '?t=' + Date.now()).then(r => r.json()).then(j => nivelesLandsat = j || {})
+  ]);
+
+  // Wire zone selector
+  document.querySelectorAll('.btn-zona').forEach(b => {
+    b.addEventListener('click', () => seleccionarZona(b.dataset.zona));
+  });
+
+  // Conteo dinamico del boton "Todos": cuenta las cards REALMENTE visibles. Las
+  // vistas zoom ya no son card propia (se pliegan en el padre), asi que se excluyen
+  // del conteo. Un numero que no coincide con las cards siembra duda en el muro.
+  const btnTodos = document.getElementById('btn-zona-todos');
+  if (btnTodos) {
+    const total = Array.isArray(TODOS_VOLCANES)
+      ? TODOS_VOLCANES.filter(v => !NOMBRES_ZOOM.has(v)).length : 0;
+    btnTodos.textContent = 'Todos (' + total + ')';
+  }
+
+  // Aplicar zona persistida (localStorage o ?zona=...) ANTES del primer render
+  document.body.dataset.zona = zonaActual;
+  document.querySelectorAll('.btn-zona').forEach(b => {
+    b.classList.toggle('active', b.dataset.zona === zonaActual);
+  });
+
+  render();
+  firmaActualS2 = firmaUltimasFechas();
+  actualizarIndicadorStale();   // evaluar stale ya en el primer pintado
+
+  setInterval(actualizarReloj, 1000);
+  setInterval(tickRotacion, 1000);
+  setInterval(refrescarDatos, REFRESCO_DATOS_MS);
+  setInterval(actualizarCountdowns, 60000);  // refresca la cuenta regresiva
+  // Hard reload cada 6 horas: el kiosko queda solo, evita drift de memoria
+  // y garantiza que tome cualquier cambio de versión del HTML/JS deployado.
+  setTimeout(() => location.reload(), HARD_RELOAD_MS);
+  document.getElementById('btn-pause').addEventListener('click', togglePausa);
+  actualizarReloj();
+}
+
+// Calcula firma de "qué fecha es la última por volcán" para detectar nuevas imágenes
+function firmaUltimasFechas() {
+  if (!fechasS2) return '';
+  const partes = [];
+  for (const v of Object.keys(fechasS2).sort()) {
+    const f = fechasS2[v];
+    if (f && f.length) partes.push(v + ':' + f[f.length - 1]);
+  }
+  return partes.join('|');
+}
+let firmaActualS2 = '';
+
+function seleccionarZona(z) {
+  zonaActual = z;
+  document.body.dataset.zona = z;
+
+  // FIX 2026-06-03: persistir la zona en la URL DE ESTA PESTAÑA (no en
+  // localStorage). Causa raiz del bug "Austral -> Sur": si los 4 kioskos
+  // corren en el mismo navegador, COMPARTEN localStorage; el ultimo que
+  // escribe pisa a los demas y en el reload de 6h todos terminan en la
+  // misma zona. La URL es por-pestaña, asi que cada kiosko queda aislado.
+  try {
+    const params = new URLSearchParams(location.search);
+    params.set('zona', z);
+    history.replaceState(null, '', location.pathname + '?' + params.toString());
+  } catch (e) {}
+  // localStorage queda como respaldo secundario (URL siempre gana al cargar)
+  try { localStorage.setItem('sala_zona', z); } catch (e) {}
+
+  document.querySelectorAll('.btn-zona').forEach(b => {
+    b.classList.toggle('active', b.dataset.zona === z);
+  });
+  render();
+}
+
+// ============================================================
+// LOOP
+// ============================================================
+function tickRotacion() {
+  if (pausado) return;
+  tiempoSensorRestante -= 1000;
+  if (tiempoSensorRestante <= 0) {
+    sensorActual = sensorActual === 's2' ? 'landsat' : 's2';
+    tiempoSensorRestante = ROTACION_SENSOR_MS;
+    actualizarSensorBadge();
+    render();
+  }
+  // A mitad del minuto S2, plegar las cards con vista zoom hacia el crater.
+  // Vuelve a panoramica en el proximo render (cambio de sensor). Solo S2.
+  if (sensorActual === 's2' && !vistaZoomActiva &&
+      tiempoSensorRestante <= MITAD_ROTACION_MS && cardsConZoom.length) {
+    aplicarVistaZoom(true);
+  }
+  document.getElementById('prog-refresh').style.width =
+    (tiempoSensorRestante / ROTACION_SENSOR_MS * 100) + '%';
+  const nextEl = document.getElementById('next-sensor-time');
+  if (nextEl) nextEl.textContent = formatearTiempo(tiempoSensorRestante);
+}
+
+function formatearTiempo(ms) {
+  const s = Math.ceil(ms / 1000);
+  const m = Math.floor(s / 60);
+  return m > 0 ? `${m}m ${s % 60}s` : `${s}s`;
+}
+
+function actualizarReloj() {
+  const a = new Date();
+  document.getElementById('reloj').textContent =
+    `${String(a.getHours()).padStart(2,'0')}:${String(a.getMinutes()).padStart(2,'0')}:${String(a.getSeconds()).padStart(2,'0')}`;
+}
+
+function actualizarSensorBadge() {
+  const b = document.getElementById('sensor-badge');
+  b.className = 'sensor-indicator ' + sensorActual;
+  b.textContent = sensorActual === 's2' ? 'Sentinel-2' : 'Landsat 8/9';
+  document.getElementById('info-imagenes').textContent =
+    sensorActual === 's2' ? 'Color Verdadero | SWIR' : 'Color Verdadero | SWIR (L8/9)';
+}
+
+function togglePausa() {
+  pausado = !pausado;
+  document.getElementById('btn-pause').textContent = pausado ? '▶️ Reanudar' : '⏸️ Pausar';
+}
+
+// ============================================================
+// RENDER
+// ============================================================
+function listaVolcanesActual() {
+  const base = (zonaActual === 'todos') ? TODOS_VOLCANES : (ZONAS[zonaActual] || []);
+  // Las vistas zoom NO van como card propia: se pliegan en la card del padre
+  // (30s panoramica / 30s crater). Se excluyen de la lista visible.
+  return base.filter(v => !NOMBRES_ZOOM.has(v));
+}
+
+function render() {
+  // Cada render (cambio de sensor o zona) arranca en panoramica y reconstruye
+  // la lista de cards plegables desde cero.
+  vistaZoomActiva = false;
+  cardsConZoom = [];
+  const volcanes = listaVolcanesActual();
+  const grid = document.getElementById('grid');
+  while (grid.firstChild) grid.removeChild(grid.firstChild);
+  volcanes.forEach(v => crearCard(v));
+  document.getElementById('footer-status').textContent =
+    `${volcanes.length} volcanes · ${sensorActual === 's2' ? 'Sentinel-2' : 'Landsat 8/9'}` +
+    (zonaActual !== 'todos' ? ` · Zona ${zonaActual}` : '');
+}
+
+// Alterna las cards plegables: mostrarZoom=true carga la vista del crater en
+// ambas sub-imagenes (Color Verdadero + SWIR); false vuelve a la panoramica del
+// padre. Recarga las <img> con la entidad elegida y muestra/oculta el chip.
+function aplicarVistaZoom(mostrarZoom) {
+  vistaZoomActiva = mostrarZoom;
+  cardsConZoom.forEach(d => {
+    const entidad = mostrarZoom ? d.zoom : d.padre;
+    cargarImagenesVolcan(entidad, d.badgeFecha, d.subRGB, d.subTH, d.card);
+    if (mostrarZoom) {
+      const motivo = (CFG[d.zoom] && CFG[d.zoom].motivo) || 'Vista de detalle';
+      d.chip.textContent = '🔍 ' + motivo;
+      d.chip.style.display = '';
+    } else {
+      d.chip.style.display = 'none';
+    }
+  });
+}
+
+// === CUENTA REGRESIVA AL PROXIMO PASO ===
+// El PASO es casi-certeza (mecanica orbital). La aparicion de la IMAGEN es una
+// distribucion (latencia variable + nubes), por eso mostramos el contador al
+// paso + una VENTANA de disponibilidad, no un numero al minuto (falsa precision).
+function fmtCountdown(ms) {
+  if (ms < 0) ms = 0;
+  const min = Math.floor(ms / 60000);
+  const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = min % 60;
+  if (d > 0) return d + 'd ' + h + 'h';
+  if (h > 0) return h + 'h ' + m + 'm';
+  return m + 'm';
+}
+
+// Hora local Chile "HH:MM" (DST-aware) de un instante UTC en ms. Para mostrar la
+// ventana de publicacion como horas-reloj ("esperada 15:25 ... 22:25").
+function hhmmChile(ms) {
+  return new Date(ms).toLocaleString('es-CL', {
+    timeZone: 'America/Santiago', hour: '2-digit', minute: '2-digit', hour12: false
+  });
+}
+
+// Horizonte de latencia: cuanto tiempo tras el paso seguimos esperando la
+// imagen (mas alla, si no llego, asumimos que esa pasada fue muy nubosa o no
+// se proceso). S2 publica ~6-8h; Landsat ~1-2 dias.
+const HORIZONTE_CAMINO_H = { s2: 24, landsat: 48 };
+
+// Modelo de latencia de publicacion (de los JSON de prediccion). La imagen NO
+// aparece al instante del paso: hay una distribucion (procesamiento + cola del
+// proveedor). Contamos hacia la MEDIANA (llegada esperada); pasada la mediana
+// seguimos dentro de la cola normal hasta P95; pasado P95 es genuinamente
+// atrasado (solo ~5% de las escenas tarda mas). Fallbacks si falta el campo.
+const LATENCIA_FALLBACK = { s2: { mediana_h: 4.7, p95_h: 11.7 },
+                            landsat: { mediana_h: 44, p95_h: 48 } };
+function latenciaSensor(sensor) {
+  const pred = sensor === 's2' ? predS2 : predLandsat;
+  const lat = pred && (pred.latencia_l2a || pred.latencia_l2);
+  if (lat && lat.mediana_h != null && lat.p95_h != null) return lat;
+  return LATENCIA_FALLBACK[sensor] || LATENCIA_FALLBACK.s2;
+}
+
+// Devuelve {texto, detalle, camino} o null si no hay prediccion para el volcan.
+function infoProximoPaso(volcan, sensor) {
+  const pred = sensor === 's2' ? predS2 : predLandsat;
+  const info = pred && pred.volcanes && pred.volcanes[volcan];
+  if (!info || !info.proxima_combinada || !info.proxima_combinada.length) return null;
+  const horaUtc = info.hora_utc_estimada || (sensor === 's2' ? '14:34' : '14:45');
+  const ventana = VENTANA_IMG[sensor] || '';
+  const horizonte = (HORIZONTE_CAMINO_H[sensor] || 24) * 3600000;
+  const now = Date.now();
+
+  // Ultima imagen que YA tenemos (las listas vienen ascendentes -> ultimo elem).
+  const fechasObj = sensor === 's2' ? fechasS2 : fechasLandsat;
+  const lista = fechasObj && fechasObj[volcan];
+  const ultimaImg = (lista && lista.length) ? lista[lista.length - 1] : null;
+
+  const pasos = info.proxima_combinada.map(p => ({
+    p, ms: new Date(p.fecha + 'T' + horaUtc + ':00Z').getTime()
+  }));
+
+  // 1) Paso que YA ocurrio, cuya imagen aun NO tenemos, y sigue dentro del
+  //    horizonte de latencia -> "imagen en camino" (tiene prioridad sobre la
+  //    proxima pasada lejana, porque es lo mas inminente para el usuario).
+  const reciente = pasos
+    .filter(x => x.ms <= now && (now - x.ms) <= horizonte && (!ultimaImg || x.p.fecha > ultimaImg))
+    .sort((a, b) => b.ms - a.ms)[0];
+  if (reciente) {
+    const passMs = reciente.ms;
+    const detalleBase = 'Paso ' + (reciente.p.sat || '') + ' del ' + reciente.p.fecha + ' ya ocurrió';
+
+    if (sensor === 's2') {
+      // VENTANA HORARIA + BARRA (S2): la imagen aparece dentro de una franja
+      // horaria (de la hora "habitual"=mediana al limite "a mas tardar"=P95). El
+      // punto de la barra marca AHORA y avanza con los minutos; la marca gris es
+      // la hora habitual. Asi se entiende cuando llegara sin fingir un "0 min".
+      const lat = latenciaSensor('s2');
+      const medMs = passMs + lat.mediana_h * 3600000;   // llegada habitual
+      const p95Ms = passMs + lat.p95_h * 3600000;       // a mas tardar
+      if (now < p95Ms) {
+        const span = p95Ms - passMs;
+        return {
+          linea1: '🛰️ imagen en camino',
+          ventana: 'esperada ' + hhmmChile(medMs) + ' (habitual) – ' + hhmmChile(p95Ms) + ' (a más tardar)',
+          detalle: detalleBase + ' · imagen habitualmente ~' + hhmmChile(medMs) +
+                   ', a más tardar ~' + hhmmChile(p95Ms) + ' (hora Chile)',
+          camino: true,
+          barra: { posNow: Math.max(0, Math.min(1, (now - passMs) / span)),
+                   posMed: (medMs - passMs) / span }
+        };
+      }
+      // Paso el limite "a mas tardar" (P95) sin imagen -> atrasado.
+      return {
+        linea1: '⚠️ dato atrasado',
+        ventana: 'se esperaba antes de ' + hhmmChile(p95Ms),
+        detalle: detalleBase + ' · superó el plazo máximo normal (~' + hhmmChile(p95Ms) +
+                 ' hora Chile) sin imagen — probable nubosidad o demora del proveedor',
+        camino: false,
+        atrasado: true
+      };
+    }
+
+    // Landsat: latencia larga (~1 día, producto L1-RT) que cruza dias, asi que la
+    // hora-reloj seria ambigua. Mantener la ventana relativa simple.
+    return {
+      linea1: '🛰️ imagen en camino',
+      ventana: 'en ' + (VENTANA_IMG.landsat || '~1 día'),
+      detalle: detalleBase + ' · imagen ' + (VENTANA_IMG.landsat || '~1 día') + ' después del paso',
+      camino: true
+    };
+  }
+
+  // 2) Cuenta regresiva al proximo paso futuro.
+  const futuro = pasos.find(x => x.ms > now);
+  if (futuro) {
+    return {
+      linea1: '⏱️ paso en ' + fmtCountdown(futuro.ms - now),
+      ventana: 'imagen ' + ventana,   // ventana de incertidumbre tras el paso
+      detalle: 'Próximo paso ' + (futuro.p.sat || '') + ': ' + futuro.p.fecha +
+               ' · imagen ' + ventana + ' después del paso',
+      camino: false
+    };
+  }
+  return null;
+}
+
+// Pinta {linea1, ventana, [barra]} en un elemento .card-countdown (sin innerHTML).
+function pintarCountdown(el, info) {
+  while (el.firstChild) el.removeChild(el.firstChild);
+  el.appendChild(document.createTextNode(info.linea1));
+  const vent = document.createElement('span');
+  vent.className = 'cd-ventana';
+  vent.textContent = info.ventana;
+  el.appendChild(vent);
+  // Barra de progreso de publicacion (solo "imagen en camino" con ventana horaria):
+  // marca gris = hora habitual (mediana), punto = ahora avanzando hacia el limite.
+  if (info.barra) {
+    const barra = document.createElement('div');
+    barra.className = 'cd-barra';
+    const tick = document.createElement('span');
+    tick.className = 'cd-tick';
+    tick.style.left = (info.barra.posMed * 100).toFixed(1) + '%';
+    barra.appendChild(tick);
+    const dot = document.createElement('span');
+    dot.className = 'cd-dot';
+    dot.style.left = (info.barra.posNow * 100).toFixed(1) + '%';
+    barra.appendChild(dot);
+    el.appendChild(barra);
+  }
+  el.classList.toggle('img-camino', !!info.camino);
+  el.classList.toggle('atrasado', !!info.atrasado);
+}
+
+// Actualiza el texto de los badges ya pintados sin re-renderizar (tick liviano).
+function actualizarCountdowns() {
+  document.querySelectorAll('.card-countdown').forEach(el => {
+    const info = infoProximoPaso(el.dataset.volcan, sensorActual);
+    if (!info) { el.textContent = ''; el.title = ''; return; }
+    pintarCountdown(el, info);
+    el.title = info.detalle;
+  });
+}
+
+function crearCard(volcan) {
+  const card = document.createElement('div');
+  card.className = 'card ' + (sensorActual === 's2' ? 's2-active' : 'landsat-active');
+
+  const header = document.createElement('div');
+  header.className = 'card-header';
+  const h3 = document.createElement('h3');
+  h3.textContent = volcan;
+  header.appendChild(h3);
+  const badgeFecha = document.createElement('span');
+  badgeFecha.className = 'badge badge-fecha';
+  badgeFecha.textContent = '…';
+  header.appendChild(badgeFecha);
+  card.appendChild(header);
+
+  // Badge de cuenta regresiva (esquina inferior derecha)
+  const cdInfo = infoProximoPaso(volcan, sensorActual);
+  if (cdInfo) {
+    const cdEl = document.createElement('div');
+    cdEl.className = 'card-countdown';
+    cdEl.dataset.volcan = volcan;
+    pintarCountdown(cdEl, cdInfo);
+    cdEl.title = cdInfo.detalle;
+    card.appendChild(cdEl);
+  }
+
+  const body = document.createElement('div');
+  body.className = 'card-body';
+  const subRGB = document.createElement('div'); subRGB.className = 'card-sub';
+  const labelRGB = document.createElement('span'); labelRGB.className = 'sub-label';
+  labelRGB.textContent = 'Color Verdadero';
+  subRGB.appendChild(labelRGB);
+  const subTH = document.createElement('div'); subTH.className = 'card-sub';
+  const labelTH = document.createElement('span'); labelTH.className = 'sub-label';
+  labelTH.textContent = 'SWIR';
+  subTH.appendChild(labelTH);
+  body.appendChild(subRGB);
+  body.appendChild(subTH);
+  card.appendChild(body);
+
+  document.getElementById('grid').appendChild(card);
+  cargarImagenesVolcan(volcan, badgeFecha, subRGB, subTH, card);
+
+  // Si este volcan tiene vista zoom con datos S2, registrar la card como plegable:
+  // el tick de rotacion la alternara a la vista del crater en la 2a mitad del minuto.
+  const zoomChild = PADRE_A_ZOOM[volcan];
+  if (sensorActual === 's2' && zoomChild && fechasS2 && (fechasS2[zoomChild] || []).length) {
+    const chip = document.createElement('span');
+    chip.className = 'badge badge-zoom';
+    chip.style.display = 'none';
+    header.appendChild(chip);
+    cardsConZoom.push({ card, padre: volcan, zoom: zoomChild, badgeFecha, subRGB, subTH, chip });
+  }
+}
+
+async function cargarImagenesVolcan(volcan, badgeFecha, subRGB, subTH, card) {
+  let fecha = null, urlRGB = null, urlTH = null;
+
+  if (sensorActual === 's2') {
+    const fechas = fechasS2 && fechasS2[volcan];
+    if (fechas && fechas.length > 0) {
+      fecha = fechas[fechas.length - 1];
+      urlRGB = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${fecha}_RGB.png?t=${Date.now()}`;
+      urlTH  = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${fecha}_ThermalFalseColor.png?t=${Date.now()}`;
+    }
+  } else {
+    const fechas = fechasLandsat && fechasLandsat[volcan];
+    if (fechas && fechas.length > 0) {
+      // La Sala prioriza FRESCURA: muestra siempre la última L1 e ignora la L2,
+      // porque cuando USGS publica la L2 de una fecha ya suele haber una L1 más
+      // reciente de la pasada siguiente. Si no hay ninguna L1, cae a la última
+      // disponible (que entonces será L2).
+      const l1 = nivelesLandsat[volcan];
+      const l1dates = l1 ? Object.keys(l1).sort() : [];
+      fecha = l1dates.length ? l1dates[l1dates.length - 1] : fechas[fechas.length - 1];
+      urlRGB = `${REPO_LANDSAT}/${encodeURIComponent(volcan)}/${fecha}_RGB.png`;
+      urlTH  = `${REPO_LANDSAT}/${encodeURIComponent(volcan)}/${fecha}_SWIR.png`;
+    }
+  }
+
+  badgeFecha.textContent = fecha || 'sin datos';
+  if (esNuevaHoy(volcan, sensorActual, fecha)) {
+    card.classList.add('nueva-hoy');
+    badgeFecha.className = 'badge badge-nuevo';
+    badgeFecha.textContent = '🆕 ' + fecha;
+    // Punto rojo pulsante antes del nombre (señal redundante, legible de lejos)
+    const h3 = card.querySelector('.card-header h3');
+    if (h3 && !h3.querySelector('.dot-nueva')) {
+      const dot = document.createElement('span');
+      dot.className = 'dot-nueva';
+      h3.insertBefore(dot, h3.firstChild);
+    }
+  }
+
+  // Marcador L1 (solo Landsat): la imagen es provisional (TOA, sin correccion
+  // atmosferica). Se reemplaza por L2 cuando USGS publica el producto final.
+  if (sensorActual === 'landsat' && fecha &&
+      nivelesLandsat[volcan] && nivelesLandsat[volcan][fecha] === 'L1') {
+    const header = card.querySelector('.card-header');
+    if (header && !header.querySelector('.badge-l1')) {
+      const l1 = document.createElement('span');
+      l1.className = 'badge badge-l1';
+      l1.textContent = 'L1';
+      l1.title = 'Level-1 (TOA): la imagen más reciente disponible (~1 día tras la ' +
+                 'pasada). La Sala prioriza la frescura y muestra siempre L1; el ' +
+                 'producto L2 corregido queda para el dashboard detallado.';
+      header.appendChild(l1);
+    }
+  }
+
+  if (urlRGB) cargarImgEnSub(urlRGB, subRGB, 'Color Verdadero', volcan);
+  else        mostrarPlaceholder(subRGB, 'sin datos');
+  if (urlTH) cargarImgEnSub(urlTH, subTH, 'SWIR', volcan);
+  else       mostrarPlaceholder(subTH, 'sin datos');
+}
+
+function cargarImgEnSub(url, sub, labelTexto, volcan) {
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  // alt para accesibilidad y fallback visible si la imagen no carga
+  img.alt = (volcan || '') + ' - ' + labelTexto;
+  img.onload = () => {
+    while (sub.firstChild) sub.removeChild(sub.firstChild);
+    const label = document.createElement('span');
+    label.className = 'sub-label';
+    label.textContent = labelTexto;
+    sub.appendChild(img);
+    sub.appendChild(label);
+  };
+  img.onerror = () => mostrarPlaceholder(sub, 'No disponible');
+  img.src = url;
+}
+
+function mostrarPlaceholder(sub, texto) {
+  while (sub.firstChild) sub.removeChild(sub.firstChild);
+  const ph = document.createElement('div');
+  ph.className = 'placeholder';
+  ph.textContent = texto;
+  sub.appendChild(ph);
+}
+
+// FIX 2026-05-17: Intl API con timeZone America/Santiago (DST)
+function obtenerFechaHoyChile() {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Santiago',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(new Date());
+}
+function fechaChileOffset(dias) {
+  const d = new Date(Date.now() + dias * 86400000);
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Santiago',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(d);
+}
+// FIX 2026-06-12: "nueva" = la imagen APARECIO hace menos de 24h en este
+// navegador. El gate hoy/ayer (hora Chile) sigue siendo necesario porque el
+// L2A/USGS publica 4-24h despues del paso, pero solo con fecha el aviso podia
+// durar ~48h (imagen del dia D parpadeaba hasta medianoche de D+1). Ahora se
+// guarda en localStorage cuando se vio por primera vez y se apaga a las 24h.
+function esNuevaHoy(volcan, sensor, f) {
+  if (!f) return false;
+  if (f !== obtenerFechaHoyChile() && f !== fechaChileOffset(-1)) return false;
+  const key = 'vista_' + sensor + '_' + volcan + '_' + f;
+  let visto;
+  try {
+    visto = localStorage.getItem(key);
+    if (!visto) {
+      visto = String(Date.now());
+      // limpiar marcas de fechas anteriores del mismo volcan+sensor
+      const prefijo = 'vista_' + sensor + '_' + volcan + '_';
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const k = localStorage.key(i);
+        if (k && k.indexOf(prefijo) === 0 && k !== key) localStorage.removeItem(k);
+      }
+      localStorage.setItem(key, visto);
+    }
+  } catch (e) {
+    return true; // localStorage bloqueado: caer al gate hoy/ayer
+  }
+  return (Date.now() - Number(visto)) < 24 * 3600 * 1000;
+}
+
+// === INDICADOR DE ESTADO GLOBAL (kiosko desatendido) ===
+// Edad, en dias, de la imagen MAS reciente de todo el set (max de la ultima
+// fecha por volcan, sobre S2 y Landsat). Devuelve null si no hay ninguna fecha.
+function edadMaximaDatosDias() {
+  let masReciente = null;  // 'YYYY-MM-DD'
+  for (const obj of [fechasS2, fechasLandsat]) {
+    if (!obj) continue;
+    for (const v of Object.keys(obj)) {
+      const lista = obj[v];
+      if (lista && lista.length) {
+        const ult = lista[lista.length - 1];   // listas ascendentes
+        if (!masReciente || ult > masReciente) masReciente = ult;
+      }
+    }
+  }
+  if (!masReciente) return null;
+  // Diferencia en dias usando medianoche UTC de cada fecha (YYYY-MM-DD).
+  const hoy = obtenerFechaHoyChile();
+  const msDia = 86400000;
+  const tFecha = new Date(masReciente + 'T00:00:00Z').getTime();
+  const tHoy = new Date(hoy + 'T00:00:00Z').getTime();
+  return Math.max(0, Math.round((tHoy - tFecha) / msDia));
+}
+
+// Pinta/oculta la banda de alarma. Dos modos:
+//   sin conexion  -> el refresco lleva >MAX_CICLOS_FALLIDOS ciclos fallando
+//   datos viejos  -> la imagen mas fresca supera DIAS_STALE dias
+// Prioridad: sin conexion (mas grave, no sabemos si hay datos nuevos detras).
+function actualizarIndicadorStale() {
+  const band = document.getElementById('estado-global');
+  if (!band) return;
+  while (band.firstChild) band.removeChild(band.firstChild);
+  band.classList.remove('sin-conexion');
+
+  if (ciclosFallidos > MAX_CICLOS_FALLIDOS) {
+    band.classList.add('visible', 'sin-conexion');
+    band.textContent = '⚠️ SIN CONEXIÓN A DATOS · ' + ciclosFallidos +
+                       ' intentos fallidos · imágenes podrían estar desactualizadas';
+    return;
+  }
+
+  const edad = edadMaximaDatosDias();
+  if (edad !== null && edad > DIAS_STALE) {
+    band.classList.add('visible');
+    band.textContent = '⚠️ DATOS DESACTUALIZADOS · imagen más reciente hace ' +
+                       edad + ' día' + (edad === 1 ? '' : 's');
+    return;
+  }
+
+  band.classList.remove('visible');
+}
+
+async function refrescarDatos() {
+  try {
+    const [rS2, rL] = await Promise.allSettled([
+      fetch('fechas_disponibles_copernicus.json?t=' + Date.now()).then(r => r.json()),
+      fetch(LANDSAT_JSON_URL + '?t=' + Date.now()).then(r => r.json())
+    ]);
+    if (rS2.status === 'fulfilled') fechasS2 = rS2.value;
+    if (rL.status === 'fulfilled')  fechasLandsat = rL.value;
+    // Salud del refresco: si NINGUNA de las dos fuentes respondio, este ciclo
+    // fallo (allSettled no lanza, asi que el catch no se dispara en red caida).
+    if (rS2.status !== 'fulfilled' && rL.status !== 'fulfilled') {
+      ciclosFallidos++;
+      console.warn('[Sala] Refresco fallido (ambas fuentes), ciclo', ciclosFallidos);
+    } else {
+      ciclosFallidos = 0;
+    }
+    // refrescar predicciones tambien (avanzan cuando llega una pasada nueva)
+    Promise.allSettled([
+      fetch(PRED_S2_URL + '?t=' + Date.now()).then(r => r.json()).then(j => predS2 = j),
+      fetch(PRED_LANDSAT_URL + '?t=' + Date.now()).then(r => r.json()).then(j => predLandsat = j),
+      fetch(NIVELES_LANDSAT_URL + '?t=' + Date.now()).then(r => r.json()).then(j => nivelesLandsat = j || {})
+    ]);
+    // Solo re-renderizar (recarga las <img> con cache-buster) si hay
+    // fechas nuevas vs lo que ya tenemos pintado. Evita parpadeo cada minuto.
+    const nuevaFirma = firmaUltimasFechas();
+    if (nuevaFirma !== firmaActualS2) {
+      console.log('[Sala] Imágenes nuevas detectadas, re-renderizando');
+      firmaActualS2 = nuevaFirma;
+      render();
+    }
+  } catch (e) {
+    // Excepcion inesperada (no la red caida, que allSettled absorbe): contarla
+    // como ciclo fallido para que el kiosko no se quede "en vivo" en silencio.
+    ciclosFallidos++;
+    console.warn('No se pudo refrescar datos (ciclo ' + ciclosFallidos + ')', e);
+  }
+  // Reevaluar la banda de alarma en cada ciclo (exito o fallo).
+  actualizarIndicadorStale();
+}
+
+init();
+</script>
+
+</body>
+</html>

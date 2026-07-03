@@ -1,0 +1,305 @@
+name: Monitoreo Copernicus Automatico
+
+on:
+  schedule:
+    # FIX 2026-06-03: arquitectura watcher OData. El cron ahora corre CADA
+    # 15 MIN en las ventanas de publicacion, pero la mayoria de las veces
+    # solo ejecuta el job 'detectar' (query GRATIS al OData Catalogue, 0 PU).
+    # El pipeline de descarga (que SI cuesta PU via Process API) solo corre
+    # cuando detectar encuentra un producto L2A nuevo sobre Chile.
+    #
+    # DATOS REALES (75 escenas analizadas):
+    # - Paso S2 sobre Chile: 14:26-14:37 UTC (10:26-10:37 hora Chile)
+    # - Latencia paso -> L2A: mediana 4.7h, P95 11.7h (bimodal)
+    # - Pico publicacion L2A: 18-20 UTC (50% escenas, ~4-5h despues del paso)
+    # - Pico tardio:          01-02 UTC del dia siguiente (~12h despues)
+    # - Zona muerta:          03-17 UTC (no aparecen escenas)
+    #
+    # Resultado: deteccion <=15 min a $0 PU; render solo en imagen nueva real.
+    - cron: '*/15 17-21 * * *'   # pico principal, cada 15 min (13-17:45 Chile)
+    - cron: '*/15 0-3 * * *'     # pico tardio, cada 15 min (20-23:45 Chile)
+
+  workflow_dispatch:
+
+# FIX 2026-05-17: concurrency para evitar runs simultáneos que pisan commits.
+# Nota: cuando un pipeline pesado corre (~45 min), los watchers se encolan.
+# No importa: durante un download activo ya estamos procesando lo nuevo; el
+# valor de los 15 min esta cuando el sistema esta IDLE (ahi corren sin bloqueo).
+#
+# FIX 2026-06-14: grupo COMPARTIDO 'push-main' con change_analysis, spectral_indices
+# y deteccion_cambios. Antes cada workflow tenia su propio grupo (github.workflow) y
+# corrian en paralelo, compitiendo por el push a main y pisandose con rebase -X theirs.
+# Un solo grupo los serializa: el segundo espera a que termine el primero.
+concurrency:
+  group: push-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  # ===============================================================
+  # FASE 0: deteccion GRATIS via OData Catalogue (0 PU)
+  # ===============================================================
+  # Gate del pipeline: solo si hay un producto S2 L2A nuevo publicado sobre
+  # Chile, has_new=true y corren las fases siguientes (que gastan PU).
+  # En dispatch manual se fuerza has_new=true (pipeline completo siempre).
+  detectar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      has_new: ${{ steps.watch.outputs.has_new }}
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v5
+
+      - name: Configurar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Detectar imagenes nuevas (OData, 0 PU)
+        id: watch
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "Dispatch manual -> forzar pipeline completo"
+            echo "has_new=true" >> "$GITHUB_OUTPUT"
+          else
+            python scripts/watcher_odata.py
+          fi
+
+      - name: Commitear marcador OData si avanzo
+        if: steps.watch.outputs.has_new == 'true' && github.event_name != 'workflow_dispatch'
+        run: |
+          git config --global user.name "Copernicus Watcher"
+          git config --global user.email "watcher@copernicus.local"
+          git add docs/.s2_last_pub.json || true
+          if ! git diff --quiet --staged; then
+            git commit -m "watcher: marcador OData $(date -u +'%Y-%m-%dT%H:%MZ')"
+            for i in 1 2 3; do
+              git fetch origin main
+              git merge --ff-only origin/main || git pull origin main --rebase -X theirs || true
+              git push origin main && break
+              sleep $((i*2))
+            done
+          fi
+
+  # ===============================================================
+  # FASE 1: descarga paralela por zona
+  # ===============================================================
+  # FIX 2026-05-27: el job unico secuencial daba timeout (>2h) por backlog
+  # + SWIR_raw extra. Lo partimos en 4 jobs paralelos (Norte/Centro/Sur/Austral).
+  # Cada zona toma ~15-30 min. fail-fast: false para que una zona caida no
+  # cancele las otras 3.
+  descarga:
+    needs: [detectar]
+    if: needs.detectar.outputs.has_new == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        zona: [Norte, Centro, Sur, Austral]
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v5
+
+      - name: Configurar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        # FIX 2026-06-07: usar requirements.txt en vez de lista a mano. Antes
+        # faltaba tifffile -> SWIR_raw hacia el POST (gastaba PU) y fallaba al
+        # guardar el .npz (0 archivos en 2810 PNG). requirements.txt incluye
+        # tifffile + numpy -> SWIR_raw ahora si persiste y revive VRP-real.
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Descargar imagenes Sentinel-2 (zona ${{ matrix.zona }})
+        env:
+          SH_CLIENT_ID: ${{ secrets.SH_CLIENT_ID }}
+          SH_CLIENT_SECRET: ${{ secrets.SH_CLIENT_SECRET }}
+          # Cuenta backup para failover automatico (vacios si no estan cargados).
+          SH_CLIENT_ID_2: ${{ secrets.SH_CLIENT_ID_2 }}
+          SH_CLIENT_SECRET_2: ${{ secrets.SH_CLIENT_SECRET_2 }}
+        run: |
+          echo "Descargando zona ${{ matrix.zona }} (ultimos 15 dias)..."
+          python sentinel2_downloader.py --zona ${{ matrix.zona }} --dias 15 --skip-json
+
+      - name: Reducir artifact a SOLO los volcanes de la zona
+        # FIX 2026-05-28: antes el artifact contenia docs/sentinel2/* completo
+        # (todos los volcanes via checkout). Al hacer download-artifact con
+        # merge-multiple en el job consolidador, los CSV de cada zona pisaban
+        # los de otras zonas en orden no-deterministico => metadata.csv quedaba
+        # viejo en los volcanes de zonas procesadas primero.
+        # Ahora cada artifact solo contiene los volcanes de su propia zona.
+        run: |
+          python - << 'PYEOF'
+          from config_sentinel2 import VOLCANES
+          import shutil, os
+          zona = "${{ matrix.zona }}"
+          keep = {n for n,c in VOLCANES.items() if c.get('zona') == zona}
+          base = 'docs/sentinel2'
+          if os.path.isdir(base):
+              for d in os.listdir(base):
+                  full = os.path.join(base, d)
+                  if os.path.isdir(full) and d not in keep:
+                      shutil.rmtree(full)
+          print(f"Artifact contiene solo {len(keep)} volcanes de zona {zona}")
+          PYEOF
+
+      - name: Upload artifact docs/sentinel2 (zona ${{ matrix.zona }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: sentinel2-${{ matrix.zona }}
+          path: docs/sentinel2/
+          retention-days: 1
+          include-hidden-files: false
+          if-no-files-found: warn
+
+  # ===============================================================
+  # FASE 2: consolidar las 4 zonas, generar timelapses+JSON+manifest+commit+push
+  # ===============================================================
+  consolidar:
+    needs: [descarga]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout repositorio
+        uses: actions/checkout@v5
+
+      - name: Configurar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        # FIX 2026-06-07: requirements.txt centraliza deps (incluye python-pptx
+        # y tifffile). Evita el bug de "olvide una dep" que dejaba SWIR_raw sin guardar.
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Regenerar docs/volcanes.js desde config_sentinel2.py
+        run: |
+          python scripts/generar_volcanes_js.py
+          git add docs/volcanes.js || true
+
+      - name: Descargar artifacts de las 4 zonas a docs/sentinel2/
+        uses: actions/download-artifact@v4
+        with:
+          path: docs/sentinel2/
+          pattern: sentinel2-*
+          merge-multiple: true
+
+      - name: Regenerar JSON de fechas desde filesystem
+        # Standalone: no toca la API, solo escanea docs/sentinel2/*/
+        run: |
+          python sentinel2_downloader.py --only-json
+
+      - name: Generar timelapses automaticos
+        run: |
+          echo "Generando timelapses ultimos 30 dias para dashboard..."
+          python timelapse_generator_auto.py
+          git add docs/timelapses/*.gif || true
+
+      - name: Predecir proximas pasadas Sentinel-2
+        run: |
+          python generar_proximas_pasadas.py
+          git add docs/proximas_pasadas.json || true
+
+      - name: Generar PPT mensuales (dia 1 del mes)
+        run: |
+          DIA=$(date +%d)
+          if [ "$DIA" = "01" ]; then
+            echo "Es dia 1, generando PPT mensual..."
+            python ppt_generator.py
+          else
+            echo "No es dia 1 (dia actual: $DIA), omitiendo PPT"
+          fi
+
+      - name: Eliminar PPTs antiguos (>12h, decision usuario)
+        run: |
+          # 720 min = 12 horas. Antes era -mtime +1 (24h).
+          find docs/sentinel2/ -name "*.pptx" -type f -mmin +720 -print -delete || true
+          find docs/reportes/ -name "*.pptx" -type f -mmin +720 -print -delete 2>/dev/null || true
+
+      - name: Generar manifest de GIFs para ppt_builder
+        run: |
+          python scripts/generar_manifest_gifs.py
+          git add docs/timelapses_ppt_manifest.json || true
+
+      - name: Guardar cambios en GitHub
+        run: |
+          git config --global user.name "Copernicus Bot"
+          git config --global user.email "bot@copernicus.local"
+
+          git add -A
+
+          if ! git diff --quiet --staged; then
+            FECHA=$(date +'%Y-%m-%d %H:%M')
+            git commit -m "Actualizacion automatica: $FECHA"
+
+            max_retries=5
+            retry_count=0
+
+            while [ $retry_count -lt $max_retries ]; do
+              echo "Intento $((retry_count + 1)) de push..."
+
+              git fetch origin main
+              if ! git merge --ff-only origin/main; then
+                echo "No fast-forward posible, intentando rebase con preferencia a remoto..."
+                if ! git pull origin main --rebase -X theirs; then
+                  echo "Rebase fallo, abortando para no perder cambios remotos."
+                  git rebase --abort 2>/dev/null || true
+                  exit 1
+                fi
+              fi
+
+              if git push origin main; then
+                echo "Push exitoso"
+                break
+              else
+                retry_count=$((retry_count + 1))
+                if [ $retry_count -lt $max_retries ]; then
+                  sleep $((retry_count * 2))
+                fi
+              fi
+            done
+
+            if [ $retry_count -eq $max_retries ]; then
+              echo "Push fallo despues de $max_retries intentos"
+              exit 1
+            fi
+          else
+            echo "No hay cambios para guardar"
+          fi
+
+      - name: Preparar sitio Pages liviano (sin imagenes pesadas)
+        # FIX 2026-06-08: el artifact de Pages pesaba ~2.2GB (limite 1GB) porque
+        # incluia docs/sentinel2 (~1.9GB) y docs/timelapses (~263MB). Pero el
+        # dashboard sirve esas imagenes desde raw.githubusercontent (REPO_BASE),
+        # NO desde Pages -> eran peso muerto. Las imagenes siguen commiteadas en
+        # git (las sirve raw). El artifact baja a ~30MB.
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          rsync -a --exclude 'sentinel2/' --exclude 'timelapses/' docs/ _site/
+          echo "Tamano del sitio Pages liviano:"; du -sh _site
+
+      - name: Configurar GitHub Pages
+        uses: actions/configure-pages@v4
+
+      - name: Subir artefacto a Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+
+      - name: Deploy a GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

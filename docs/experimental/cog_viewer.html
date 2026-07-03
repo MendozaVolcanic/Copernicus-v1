@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa Interactivo — Sentinel-2 / Landsat (zoom libre)</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0a0e17; color: #e0e0e0; height: 100vh; display: flex; flex-direction: column; }
+
+        .header { background: #161b22; border-bottom: 1px solid #30363d; padding: 10px 16px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; flex-shrink: 0; }
+        .header h1 { font-size: 1em; color: #58a6ff; }
+        .badge { padding: 2px 8px; border-radius: 10px; font-size: 0.7em; font-weight: bold; }
+        .badge-exp { background: #f0883e; color: #000; }
+        .badge-zero { background: #3fb950; color: #000; }
+
+        .controls { display: flex; gap: 10px; padding: 8px 16px; background: #0d1117; border-bottom: 1px solid #21262d; flex-wrap: wrap; align-items: center; flex-shrink: 0; }
+        select, button { background: #21262d; color: #c9d1d9; border: 1px solid #30363d; padding: 5px 10px; border-radius: 6px; font-size: 0.82em; cursor: pointer; }
+        select:focus { outline: none; border-color: #58a6ff; }
+        button { padding: 5px 14px; }
+        button:hover { background: #30363d; }
+        .btn-buscar { background: #1f6feb; color: #fff; border-color: #1f6feb; }
+        .btn-buscar:hover { background: #388bfd; }
+        .control-label { font-size: 0.78em; color: #8b949e; }
+
+        #map { flex: 1; }
+
+        .sidebar { position: absolute; right: 12px; top: 120px; width: 260px; z-index: 1000; background: #161b22; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; }
+        .sidebar-header { padding: 8px 12px; background: #1c2128; border-bottom: 1px solid #21262d; font-size: 0.82em; font-weight: 600; color: #e6edf3; }
+        .sidebar-content { padding: 10px 12px; }
+        .resultado-item { margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #21262d; }
+        .resultado-item:last-child { border-bottom: none; margin-bottom: 0; }
+        .resultado-fecha { font-size: 0.8em; font-weight: 600; color: #58a6ff; }
+        .resultado-sensor { font-size: 0.72em; color: #8b949e; }
+        .resultado-nube { font-size: 0.72em; color: #d29922; }
+        .btn-cargar { font-size: 0.72em; margin-top: 4px; padding: 3px 8px; }
+        .status-msg { font-size: 0.78em; color: #8b949e; padding: 8px 12px; }
+
+        .bandas-panel { position: absolute; left: 12px; top: 120px; z-index: 1000; background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 10px 14px; width: 200px; }
+        .bandas-panel h4 { font-size: 0.78em; color: #8b5cf6; margin-bottom: 8px; font-weight: 700; text-transform: uppercase; }
+        .banda-btn { display: block; width: 100%; text-align: left; margin-bottom: 4px; padding: 5px 10px; background: #21262d; border: 1px solid #30363d; color: #c9d1d9; border-radius: 5px; font-size: 0.78em; cursor: pointer; }
+        .banda-btn:hover { background: #30363d; }
+        .banda-btn.active { background: #1f6feb26; color: #58a6ff; border-color: #1f6feb; }
+        .note { font-size: 0.7em; color: #484f58; margin-top: 8px; line-height: 1.5; }
+
+        .cog-layer-info { position: absolute; bottom: 12px; left: 12px; z-index: 1000; background: rgba(22,27,34,0.9); border: 1px solid #30363d; border-radius: 6px; padding: 6px 12px; font-size: 0.75em; color: #8b949e; }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <h1>🗺️ Mapa Interactivo — Sentinel-2 / Landsat</h1>
+    <span class="badge badge-zero">0 bytes en GitHub</span>
+    <span style="font-size:0.78em;color:#8b949e;">
+      Explorá cualquier imagen del catálogo con <strong>zoom y desplazamiento libres</strong> a resolución
+      completa. Las bandas se calculan al vuelo desde Microsoft Planetary Computer — no se descarga nada al
+      repositorio. Para la imagen procesada más reciente garantizada, usá el dashboard principal.
+    </span>
+</div>
+
+<div class="controls">
+    <span class="control-label">Volcán:</span>
+    <select id="sel-volcan"></select>
+    <span class="control-label">Sensor:</span>
+    <select id="sel-sensor" onchange="buscarImagenes()">
+        <option value="sentinel-2-l2a">Sentinel-2 (10m)</option>
+        <option value="landsat-c2-l2">Landsat 8/9 (30m)</option>
+    </select>
+    <span class="control-label">Nubes max:</span>
+    <select id="sel-nubes" onchange="buscarImagenes()">
+        <option value="20">20% (despejado)</option>
+        <option value="40">40%</option>
+        <option value="60" selected>60% (recomendado)</option>
+        <option value="80">80%</option>
+        <option value="100">Sin filtro</option>
+    </select>
+    <span class="control-label">Período:</span>
+    <select id="sel-periodo" onchange="buscarImagenes()">
+        <option value="30">30 días</option>
+        <option value="60">60 días</option>
+        <option value="90" selected>90 días</option>
+        <option value="180">6 meses</option>
+        <option value="365">1 año</option>
+    </select>
+    <button class="btn-buscar" onclick="buscarImagenes()">🔍 Buscar imágenes</button>
+    <span id="status-buscar" style="font-size:0.78em;color:#8b949e;"></span>
+</div>
+
+<div id="map">
+    <!-- Leaflet map here -->
+</div>
+
+<!-- Panel bandas -->
+<div class="bandas-panel">
+    <h4>Composición bandas</h4>
+    <button class="banda-btn active" onclick="cambiarBanda('rgb', this)">RGB (color natural)</button>
+    <button class="banda-btn" onclick="cambiarBanda('swir', this)">SWIR-NIR-Red (volcánico)</button>
+    <button class="banda-btn" onclick="cambiarBanda('ndvi', this)">NDVI (vegetación)</button>
+    <button class="banda-btn" onclick="cambiarBanda('thermal', this)">Thermal (Landsat)</button>
+    <div id="banda-legend" style="margin-top:8px; font-size:0.78em; color:#c9d1d9; line-height:1.45;"></div>
+    <div class="note">Las combinaciones de bandas se calculan al vuelo (server-side) vía Microsoft Planetary Computer. No se descarga nada al repositorio.</div>
+</div>
+
+<!-- Resultados búsqueda -->
+<div class="sidebar" id="sidebar">
+    <div class="sidebar-header">Imágenes disponibles</div>
+    <div class="sidebar-content" id="sidebar-content">
+        <div class="status-msg">Selecciona un volcán y haz clic en "Buscar imágenes"</div>
+    </div>
+</div>
+
+<!-- Info capa activa -->
+<div class="cog-layer-info" id="cog-info" style="display:none"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../volcanes.js"></script>
+<script>
+// ─── Volcanes ───────────────────────────────────────────────────────────────
+// Desde volcanes.js (single source of truth). Solo se usan lat/lon, pero el
+// objeto completo está disponible si se necesita zona/buffer_km/etc.
+const VOLCANES = window.VOLCANES_CONFIG;
+
+// ─── Configuración bandas por sensor ────────────────────────────────────────
+const BAND_CONFIG = {
+    "sentinel-2-l2a": {
+        rgb:     { bands: ["B04","B03","B02"], rescale: "0,3000", name: "RGB" },
+        swir:    { bands: ["B12","B8A","B04"], rescale: "0,3000", name: "SWIR-NIR-Red" },
+        ndvi:    { bands: ["B08","B04"], expression: "(B08-B04)/(B08+B04)", rescale: "-1,1", colormap_name: "rdylgn", name: "NDVI" },
+        thermal: { bands: ["B12","B11","B04"], rescale: "0,3000", name: "SWIR thermal" },
+    },
+    "landsat-c2-l2": {
+        rgb:     { bands: ["red","green","blue"], rescale: "7000,40000", name: "RGB" },
+        swir:    { bands: ["swir22","swir16","red"], rescale: "7000,40000", name: "SWIR2-SWIR1-Red" },
+        ndvi:    { bands: ["nir08","red"], expression: "(nir08-red)/(nir08+red)", rescale: "-1,1", colormap_name: "rdylgn", name: "NDVI" },
+        thermal: { bands: ["lwir11"], rescale: "14000,35000", colormap_name: "inferno", name: "Thermal (TIRS)" },
+    }
+};
+
+// Leyenda de colores por banda (que esta viendo el usuario). Mismo significado
+// para S2 y Landsat, por eso se indexa solo por banda.
+const LEGEND = {
+    rgb: '🎨 <b>Color natural</b>: como lo vería el ojo. Nieve/nubes blanco, vegetación verde, roca y ceniza marrón, agua oscura.',
+    swir: '🔥 <b>SWIR falso color</b>: anomalías térmicas y lava expuesta en <span style="color:#ff5555">rojo/amarillo brillante</span>, nieve y hielo en <span style="color:#6db3ff">azul</span>, vegetación verde. Penetra humo fino.',
+    ndvi: '🌱 <b>NDVI (vegetación)</b>: <span style="color:#2ecc71">verde</span> = vegetación sana, amarillo = escasa, <span style="color:#e74c3c">rojo</span> = suelo, roca, ceniza o nieve.',
+    thermal: '🌡️ <b>Térmico</b>: oscuro = frío, <span style="color:#ffb84d">brillante/amarillo</span> = caliente. En Landsat usa la banda térmica real (TIRS); en S2 es aproximación por SWIR.'
+};
+
+const PC_TITILER = "https://planetarycomputer.microsoft.com/api/stac/v1";
+const PC_TITILER_TILES = "https://planetarycomputer.microsoft.com/api/data/v1/item/tilejson.json";
+
+function actualizarLegend() {
+    const el = document.getElementById('banda-legend');
+    if (el) el.innerHTML = LEGEND[bandaActual] || '';
+}
+
+let map, cogLayer = null, volcMarker = null;
+let bandaActual = 'rgb';
+let itemActual = null;
+
+// ─── Init mapa ───────────────────────────────────────────────────────────────
+map = L.map('map').setView([-33, -70], 5);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &copy; CARTO', maxZoom: 18
+}).addTo(map);
+
+// ─── Poblar selector de volcanes ─────────────────────────────────────────────
+const sel = document.getElementById('sel-volcan');
+for (const nombre of Object.keys(VOLCANES)) {
+    const opt = document.createElement('option');
+    opt.value = nombre;
+    opt.textContent = nombre;
+    if (nombre === 'Villarrica') opt.selected = true;
+    sel.appendChild(opt);
+}
+
+sel.addEventListener('change', () => {
+    const v = VOLCANES[sel.value];
+    if (v) map.setView([v.lat, v.lon], 11);
+    // Auto-buscar al cambiar de volcan (UX: no hace falta clickear "Buscar")
+    buscarImagenes();
+});
+map.setView([VOLCANES['Villarrica'].lat, VOLCANES['Villarrica'].lon], 11);
+actualizarLegend();
+// Auto-buscar + auto-cargar la imagen mas reciente al abrir la pagina
+window.addEventListener('load', () => { buscarImagenes(); });
+
+// ─── Buscar imágenes via STAC ─────────────────────────────────────────────────
+let searchSeq = 0;  // descarta respuestas de busquedas viejas (cambio rapido de volcan)
+async function buscarImagenes() {
+    const mySeq = ++searchSeq;
+    const nombre = document.getElementById('sel-volcan').value;
+    const sensor = document.getElementById('sel-sensor').value;
+    const maxNubes = parseInt(document.getElementById('sel-nubes').value);
+    const v = VOLCANES[nombre];
+    if (!v) return;
+
+    document.getElementById('status-buscar').textContent = 'Buscando...';
+    const content = document.getElementById('sidebar-content');
+    content.textContent = '';
+    const loading = document.createElement('div');
+    loading.className = 'status-msg';
+    loading.textContent = 'Consultando Planetary Computer STAC...';
+    content.appendChild(loading);
+
+    map.setView([v.lat, v.lon], 12);
+    if (volcMarker) map.removeLayer(volcMarker);
+    volcMarker = L.circleMarker([v.lat, v.lon], {
+        radius: 8, fillColor: '#f85149', color: '#f85149', fillOpacity: 0.8
+    }).addTo(map).bindPopup(nombre).openPopup();
+
+    // Bbox 0.15° alrededor del volcán
+    const delta = 0.08;
+    const bbox = [v.lon - delta, v.lat - delta, v.lon + delta, v.lat + delta];
+
+    try {
+        document.getElementById('status-buscar').textContent = '⏳ Consultando STAC Microsoft Planetary Computer...';
+        const hoy = new Date();
+        const dias = parseInt(document.getElementById('sel-periodo')?.value || '90', 10);
+        const haceN = new Date(hoy - dias * 86400000);
+        const fechaInicio = haceN.toISOString().slice(0,10);
+        const fechaFin = hoy.toISOString().slice(0,10);
+
+        // Ordenar por fecha DESC para que las más recientes aparezcan primero
+        const query = {
+            collections: [sensor],
+            bbox: bbox,
+            datetime: `${fechaInicio}/${fechaFin}`,
+            limit: 30,
+            sortby: [{ field: 'properties.datetime', direction: 'desc' }],
+            query: maxNubes < 100 ? { "eo:cloud_cover": { "lt": maxNubes } } : {}
+        };
+
+        const resp = await fetch(`${PC_TITILER}/search`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(query)
+        });
+        if (!resp.ok) throw new Error('STAC error ' + resp.status);
+        const data = await resp.json();
+        if (mySeq !== searchSeq) return;  // llego una busqueda mas nueva: descartar esta
+
+        // Como fallback por si el sortby fuera ignorado, ordenamos client-side
+        const features = (data.features || []).sort((a, b) =>
+            (b.properties?.datetime || '').localeCompare(a.properties?.datetime || '')
+        );
+
+        // Mensaje contextual: si hay <5 imágenes con filtro estricto, sugerir relajar
+        if (features.length === 0) {
+            document.getElementById('status-buscar').textContent =
+                `⚠️ Sin imágenes con ≤${maxNubes}% nubes en ${dias} días. Probá subir filtro o ampliar período.`;
+        } else if (features.length < 5 && maxNubes < 100) {
+            document.getElementById('status-buscar').textContent =
+                `${features.length} img · zona muy nubosa, subí filtro nubes para ver más`;
+        } else {
+            document.getElementById('status-buscar').textContent =
+                `${features.length} imágenes · más recientes primero · período ${dias}d · ≤${maxNubes}% nubes`;
+        }
+
+        renderResultados(features, sensor);
+
+        // Auto-cargar la imagen MAS RECIENTE en el mapa (sin clic extra).
+        // features ya viene ordenado desc por fecha.
+        if (features.length > 0) {
+            cargarCOG(features[0], sensor);
+        }
+    } catch (e) {
+        document.getElementById('status-buscar').textContent = 'Error: ' + e.message;
+        content.textContent = '';
+        const err = document.createElement('div');
+        err.className = 'status-msg';
+        err.textContent = 'Error al consultar STAC: ' + e.message;
+        content.appendChild(err);
+    }
+}
+
+function renderResultados(items, sensor) {
+    const content = document.getElementById('sidebar-content');
+    content.textContent = '';
+
+    if (items.length === 0) {
+        const msg = document.createElement('div');
+        msg.className = 'status-msg';
+        msg.textContent = 'Sin imágenes disponibles para los filtros seleccionados.';
+        content.appendChild(msg);
+        return;
+    }
+
+    for (const item of items) {
+        const fecha = (item.properties?.datetime || '').slice(0, 10);
+        const nubes = item.properties?.['eo:cloud_cover']?.toFixed(0) || '?';
+        const plat = item.properties?.platform || sensor;
+
+        const div = document.createElement('div');
+        div.className = 'resultado-item';
+
+        const f = document.createElement('div');
+        f.className = 'resultado-fecha';
+        f.textContent = fecha;
+        div.appendChild(f);
+
+        const s = document.createElement('div');
+        s.className = 'resultado-sensor';
+        s.textContent = plat;
+        div.appendChild(s);
+
+        const n = document.createElement('div');
+        n.className = 'resultado-nube';
+        n.textContent = `Nubes: ${nubes}%`;
+        div.appendChild(n);
+
+        const btn = document.createElement('button');
+        btn.className = 'btn-cargar';
+        btn.textContent = 'Cargar en mapa';
+        btn.addEventListener('click', () => cargarCOG(item, sensor));
+        div.appendChild(btn);
+
+        content.appendChild(div);
+    }
+}
+
+async function cargarCOG(item, sensor) {
+    const config = BAND_CONFIG[sensor]?.[bandaActual] || BAND_CONFIG[sensor]?.rgb;
+    if (!config) return;
+
+    // Eliminar capa anterior
+    if (cogLayer) { map.removeLayer(cogLayer); cogLayer = null; }
+
+    const fechaItem = (item.properties?.datetime || '').slice(0,10);
+    document.getElementById('status-buscar').textContent =
+        `⏳ Solicitando tiles ${fechaItem} (puede tardar 5-30s en primer load)...`;
+    itemActual = item;
+
+    try {
+        // Construir URL de tiles via Planetary Computer titiler.
+        // FIX 2026-06-04 (BUG que rompia TODO el viewer): titiler espera
+        //   - assets como PARAMS REPETIDOS (assets=B04&assets=B03...), NO
+        //     comma-joined. "B04,B03,B02" daba 404 "is not valid".
+        //   - para expresiones (NDVI) hace falta asset_as_band=true y NO assets,
+        //     si no da 500 "Could not find any valid assets in expression".
+        const params = new URLSearchParams();
+        params.set('collection', sensor);
+        params.set('item', item.id);
+        if (config.expression) {
+            params.set('expression', config.expression);
+            params.set('asset_as_band', 'true');
+        } else {
+            for (const b of config.bands) params.append('assets', b);
+        }
+        if (config.rescale) params.set('rescale', config.rescale);
+        if (config.colormap_name) params.set('colormap_name', config.colormap_name);
+
+        const tileJsonUrl = `${PC_TITILER_TILES}?${params.toString()}`;
+        const tileResp = await fetch(tileJsonUrl);
+        if (!tileResp.ok) throw new Error('TileJSON error ' + tileResp.status);
+        const tileJson = await tileResp.json();
+        const tileUrl = tileJson.tiles?.[0];
+        if (!tileUrl) throw new Error('Sin URL de tiles');
+
+        cogLayer = L.tileLayer(tileUrl, {
+            attribution: 'Microsoft Planetary Computer | ' + sensor,
+            opacity: 0.9,
+            maxZoom: 18,
+            minZoom: 8
+        });
+
+        // Indicador de progreso de tiles cargando
+        let tilesPendientes = 0;
+        let tilesOK = 0;
+        cogLayer.on('tileloadstart', () => { tilesPendientes++; });
+        cogLayer.on('tileload', () => {
+            tilesOK++;
+            tilesPendientes = Math.max(0, tilesPendientes - 1);
+            if (tilesPendientes === 0) {
+                document.getElementById('status-buscar').textContent =
+                    `✓ Cargado: ${fechaItem} (${config.name}) · ${tilesOK} tiles`;
+            } else {
+                document.getElementById('status-buscar').textContent =
+                    `⏳ ${tilesOK} tiles cargados, ${tilesPendientes} pendientes...`;
+            }
+        });
+        cogLayer.on('tileerror', (e) => {
+            tilesPendientes = Math.max(0, tilesPendientes - 1);
+            console.warn('Tile error', e);
+        });
+
+        cogLayer.addTo(map);
+
+        const fecha = fechaItem;
+        const info = document.getElementById('cog-info');
+        info.textContent = `${config.name} | ${fecha} | ${sensor} | ID: ${item.id.slice(0,30)}...`;
+        info.style.display = 'block';
+    } catch (e) {
+        document.getElementById('status-buscar').textContent = 'Error tiles: ' + e.message;
+        // Fallback: mostrar thumbnail si existe
+        const thumb = item.assets?.thumbnail?.href || item.assets?.rendered_preview?.href;
+        if (thumb) {
+            const bounds = item.bbox ? [[item.bbox[1], item.bbox[0]], [item.bbox[3], item.bbox[2]]] : null;
+            if (bounds) {
+                cogLayer = L.imageOverlay(thumb, bounds, { opacity: 0.85 }).addTo(map);
+                document.getElementById('status-buscar').textContent = 'Cargado preview (baja resolución)';
+            }
+        }
+    }
+}
+
+function cambiarBanda(banda, btnEl) {
+    bandaActual = banda;
+    document.querySelectorAll('.banda-btn').forEach(b => b.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    actualizarLegend();
+    if (itemActual) {
+        const sensor = document.getElementById('sel-sensor').value;
+        cargarCOG(itemActual, sensor);
+    }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+  # FIX 2026-06-14: se removio el trigger 'workflow_run' obsoleto. Apuntaba a
+  # workflows que ya no existen ("Sentinel-2 Auto Download", "Generar Timelapse
+  # GIF", "Generar PPT Evaluación Mensual") -> nunca disparaba. El deploy ocurre
+  # via push a main (que ya hacen los demas workflows) y dispatch manual.
+  workflow_dispatch:
+
+concurrency:
+  group: pages-deploy
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Preparar sitio Pages liviano (sin imagenes pesadas)
+        # FIX 2026-06-08: excluir docs/sentinel2 (~1.9GB) y docs/timelapses (~263MB)
+        # del artifact. El dashboard las sirve desde raw.githubusercontent, no desde
+        # Pages -> artifact ~2.2GB -> ~30MB (limite Pages = 1GB). Ver copernicus.yml.
+        run: |
+          rm -rf _site
+          mkdir -p _site
+          rsync -a --exclude 'sentinel2/' --exclude 'timelapses/' docs/ _site/
+          echo "Tamano del sitio Pages liviano:"; du -sh _site
+
+      - name: Configurar Pages
+        uses: actions/configure-pages@v4
+
+      - name: Subir artefacto
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: '_site'
+      
+      - name: Deploy a GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

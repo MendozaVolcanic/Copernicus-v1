@@ -1,0 +1,110 @@
+# ============================================================================
+# WORKFLOW: GENERAR TIMELAPSES PPT (TODOS LOS VOLCANES)
+# ============================================================================
+# Genera carpetas timelapses_ppt/ con GIFs para usar en PPTs
+# Se puede ejecutar para cualquier rango de fechas
+# ============================================================================
+
+name: Generar Timelapses PPT (Todos los Volcanes)
+
+# Serializa con los workflows que pushean a main (no pisar el push del cron/watcher).
+concurrency:
+  group: push-main
+  cancel-in-progress: false
+
+on:
+  workflow_dispatch:
+    inputs:
+      fecha_inicio:
+        description: 'Fecha inicio (YYYY-MM-DD)'
+        required: true
+        default: '2026-05-01'
+      fecha_fin:
+        description: 'Fecha fin (YYYY-MM-DD)'
+        required: true
+        default: '2026-06-16'
+
+permissions:
+  contents: write
+
+jobs:
+  generar-timelapses-ppt:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+      
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+      
+      - name: Instalar dependencias
+        run: |
+          pip install Pillow requests numpy pandas
+      
+      - name: Limpiar GIFs anteriores de timelapses_ppt
+        run: |
+          echo "🗑️  Eliminando GIFs anteriores..."
+          find docs/sentinel2 -path "*/timelapses_ppt/*.gif" -delete 2>/dev/null || true
+          echo "✅ Limpieza completada"
+
+      - name: Generar timelapses PPT para todos los volcanes
+        env:
+          FECHA_INICIO: ${{ github.event.inputs.fecha_inicio }}
+          FECHA_FIN: ${{ github.event.inputs.fecha_fin }}
+        run: |
+          python timelapse_generator.py
+
+      - name: Regenerar manifest GIFs PPT (para ppt_builder.html)
+        # FIX 2026-06-01: sin esto, el manifest quedaba congelado en fechas
+        # viejas y el ppt_builder mostraba "sin GIFs en rango" aunque los
+        # nuevos GIFs estaban en disco.
+        run: |
+          python scripts/generar_manifest_gifs.py
+
+      - name: Commit GIFs generados
+        run: |
+          git config user.name "TimelapsePPTBot"
+          git config user.email "timelapseppt@copernicus.com"
+
+          # Agregar todos los GIFs PPT generados + manifest
+          git add docs/sentinel2/**/timelapses_ppt/*.gif docs/timelapses_ppt_manifest.json
+          
+          # Verificar si hay cambios
+          if git diff --quiet --staged; then
+            echo "⚠️ No hay GIFs nuevos"
+            exit 0
+          fi
+          
+          # Commit
+          git commit -m "Timelapses PPT: ${{ github.event.inputs.fecha_inicio }} → ${{ github.event.inputs.fecha_fin }} (todos los volcanes)"
+          
+          # Push con retry
+          max_retries=5
+          retry_count=0
+          
+          while [ $retry_count -lt $max_retries ]; do
+            echo "📤 Intento $((retry_count + 1))..."
+
+            # FIX 2026-06-16: patron seguro (igual que copernicus.yml). Antes
+            # "git pull --rebase -X ours" descartaba el lado remoto en conflicto,
+            # pudiendo perder imagenes/commits de otro bot. Ahora: ff si se puede;
+            # si no, rebase con preferencia a remoto (-X theirs) y aborta antes de pisar.
+            git fetch origin main
+            if ! git merge --ff-only origin/main; then
+              git pull origin main --rebase -X theirs || { git rebase --abort 2>/dev/null || true; }
+            fi
+
+            if git push origin main; then
+              echo "✅ Push exitoso"
+              exit 0
+            fi
+
+            retry_count=$((retry_count + 1))
+            [ $retry_count -lt $max_retries ] && sleep $((retry_count * 3))
+          done
+          
+          echo "❌ Push falló después de $max_retries intentos"
+          exit 1

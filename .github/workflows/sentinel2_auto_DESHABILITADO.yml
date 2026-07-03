@@ -1,0 +1,58 @@
+name: Descarga Sentinel-2 (DESHABILITADO)
+
+# DESHABILITADO 2026-05-17: este workflow era legacy de la primera versión.
+# Reemplazado por copernicus.yml que corre 2× día (10 y 20 UTC).
+# El cron acá seguía activo silenciosamente y hacía `git add data/` a una
+# carpeta que ya no existe — escribía commits vacíos o fallaba sin notificar.
+# Solo queda workflow_dispatch para emergencias manuales.
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: sentinel2-download
+  cancel-in-progress: true
+
+jobs:
+  download-sentinel2:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Configurar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Ejecutar descarga Sentinel-2
+        env:
+          SH_CLIENT_ID: ${{ secrets.SH_CLIENT_ID }}
+          SH_CLIENT_SECRET: ${{ secrets.SH_CLIENT_SECRET }}
+        run: |
+          python sentinel2_downloader.py
+
+      - name: Guardar cambios en GitHub
+        run: |
+          git config --global user.name "Sentinel2Bot"
+          git config --global user.email "sentinel2@copernicus.com"
+          
+          # Agregar todas las imágenes y metadata nuevos
+          git add data/
+          
+          if ! git diff --quiet --staged; then
+            git commit -m "🛰️ Sentinel-2: Descarga automática $(date +'%Y-%m-%d')"
+            git pull origin main --rebase -X ours
+            git push origin main
+          else
+            echo "ℹ️ No hay imágenes nuevas para guardar"
+          fi

