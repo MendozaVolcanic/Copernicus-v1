@@ -1,15 +1,15 @@
 {
-  "fecha_analisis": "2026-07-11 23:24 UTC",
+  "fecha_analisis": "2026-07-12 23:25 UTC",
   "total_volcanes": 52,
   "volcanes": {
     "Antillanca - Casablanca": {
-      "estado": "ATENCION",
-      "detalle": "[SENTINEL2] [Pendiente confirmacion] Anomalia SWIR confirmada — Cambio morfologico (53.6%) con variacion vegetal",
+      "estado": "ALERTA",
+      "detalle": "[SENTINEL2] Anomalia SWIR confirmada — Cambio morfologico (53.6%) con variacion vegetal",
       "confirmacion_cruzada": false,
       "por_sensor": {
         "sentinel2": {
           "sensor": "sentinel2",
-          "estado": "ATENCION",
+          "estado": "ALERTA",
           "cambio_termico_pct": 4.51,
           "cambio_morfologico_pct": 53.56,
           "cambio_general_pct": 80.18,
@@ -20,7 +20,7 @@
           "fecha_referencia": "mediana de 10 imgs (2026-06-18 a 2026-07-08)",
           "imagenes_en_background": 10,
           "confianza": "ALTA",
-          "detalle": "[Pendiente confirmacion] Anomalia SWIR confirmada — Cambio morfologico (53.6%) con variacion vegetal",
+          "detalle": "Anomalia SWIR confirmada — Cambio morfologico (53.6%) con variacion vegetal",
           "indices_disponibles": {
             "NDVI": true,
             "NBR": true,
@@ -41,8 +41,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 0,
-            "consistent": false
+            "consecutive_elevated": 1,
+            "consistent": true
           },
           "z_score_estado": "ALERTA",
           "nhi_estado": "NORMAL",
@@ -170,8 +170,8 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 0,
-        "consistent": false
+        "consecutive_elevated": 1,
+        "consistent": true
       },
       "nube_pct": 0.1,
       "z_score_estado": "ALERTA",
@@ -297,7 +297,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 3,
+            "consecutive_elevated": 4,
             "consistent": true
           },
           "z_score_estado": "ALERTA",
@@ -430,7 +430,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 3,
+        "consecutive_elevated": 4,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -514,7 +514,7 @@
         "alertas_7d": 0,
         "alertas_30d": 1,
         "ultima_alerta": "2026-06-27",
-        "total_registros": 66
+        "total_registros": 67
       },
       "zona": "Sur"
     },
@@ -803,7 +803,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 4,
+            "consecutive_elevated": 5,
             "consistent": true
           },
           "z_score_estado": "ALERTA",
@@ -936,7 +936,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 4,
+        "consecutive_elevated": 5,
         "consistent": true
       },
       "nube_pct": 0.1,
@@ -1020,7 +1020,7 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 69
+        "total_registros": 70
       },
       "zona": "Sur"
     },
@@ -1272,7 +1272,7 @@
         "alertas_7d": 0,
         "alertas_30d": 4,
         "ultima_alerta": "2026-07-03",
-        "total_registros": 47
+        "total_registros": 48
       },
       "zona": "Sur"
     },
@@ -1762,17 +1762,17 @@
         "umbral_brillo": 0.35
       },
       "nhi": {
-        "estado": "AMARILLO",
-        "alertas_7d": 0,
-        "alertas_30d": 2,
-        "ultima_alerta": "2026-06-27",
-        "total_registros": 32
+        "estado": "ROJO",
+        "alertas_7d": 1,
+        "alertas_30d": 3,
+        "ultima_alerta": "2026-07-11",
+        "total_registros": 33
       },
       "mirova": {
         "disponible": true,
-        "registros_recientes": 2,
-        "vrp_max_reciente": 0.1,
-        "vrp_promedio_reciente": 0.08,
+        "registros_recientes": 0,
+        "vrp_max_reciente": 0,
+        "vrp_promedio_reciente": 0.0,
         "ultimo_registro": "2026-01-19 06:00:01"
       },
       "zona": "Austral"
@@ -1816,7 +1816,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 3,
+            "consecutive_elevated": 4,
             "consistent": true
           },
           "z_score_estado": "NORMAL",
@@ -1949,7 +1949,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 3,
+        "consecutive_elevated": 4,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -2033,7 +2033,7 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 74
+        "total_registros": 75
       },
       "mirova": {
         "disponible": true,
@@ -2083,8 +2083,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 3,
-            "consistent": true
+            "consecutive_elevated": 0,
+            "consistent": false
           },
           "z_score_estado": "NORMAL",
           "nhi_estado": "NORMAL",
@@ -2154,8 +2154,8 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 3,
-        "consistent": true
+        "consecutive_elevated": 0,
+        "consistent": false
       },
       "nube_pct": 0.0,
       "z_score_estado": "NORMAL",
@@ -2223,12 +2223,12 @@
     },
     "Corcovado": {
       "estado": "ALERTA",
-      "detalle": "Confirmado por Sentinel-2 + Landsat — [SENTINEL2] [Pendiente confirmacion] [Mahalanobis override] d_max=5.204, 8184 px (4.762%) | Z-score era ATENCION",
+      "detalle": "[SENTINEL2] [Mahalanobis override] d_max=5.204, 8184 px (4.762%) | Z-score era ATENCION",
       "confirmacion_cruzada": true,
       "por_sensor": {
         "sentinel2": {
           "sensor": "sentinel2",
-          "estado": "ATENCION",
+          "estado": "ALERTA",
           "cambio_termico_pct": 3.02,
           "cambio_morfologico_pct": 63.04,
           "cambio_general_pct": 88.8,
@@ -2239,7 +2239,7 @@
           "fecha_referencia": "mediana de 10 imgs (2026-06-18 a 2026-07-08)",
           "imagenes_en_background": 10,
           "confianza": "MEDIA",
-          "detalle": "[Pendiente confirmacion] [Mahalanobis override] d_max=5.204, 8184 px (4.762%) | Z-score era ATENCION",
+          "detalle": "[Mahalanobis override] d_max=5.204, 8184 px (4.762%) | Z-score era ATENCION",
           "indices_disponibles": {
             "NDVI": true,
             "NBR": true,
@@ -2260,8 +2260,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 0,
-            "consistent": false
+            "consecutive_elevated": 1,
+            "consistent": true
           },
           "z_score_estado": "ATENCION",
           "nhi_estado": "NORMAL",
@@ -2393,8 +2393,8 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 0,
-        "consistent": false
+        "consecutive_elevated": 1,
+        "consistent": true
       },
       "nube_pct": 25.4,
       "z_score_estado": "ATENCION",
@@ -2477,7 +2477,7 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 32
+        "total_registros": 33
       },
       "zona": "Austral"
     },
@@ -2520,7 +2520,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 7,
+            "consecutive_elevated": 8,
             "consistent": true
           },
           "z_score_estado": "NORMAL",
@@ -2653,7 +2653,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 7,
+        "consecutive_elevated": 8,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -2737,7 +2737,7 @@
         "alertas_7d": 0,
         "alertas_30d": 1,
         "ultima_alerta": "2026-06-27",
-        "total_registros": 72
+        "total_registros": 73
       },
       "zona": "Centro"
     },
@@ -2989,8 +2989,8 @@
         "umbral_brillo": 0.35
       },
       "nhi": {
-        "estado": "ROJO",
-        "alertas_7d": 1,
+        "estado": "AMARILLO",
+        "alertas_7d": 0,
         "alertas_30d": 5,
         "ultima_alerta": "2026-07-04",
         "total_registros": 43
@@ -3036,7 +3036,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 4,
+            "consecutive_elevated": 5,
             "consistent": true
           },
           "z_score_estado": "ATENCION",
@@ -3169,7 +3169,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 4,
+        "consecutive_elevated": 5,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -4214,7 +4214,7 @@
         "alertas_7d": 0,
         "alertas_30d": 1,
         "ultima_alerta": "2026-07-01",
-        "total_registros": 40
+        "total_registros": 41
       },
       "zona": "Norte"
     },
@@ -4257,7 +4257,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 1,
+            "consecutive_elevated": 2,
             "consistent": true
           },
           "z_score_estado": "NORMAL",
@@ -4390,7 +4390,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 1,
+        "consecutive_elevated": 2,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -4471,16 +4471,16 @@
       },
       "nhi": {
         "estado": "ROJO",
-        "alertas_7d": 2,
+        "alertas_7d": 1,
         "alertas_30d": 3,
         "ultima_alerta": "2026-07-06",
-        "total_registros": 65
+        "total_registros": 66
       },
       "mirova": {
         "disponible": true,
-        "registros_recientes": 11,
+        "registros_recientes": 14,
         "vrp_max_reciente": 0.36,
-        "vrp_promedio_reciente": 0.23,
+        "vrp_promedio_reciente": 0.22,
         "ultimo_registro": "2026-01-13 18:12:00"
       },
       "zona": "Norte"
@@ -4524,7 +4524,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 1,
+            "consecutive_elevated": 2,
             "consistent": true
           },
           "z_score_estado": "NORMAL",
@@ -4599,7 +4599,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 1,
+        "consecutive_elevated": 2,
         "consistent": true
       },
       "nube_pct": 0.1,
@@ -4709,7 +4709,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 1,
+            "consecutive_elevated": 2,
             "consistent": true
           },
           "z_score_estado": "ALERTA",
@@ -4842,7 +4842,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 1,
+        "consecutive_elevated": 2,
         "consistent": true
       },
       "nube_pct": 38.2,
@@ -4926,18 +4926,18 @@
         "alertas_7d": 0,
         "alertas_30d": 1,
         "ultima_alerta": "2026-06-27",
-        "total_registros": 73
+        "total_registros": 74
       },
       "zona": "Centro"
     },
     "Lanin": {
-      "estado": "ATENCION",
-      "detalle": "[SENTINEL2] [Pendiente confirmacion] [Mahalanobis override] d_max=6.802, 7617 px (3.574%) | Z-score era NORMAL",
+      "estado": "ALERTA",
+      "detalle": "[SENTINEL2] [Mahalanobis override] d_max=6.802, 7617 px (3.574%) | Z-score era NORMAL",
       "confirmacion_cruzada": false,
       "por_sensor": {
         "sentinel2": {
           "sensor": "sentinel2",
-          "estado": "ATENCION",
+          "estado": "ALERTA",
           "cambio_termico_pct": 5.81,
           "cambio_morfologico_pct": 48.12,
           "cambio_general_pct": 79.24,
@@ -4948,7 +4948,7 @@
           "fecha_referencia": "mediana de 10 imgs (2026-06-18 a 2026-07-08)",
           "imagenes_en_background": 10,
           "confianza": "ALTA",
-          "detalle": "[Pendiente confirmacion] [Mahalanobis override] d_max=6.802, 7617 px (3.574%) | Z-score era NORMAL",
+          "detalle": "[Mahalanobis override] d_max=6.802, 7617 px (3.574%) | Z-score era NORMAL",
           "indices_disponibles": {
             "NDVI": true,
             "NBR": true,
@@ -4969,8 +4969,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 0,
-            "consistent": false
+            "consecutive_elevated": 1,
+            "consistent": true
           },
           "z_score_estado": "NORMAL",
           "nhi_estado": "NORMAL",
@@ -5098,8 +5098,8 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 0,
-        "consistent": false
+        "consecutive_elevated": 1,
+        "consistent": true
       },
       "nube_pct": 7.5,
       "z_score_estado": "NORMAL",
@@ -5182,7 +5182,7 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 58
+        "total_registros": 59
       },
       "zona": "Sur"
     },
@@ -5225,7 +5225,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 1,
+            "consecutive_elevated": 2,
             "consistent": true
           },
           "z_score_estado": "NORMAL",
@@ -5358,7 +5358,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 1,
+        "consecutive_elevated": 2,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -5442,13 +5442,13 @@
         "alertas_7d": 0,
         "alertas_30d": 1,
         "ultima_alerta": "2026-06-27",
-        "total_registros": 45
+        "total_registros": 46
       },
       "mirova": {
         "disponible": true,
-        "registros_recientes": 14,
+        "registros_recientes": 16,
         "vrp_max_reciente": 0.64,
-        "vrp_promedio_reciente": 0.35,
+        "vrp_promedio_reciente": 0.37,
         "ultimo_registro": "2026-01-11 05:00:01"
       },
       "zona": "Norte"
@@ -5492,7 +5492,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 1,
+            "consecutive_elevated": 2,
             "consistent": true
           },
           "z_score_estado": "NORMAL",
@@ -5567,7 +5567,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 1,
+        "consecutive_elevated": 2,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -5677,7 +5677,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 3,
+            "consecutive_elevated": 4,
             "consistent": true
           },
           "z_score_estado": "ALERTA",
@@ -5810,7 +5810,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 3,
+        "consecutive_elevated": 4,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -5890,11 +5890,11 @@
         "umbral_brillo": 0.35
       },
       "nhi": {
-        "estado": "VERDE",
-        "alertas_7d": 0,
-        "alertas_30d": 0,
-        "ultima_alerta": null,
-        "total_registros": 52
+        "estado": "ROJO",
+        "alertas_7d": 1,
+        "alertas_30d": 1,
+        "ultima_alerta": "2026-07-11",
+        "total_registros": 53
       },
       "mirova": {
         "disponible": true,
@@ -5944,7 +5944,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 3,
+            "consecutive_elevated": 4,
             "consistent": true
           },
           "z_score_estado": "ALERTA",
@@ -6077,7 +6077,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 3,
+        "consecutive_elevated": 4,
         "consistent": true
       },
       "nube_pct": 1.1,
@@ -6157,22 +6157,22 @@
         "umbral_brillo": 0.35
       },
       "nhi": {
-        "estado": "AMARILLO",
+        "estado": "VERDE",
         "alertas_7d": 0,
-        "alertas_30d": 1,
-        "ultima_alerta": "2026-06-11",
-        "total_registros": 57
+        "alertas_30d": 0,
+        "ultima_alerta": null,
+        "total_registros": 58
       },
       "zona": "Sur"
     },
     "Maca": {
-      "estado": "ATENCION",
-      "detalle": "[SENTINEL2] [Pendiente confirmacion] Anomalia SWIR confirmada — Cambio morfologico (74.4%) con variacion vegetal",
+      "estado": "ALERTA",
+      "detalle": "[SENTINEL2] Anomalia SWIR confirmada — Cambio morfologico (74.4%) con variacion vegetal",
       "confirmacion_cruzada": false,
       "por_sensor": {
         "sentinel2": {
           "sensor": "sentinel2",
-          "estado": "ATENCION",
+          "estado": "ALERTA",
           "cambio_termico_pct": 3.38,
           "cambio_morfologico_pct": 74.41,
           "cambio_general_pct": 89.82,
@@ -6183,7 +6183,7 @@
           "fecha_referencia": "mediana de 10 imgs (2026-06-18 a 2026-07-08)",
           "imagenes_en_background": 10,
           "confianza": "ALTA",
-          "detalle": "[Pendiente confirmacion] Anomalia SWIR confirmada — Cambio morfologico (74.4%) con variacion vegetal",
+          "detalle": "Anomalia SWIR confirmada — Cambio morfologico (74.4%) con variacion vegetal",
           "indices_disponibles": {
             "NDVI": true,
             "NBR": true,
@@ -6204,8 +6204,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 0,
-            "consistent": false
+            "consecutive_elevated": 1,
+            "consistent": true
           },
           "z_score_estado": "ALERTA",
           "nhi_estado": "NORMAL",
@@ -6337,8 +6337,8 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 0,
-        "consistent": false
+        "consecutive_elevated": 1,
+        "consistent": true
       },
       "nube_pct": 1.8,
       "z_score_estado": "ALERTA",
@@ -6426,13 +6426,13 @@
       "zona": "Austral"
     },
     "Melimoyu": {
-      "estado": "ATENCION",
-      "detalle": "[SENTINEL2] [Pendiente confirmacion] Anomalia SWIR confirmada — Cambio morfologico (77.2%) con variacion vegetal",
+      "estado": "ALERTA",
+      "detalle": "[SENTINEL2] Anomalia SWIR confirmada — Cambio morfologico (77.2%) con variacion vegetal",
       "confirmacion_cruzada": false,
       "por_sensor": {
         "sentinel2": {
           "sensor": "sentinel2",
-          "estado": "ATENCION",
+          "estado": "ALERTA",
           "cambio_termico_pct": 0.47,
           "cambio_morfologico_pct": 77.23,
           "cambio_general_pct": 90.51,
@@ -6443,7 +6443,7 @@
           "fecha_referencia": "mediana de 10 imgs (2026-06-18 a 2026-07-08)",
           "imagenes_en_background": 10,
           "confianza": "MEDIA",
-          "detalle": "[Pendiente confirmacion] Anomalia SWIR confirmada — Cambio morfologico (77.2%) con variacion vegetal",
+          "detalle": "Anomalia SWIR confirmada — Cambio morfologico (77.2%) con variacion vegetal",
           "indices_disponibles": {
             "NDVI": true,
             "NBR": true,
@@ -6464,8 +6464,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 0,
-            "consistent": false
+            "consecutive_elevated": 1,
+            "consistent": true
           },
           "z_score_estado": "ALERTA",
           "nhi_estado": "NORMAL",
@@ -6593,8 +6593,8 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 0,
-        "consistent": false
+        "consecutive_elevated": 1,
+        "consistent": true
       },
       "nube_pct": 38.4,
       "z_score_estado": "ALERTA",
@@ -6682,13 +6682,13 @@
       "zona": "Austral"
     },
     "Melimoyu_Conos_Eruptivos": {
-      "estado": "ATENCION",
-      "detalle": "[SENTINEL2] [Pendiente confirmacion] [Mahalanobis override] d_max=5.582, 19239 px (20.706%) | Z-score era ATENCION",
+      "estado": "ALERTA",
+      "detalle": "[SENTINEL2] [Mahalanobis override] d_max=5.582, 19239 px (20.706%) | Z-score era ATENCION",
       "confirmacion_cruzada": false,
       "por_sensor": {
         "sentinel2": {
           "sensor": "sentinel2",
-          "estado": "ATENCION",
+          "estado": "ALERTA",
           "cambio_termico_pct": 1.36,
           "cambio_morfologico_pct": 91.59,
           "cambio_general_pct": 98.4,
@@ -6699,7 +6699,7 @@
           "fecha_referencia": "mediana de 10 imgs (2026-06-18 a 2026-07-08)",
           "imagenes_en_background": 10,
           "confianza": "BAJA",
-          "detalle": "[Pendiente confirmacion] [Mahalanobis override] d_max=5.582, 19239 px (20.706%) | Z-score era ATENCION",
+          "detalle": "[Mahalanobis override] d_max=5.582, 19239 px (20.706%) | Z-score era ATENCION",
           "indices_disponibles": {
             "NDVI": true,
             "NBR": true,
@@ -6720,8 +6720,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 0,
-            "consistent": false
+            "consecutive_elevated": 1,
+            "consistent": true
           },
           "z_score_estado": "ATENCION",
           "nhi_estado": "NORMAL",
@@ -6795,8 +6795,8 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 0,
-        "consistent": false
+        "consecutive_elevated": 1,
+        "consistent": true
       },
       "nube_pct": 59.7,
       "z_score_estado": "ATENCION",
@@ -7449,7 +7449,7 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 47
+        "total_registros": 48
       },
       "zona": "Austral"
     },
@@ -7492,7 +7492,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 4,
+            "consecutive_elevated": 5,
             "consistent": true
           },
           "z_score_estado": "ALERTA",
@@ -7625,7 +7625,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 4,
+        "consecutive_elevated": 5,
         "consistent": true
       },
       "nube_pct": 0.1,
@@ -7709,7 +7709,7 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 47
+        "total_registros": 48
       },
       "zona": "Sur"
     },
@@ -7969,7 +7969,7 @@
         "alertas_7d": 0,
         "alertas_30d": 1,
         "ultima_alerta": "2026-06-27",
-        "total_registros": 69
+        "total_registros": 70
       },
       "zona": "Centro"
     },
@@ -8012,7 +8012,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 4,
+            "consecutive_elevated": 5,
             "consistent": true
           },
           "z_score_estado": "ALERTA",
@@ -8087,7 +8087,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 4,
+        "consecutive_elevated": 5,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -8197,7 +8197,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 4,
+            "consecutive_elevated": 5,
             "consistent": true
           },
           "z_score_estado": "NORMAL",
@@ -8330,7 +8330,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 4,
+        "consecutive_elevated": 5,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -8410,11 +8410,11 @@
         "umbral_brillo": 0.35
       },
       "nhi": {
-        "estado": "AMARILLO",
-        "alertas_7d": 0,
-        "alertas_30d": 2,
-        "ultima_alerta": "2026-06-20",
-        "total_registros": 66
+        "estado": "ROJO",
+        "alertas_7d": 1,
+        "alertas_30d": 3,
+        "ultima_alerta": "2026-07-11",
+        "total_registros": 67
       },
       "mirova": {
         "disponible": true,
@@ -8462,8 +8462,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 4,
-            "consistent": true
+            "consecutive_elevated": 0,
+            "consistent": false
           },
           "z_score_estado": "NORMAL",
           "nhi_estado": "NORMAL",
@@ -8533,8 +8533,8 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 4,
-        "consistent": true
+        "consecutive_elevated": 0,
+        "consistent": false
       },
       "nube_pct": 0.0,
       "z_score_estado": "NORMAL",
@@ -8852,11 +8852,11 @@
         "umbral_brillo": 0.35
       },
       "nhi": {
-        "estado": "AMARILLO",
-        "alertas_7d": 0,
+        "estado": "ROJO",
+        "alertas_7d": 1,
         "alertas_30d": 7,
-        "ultima_alerta": "2026-07-03",
-        "total_registros": 46
+        "ultima_alerta": "2026-07-11",
+        "total_registros": 47
       },
       "zona": "Norte"
     },
@@ -9357,7 +9357,7 @@
       },
       "nhi": {
         "estado": "ROJO",
-        "alertas_7d": 2,
+        "alertas_7d": 1,
         "alertas_30d": 8,
         "ultima_alerta": "2026-07-09",
         "total_registros": 47
@@ -9602,13 +9602,13 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 78
+        "total_registros": 79
       },
       "mirova": {
         "disponible": true,
-        "registros_recientes": 5,
-        "vrp_max_reciente": 0.24,
-        "vrp_promedio_reciente": 0.16,
+        "registros_recientes": 6,
+        "vrp_max_reciente": 0.2,
+        "vrp_promedio_reciente": 0.15,
         "ultimo_registro": "2026-01-13 06:06:01"
       },
       "zona": "Centro"
@@ -9652,7 +9652,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 1,
+            "consecutive_elevated": 2,
             "consistent": true
           },
           "z_score_estado": "ALERTA",
@@ -9785,7 +9785,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 1,
+        "consecutive_elevated": 2,
         "consistent": true
       },
       "nube_pct": 4.9,
@@ -9869,13 +9869,13 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 51
+        "total_registros": 52
       },
       "mirova": {
         "disponible": true,
-        "registros_recientes": 12,
+        "registros_recientes": 9,
         "vrp_max_reciente": 1.02,
-        "vrp_promedio_reciente": 0.45,
+        "vrp_promedio_reciente": 0.47,
         "ultimo_registro": "2026-01-11 05:06:01"
       },
       "zona": "Sur"
@@ -9919,7 +9919,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 6,
+            "consecutive_elevated": 7,
             "consistent": true
           },
           "z_score_estado": "ALERTA",
@@ -10052,7 +10052,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 6,
+        "consecutive_elevated": 7,
         "consistent": true
       },
       "nube_pct": 1.1,
@@ -10136,7 +10136,7 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 57
+        "total_registros": 58
       },
       "zona": "Sur"
     },
@@ -10179,8 +10179,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 9,
-            "consistent": true
+            "consecutive_elevated": 0,
+            "consistent": false
           },
           "z_score_estado": "NORMAL",
           "nhi_estado": "NORMAL",
@@ -10378,7 +10378,7 @@
         "alertas_7d": 0,
         "alertas_30d": 2,
         "ultima_alerta": "2026-06-28",
-        "total_registros": 78
+        "total_registros": 79
       },
       "zona": "Centro"
     },
@@ -10638,7 +10638,7 @@
         "alertas_7d": 1,
         "alertas_30d": 5,
         "ultima_alerta": "2026-07-06",
-        "total_registros": 46
+        "total_registros": 47
       },
       "zona": "Norte"
     },
@@ -10681,7 +10681,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 3,
+            "consecutive_elevated": 4,
             "consistent": true
           },
           "z_score_estado": "ALERTA",
@@ -10814,7 +10814,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 3,
+        "consecutive_elevated": 4,
         "consistent": true
       },
       "nube_pct": 0.0,
@@ -10898,7 +10898,7 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 55
+        "total_registros": 56
       },
       "zona": "Sur"
     },
@@ -10987,21 +10987,21 @@
         "landsat": {
           "sensor": "landsat",
           "estado": "NORMAL",
-          "cambio_termico_pct": 3.19,
-          "cambio_morfologico_pct": 82.47,
-          "cambio_general_pct": 82.47,
-          "max_diff_termico": 190.0,
+          "cambio_termico_pct": 4.28,
+          "cambio_morfologico_pct": 50.76,
+          "cambio_general_pct": 50.76,
+          "max_diff_termico": 120.0,
           "nube_pct": 0.0,
-          "fecha_nueva": "2026-07-03",
-          "fecha_anterior": "2026-06-25",
-          "fecha_referencia": "mediana de 6 imgs (2026-05-16 a 2026-06-25)",
-          "imagenes_en_background": 6,
+          "fecha_nueva": "2026-07-11",
+          "fecha_anterior": "2026-07-03",
+          "fecha_referencia": "mediana de 7 imgs (2026-05-16 a 2026-07-03)",
+          "imagenes_en_background": 7,
           "confianza": "ALTA",
-          "detalle": "[Sin consistencia temporal] Cambio morfologico (82.5%) con variacion vegetal",
+          "detalle": "[Sin consistencia temporal] Cambio morfologico (50.8%) con variacion vegetal",
           "indices_disponibles": {},
-          "baseline_mean": 2.145,
-          "baseline_std": 1.443,
-          "z_score_termico": 0.73,
+          "baseline_mean": 2.232,
+          "baseline_std": 1.332,
+          "z_score_termico": 1.54,
           "indices_spectral": null,
           "consistencia_temporal": {
             "consecutive_elevated": 0,
@@ -11016,7 +11016,7 @@
             "nhi_max": 1.0,
             "nhi_swnir_max": 1.0,
             "porcentaje_anomalia": 0.0,
-            "pixeles_validos": 545861,
+            "pixeles_validos": 607888,
             "sensor": "landsat",
             "umbral_nhi": 0.25,
             "umbral_brillo": 0.35
@@ -11031,12 +11031,12 @@
           "vrp_calibrado_stats": null,
           "ndsi_aplicado": false,
           "mahalanobis_stats": {
-            "n_anomalous_pixels": 0,
-            "pct_anomalous": 0.0,
-            "mahalanobis_max": 2.183,
-            "mahalanobis_mean": 1.024,
+            "n_anomalous_pixels": 94,
+            "pct_anomalous": 0.041,
+            "mahalanobis_max": 16.422,
+            "mahalanobis_mean": 0.874,
             "umbral": 3.0,
-            "n_imagenes_baseline": 6,
+            "n_imagenes_baseline": 7,
             "estado": "NORMAL"
           },
           "mahalanobis_estado": "NORMAL",
@@ -11123,7 +11123,7 @@
         "nhi_s2_max": 0.1515,
         "nhi_landsat_max": 1.0,
         "fecha_s2": "2026-07-09",
-        "fecha_landsat": "2026-07-03",
+        "fecha_landsat": "2026-07-11",
         "misma_semana": true,
         "triple_confirmacion": false,
         "asimetria_sensor": null,
@@ -11148,14 +11148,14 @@
         "nhi_max": 1.0,
         "nhi_swnir_max": 1.0,
         "porcentaje_anomalia": 0.0,
-        "pixeles_validos": 545861,
+        "pixeles_validos": 607888,
         "sensor": "landsat",
         "umbral_nhi": 0.25,
         "umbral_brillo": 0.35
       },
       "nhi": {
-        "estado": "ROJO",
-        "alertas_7d": 1,
+        "estado": "AMARILLO",
+        "alertas_7d": 0,
         "alertas_30d": 2,
         "ultima_alerta": "2026-07-04",
         "total_registros": 48
@@ -11201,8 +11201,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 4,
-            "consistent": true
+            "consecutive_elevated": 0,
+            "consistent": false
           },
           "z_score_estado": "NORMAL",
           "nhi_estado": "NORMAL",
@@ -11330,8 +11330,8 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 4,
-        "consistent": true
+        "consecutive_elevated": 0,
+        "consistent": false
       },
       "nube_pct": 0.0,
       "z_score_estado": "NORMAL",
@@ -11410,7 +11410,7 @@
         "alertas_7d": 0,
         "alertas_30d": 2,
         "ultima_alerta": "2026-06-30",
-        "total_registros": 71
+        "total_registros": 72
       },
       "zona": "Centro"
     },
@@ -11453,8 +11453,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 9,
-            "consistent": true
+            "consecutive_elevated": 0,
+            "consistent": false
           },
           "z_score_estado": "NORMAL",
           "nhi_estado": "NORMAL",
@@ -11582,8 +11582,8 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 9,
-        "consistent": true
+        "consecutive_elevated": 0,
+        "consistent": false
       },
       "nube_pct": 0.0,
       "z_score_estado": "NORMAL",
@@ -11662,7 +11662,7 @@
         "alertas_7d": 0,
         "alertas_30d": 0,
         "ultima_alerta": null,
-        "total_registros": 70
+        "total_registros": 71
       },
       "zona": "Centro"
     },
@@ -11705,8 +11705,8 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 1,
-            "consistent": true
+            "consecutive_elevated": 0,
+            "consistent": false
           },
           "z_score_estado": "NORMAL",
           "nhi_estado": "NORMAL",
@@ -11904,13 +11904,13 @@
         "alertas_7d": 0,
         "alertas_30d": 2,
         "ultima_alerta": "2026-06-28",
-        "total_registros": 81
+        "total_registros": 82
       },
       "mirova": {
         "disponible": true,
-        "registros_recientes": 5,
+        "registros_recientes": 4,
         "vrp_max_reciente": 1357.39,
-        "vrp_promedio_reciente": 271.58,
+        "vrp_promedio_reciente": 339.44,
         "ultimo_registro": "2026-02-12 06:24:00"
       },
       "zona": "Centro"
@@ -11954,7 +11954,7 @@
             ]
           },
           "consistencia_temporal": {
-            "consecutive_elevated": 4,
+            "consecutive_elevated": 5,
             "consistent": true
           },
           "z_score_estado": "NORMAL",
@@ -12083,7 +12083,7 @@
         ]
       },
       "consistencia_temporal": {
-        "consecutive_elevated": 4,
+        "consecutive_elevated": 5,
         "consistent": true
       },
       "nube_pct": 0.6,
@@ -12167,13 +12167,13 @@
         "alertas_7d": 0,
         "alertas_30d": 1,
         "ultima_alerta": "2026-06-16",
-        "total_registros": 57
+        "total_registros": 58
       },
       "mirova": {
         "disponible": true,
-        "registros_recientes": 2,
+        "registros_recientes": 1,
         "vrp_max_reciente": 0.26,
-        "vrp_promedio_reciente": 0.22,
+        "vrp_promedio_reciente": 0.26,
         "ultimo_registro": "2026-01-13 05:48:00"
       },
       "zona": "Sur"
@@ -12598,8 +12598,8 @@
   },
   "resumen": {
     "NORMAL": 8,
-    "ATENCION": 9,
-    "ALERTA": 34,
+    "ATENCION": 4,
+    "ALERTA": 39,
     "NUBLADO": 1,
     "SIN_DATOS": 0,
     "ERROR": 0
