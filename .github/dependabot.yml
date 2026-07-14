@@ -1,0 +1,29 @@
+# Dependabot — actualizaciones de seguridad/versión automáticas.
+# Cubre los dos ecosistemas del repo: las GitHub Actions de los workflows
+# y las deps de Python (requirements.txt en la raíz). PRs semanales agrupados
+# para no ruidear; el geólogo revisa/mergea.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci(deps)"
+    groups:
+      actions:
+        patterns: ["*"]
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      python:
+        patterns: ["*"]
