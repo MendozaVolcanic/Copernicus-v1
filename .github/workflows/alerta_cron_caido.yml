@@ -1,0 +1,69 @@
+name: Alerta de cron caido
+
+# Observa los crons DESATENDIDOS y abre (o comenta) un Issue cuando alguno
+# termina en 'failure'. Contexto: antes failure()=0 en todos los workflows, asi
+# que una caida del cron (cuota CDSE seca 403, API caida, timeout, push
+# divergente) pasaba SILENCIOSA por dias. Solucion raiz: un unico workflow via
+# 'workflow_run' que no toca los pipelines de produccion. Solo los 3 crons
+# programados; los workflows manuales (ppt_*, purgar_*, rerender) muestran el
+# fallo al usuario en el momento que los dispara.
+on:
+  workflow_run:
+    workflows:
+      - "Monitoreo Copernicus Automatico"
+      - "Change Analysis (Experimental)"
+      - "Descarga Indices Espectrales (NDVI/NBR/SWIR)"
+    types: [completed]
+
+permissions:
+  issues: write
+
+jobs:
+  alertar:
+    # Solo si el cron observado FALLO (no en success, skipped ni cancelled).
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Abrir o comentar Issue de fallo
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Sin checkout: gh necesita saber el repo por env (no hay remote git).
+          GH_REPO: ${{ github.repository }}
+          WF_NAME: ${{ github.event.workflow_run.name }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_STARTED: ${{ github.event.workflow_run.run_started_at }}
+        run: |
+          set -euo pipefail
+          TITULO="🔴 Cron caido: ${WF_NAME}"
+
+          # Label idempotente (no falla si ya existe).
+          gh label create cron-failure --color B60205 \
+            --description "Cron desatendido que fallo" 2>/dev/null || true
+
+          # De-dup: si ya hay un issue ABIERTO con este titulo exacto, comentar
+          # en vez de crear otro (evita spam si el cron flapea cada 15 min).
+          NUM=$(gh issue list --state open --label cron-failure --json number,title \
+                --jq "[.[] | select(.title == \"${TITULO}\")][0].number // empty")
+
+          {
+            echo "El cron **${WF_NAME}** termino en \`failure\`."
+            echo ""
+            echo "- Run: ${RUN_URL}"
+            echo "- Inicio: ${RUN_STARTED}"
+            echo ""
+            echo "Causas tipicas: cuota CDSE agotada (403 \"Insufficient processing units\"),"
+            echo "API de Copernicus caida, timeout de descarga, o push divergente a main."
+            echo "Revisar los logs del run enlazado."
+            echo ""
+            echo "_Alerta automatica (workflow alerta_cron_caido). Cerrar el issue cuando se resuelva._"
+          } > cuerpo.md
+
+          if [ -n "${NUM}" ]; then
+            gh issue comment "${NUM}" --body-file cuerpo.md
+            echo "Comentado en issue #${NUM} (ya abierto)"
+          else
+            gh issue create --title "${TITULO}" --label cron-failure --body-file cuerpo.md
+            echo "Issue nuevo creado"
+          fi
