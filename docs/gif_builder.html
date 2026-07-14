@@ -240,7 +240,6 @@
 </div>
 
 <script src="volcanes.js"></script>
-<script src="lib/gif.js"></script>
 <script>
 // Imagenes Sentinel-2 desde raw.githubusercontent (sentinel2/ se excluye del artifact de Pages).
 const REPO_BASE = 'https://raw.githubusercontent.com/MendozaVolcanic/Copernicus-v1/main';
@@ -573,23 +572,34 @@ async function generarGif() {
     return;
   }
 
-  // Componer cada frame en un canvas con overlay opcional
+  // ── Codificar con gifenc (rgb444) — preserva anomalías térmicas ──────────────
+  // Por qué gifenc y no gif.js: gif.js (NeuQuant) APLASTA/PIERDE los píxeles rojos
+  // de anomalía térmica chica (verificado: 0/45 en Lascar). gifenc con format rgb444
+  // cuantiza cada frame con su propia paleta local → preserva los rojos 100%,
+  // equivalente a la cuantización MAXCOVERAGE server-side. Mismo encoder ya probado
+  // en ppt_builder.html. Se usa para RGB y thermal por igual.
   document.getElementById('progreso-txt').textContent = 'Componiendo frames...';
 
-  const gif = new GIF({
-    workers: 2,
-    quality: 1,           // mejor calidad (preserva colores)
-    width: tamano,
-    height: tamano,
-    workerScript: 'lib/gif.worker.js',
-    dither: false
-  });
+  let gifenc;
+  try {
+    gifenc = await import('./lib/gifenc.esm.js');
+  } catch (e) {
+    alert('No se pudo cargar el codificador GIF (gifenc): ' + e);
+    document.getElementById('btn-generar').disabled = false;
+    document.getElementById('progreso').style.display = 'none';
+    return;
+  }
+  const { quantize, applyPalette, GIFEncoder } = gifenc;
 
-  imagenes.forEach((it, idx) => {
-    const canvas = document.createElement('canvas');
-    canvas.width = tamano;
-    canvas.height = tamano;
-    const ctx = canvas.getContext('2d');
+  const enc = GIFEncoder();
+  const canvas = document.createElement('canvas');
+  canvas.width = tamano;
+  canvas.height = tamano;
+  // willReadFrequently: getImageData por frame (lo pide gifenc para cuantizar)
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  for (let idx = 0; idx < imagenes.length; idx++) {
+    const it = imagenes[idx];
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, tamano, tamano);
     ctx.drawImage(it.img, 0, 0, tamano, tamano);
@@ -618,33 +628,38 @@ async function generarGif() {
       dibujarEscala(ctx, tamano, bufferKm);
     }
 
-    gif.addFrame(canvas, { delay: ms, copy: true });
-  });
+    // Cuantización rgb444 por frame: paleta local que conserva los rojos de anomalía.
+    const { data } = ctx.getImageData(0, 0, tamano, tamano);
+    const palette = quantize(data, 256, { format: 'rgb444' });
+    const index = applyPalette(data, palette, 'rgb444');
+    // repeat:0 en el 1er frame = loop infinito; delay en ms como pediste.
+    enc.writeFrame(index, tamano, tamano, { palette, delay: ms, repeat: idx === 0 ? 0 : undefined });
 
-  gif.on('progress', p => {
+    // El encode es SÍNCRONO → cedemos el hilo para refrescar la barra y no congelar la UI.
+    const p = (idx + 1) / imagenes.length;
     document.getElementById('progreso-bar').style.width = `${30 + p * 70}%`;
     document.getElementById('progreso-txt').textContent = `Renderizando GIF... ${Math.round(p*100)}%`;
-  });
+    await new Promise(r => setTimeout(r, 0));
+  }
 
-  gif.on('finished', blob => {
-    // Liberar el blob previo (si lo hubiera) para no acumular memoria
-    if (gifBlobURL) URL.revokeObjectURL(gifBlobURL);
-    gifBlob = blob;
-    gifBlobURL = URL.createObjectURL(blob);
-    const previewBox = document.getElementById('preview-box');
-    const previewImg = document.getElementById('preview-img');
-    previewBox.style.display = 'block';
-    previewImg.src = gifBlobURL;
-    const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
-    document.getElementById('preview-meta').textContent =
-      `${imagenes.length} frames · ${ms}ms/frame · ${tamano}×${tamano}px · ${sizeMB} MB`;
-    document.getElementById('progreso').style.display = 'none';
-    document.getElementById('btn-generar').disabled = false;
-    document.getElementById('btn-descargar').disabled = false;
-    previewBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  });
+  enc.finish();
+  const blob = new Blob([enc.bytes()], { type: 'image/gif' });
 
-  gif.render();
+  // Liberar el blob previo (si lo hubiera) para no acumular memoria
+  if (gifBlobURL) URL.revokeObjectURL(gifBlobURL);
+  gifBlob = blob;
+  gifBlobURL = URL.createObjectURL(blob);
+  const previewBox = document.getElementById('preview-box');
+  const previewImg = document.getElementById('preview-img');
+  previewBox.style.display = 'block';
+  previewImg.src = gifBlobURL;
+  const sizeMB = (blob.size / 1024 / 1024).toFixed(2);
+  document.getElementById('preview-meta').textContent =
+    `${imagenes.length} frames · ${ms}ms/frame · ${tamano}×${tamano}px · ${sizeMB} MB`;
+  document.getElementById('progreso').style.display = 'none';
+  document.getElementById('btn-generar').disabled = false;
+  document.getElementById('btn-descargar').disabled = false;
+  previewBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
 function cargarImagen(url) {

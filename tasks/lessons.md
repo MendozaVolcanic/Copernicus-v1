@@ -133,6 +133,12 @@ Spike de visor client-side (OpenLayers + COG público) descartado tras prueba ha
 - **Decisión tomada**: NO re-renderizar histórico viejo. Las descargas nuevas ya salen con el evalscript corregido; re-render puntual de un mes solo si hace falta y hay PU.
 - **Meta-lección**: un subagente afirmó "cero PU, re-procesa desde .npz local" — era falso. Verificar siempre las afirmaciones de costo/PU de subagentes contra el código antes de actuar (regla "no adivinar valores instrumentales").
 
+## gif_builder.html portado a gifenc (2026-07-14)
+
+- **`gif_builder.html` (Constructor GIF interactivo) usaba gif.js** → NeuQuant aplasta los rojos de anomalía térmica chica (mismo bug que ppt_builder tenía). Portado al mismo `gifenc`/`rgb444` ya probado: `import('./lib/gifenc.esm.js')` → por frame `quantize(data,256,{format:'rgb444'})` + `applyPalette` + `enc.writeFrame(index,W,H,{palette,delay:ms,repeat:idx===0?0:undefined})`. Se quitó `<script src="lib/gif.js">` (ya no se usa; RGB y thermal ambos por gifenc).
+- **Encode gifenc es SÍNCRONO** (no usa workers como gif.js). En el loop de frames hay que `await new Promise(r=>setTimeout(r,0))` tras cada `writeFrame` para refrescar la barra de progreso y no congelar la UI. Canvas con `getContext('2d',{willReadFrequently:true})` porque hay un `getImageData` por frame.
+- **Verificación (navegador real, code-path de la página)**: frames de anomalía de Lascar dieron retención de rojos 90-121% con gifenc, vs 0/45 documentado con gif.js. Detector de anomalía en falso color térmico = **rojo dominante por margen** (`r>120 && r-g>40 && r-b>40`), NO rojo puro con G/B bajos (R≈G≈B en frames grises sin anomalía da 0, no es bug). El `screenshot` del preview timeoutea con el GIF animando → verificar por JS contando píxeles, no por captura.
+
 ## Purga del .git en disco lleno: NO usar git gc, borrar .git y re-clonar (2026-07-03)
 
 - **Contexto**: repo `.git` de 26 GB con el disco del sistema al 99%. La purga nuclear (`purgar_historico_completo.yml`, orphan-reset) reduce el REMOTO a ~3 GB corriendo en el runner (disco fresco), pero el clon LOCAL sigue en 26 GB.
