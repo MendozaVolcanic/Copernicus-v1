@@ -51,6 +51,10 @@ jobs:
     timeout-minutes: 5
     outputs:
       has_new: ${{ steps.watch.outputs.has_new }}
+      # nueva_pub viaja a 'consolidar', que avanza el marcador SOLO tras una
+      # descarga exitosa (antes se commiteaba aca, antes de bajar -> si la
+      # descarga fallaba se perdian escenas). Vacio en dispatch manual.
+      nueva_pub: ${{ steps.watch.outputs.nueva_pub }}
     steps:
       - name: Checkout repositorio
         uses: actions/checkout@v5
@@ -70,21 +74,10 @@ jobs:
             python scripts/watcher_odata.py
           fi
 
-      - name: Commitear marcador OData si avanzo
-        if: steps.watch.outputs.has_new == 'true' && github.event_name != 'workflow_dispatch'
-        run: |
-          git config --global user.name "Copernicus Watcher"
-          git config --global user.email "watcher@copernicus.local"
-          git add docs/.s2_last_pub.json || true
-          if ! git diff --quiet --staged; then
-            git commit -m "watcher: marcador OData $(date -u +'%Y-%m-%dT%H:%MZ')"
-            for i in 1 2 3; do
-              git fetch origin main
-              git merge --ff-only origin/main || git pull origin main --rebase -X theirs || true
-              git push origin main && break
-              sleep $((i*2))
-            done
-          fi
+      # NOTA: el marcador OData ya NO se commitea aca. Se avanza en el job
+      # 'consolidar' (paso "Avanzar marcador OData") TRAS una descarga exitosa,
+      # usando el output nueva_pub. Asi una descarga fallida no avanza el
+      # marcador y las escenas se re-detectan en el proximo watcher.
 
   # ===============================================================
   # FASE 1: descarga paralela por zona
@@ -166,7 +159,7 @@ jobs:
   # FASE 2: consolidar las 4 zonas, generar timelapses+JSON+manifest+commit+push
   # ===============================================================
   consolidar:
-    needs: [descarga]
+    needs: [detectar, descarga]
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -233,6 +226,28 @@ jobs:
         run: |
           python scripts/generar_manifest_gifs.py
           git add docs/timelapses_ppt_manifest.json || true
+
+      - name: Avanzar marcador OData (solo tras descarga exitosa)
+        # Se llega aca solo si 'descarga' termino OK (needs). Recien ahora
+        # persistimos el marcador con la nueva_pub que detecto el watcher, para
+        # que la escena descargada no se re-detecte. Si nueva_pub esta vacio
+        # (dispatch manual, que no corre el watcher) NO se toca el marcador.
+        env:
+          NUEVA_PUB: ${{ needs.detectar.outputs.nueva_pub }}
+        run: |
+          if [ -z "${NUEVA_PUB}" ]; then
+            echo "Sin nueva_pub (dispatch manual o sin novedad) -> marcador sin cambios"
+          else
+            python - << 'PYEOF'
+          import os, sys
+          sys.path.insert(0, 'scripts')
+          from watcher_odata import escribir_marcador
+          pub = os.environ['NUEVA_PUB'].strip()
+          escribir_marcador(pub)
+          print(f"Marcador OData avanzado a {pub}")
+          PYEOF
+            git add docs/.s2_last_pub.json || true
+          fi
 
       - name: Guardar cambios en GitHub
         run: |

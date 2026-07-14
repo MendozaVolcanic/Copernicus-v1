@@ -122,9 +122,16 @@ def main() -> None:
         pub = p.get("PublicationDate", "?")[:19]
         print(f"           {sensado}  ->  {pub}  {p.get('Name','')[:35]}")
 
+    # Escribimos el marcador local (para runs standalone), pero en el pipeline
+    # el marcador NO se commitea acá: se avanza en el job 'consolidar' TRAS una
+    # descarga exitosa. Motivo: si se commiteaba en 'detectar' (antes de bajar) y
+    # la descarga fallaba, el marcador ya habia avanzado -> esas escenas nunca se
+    # re-detectaban (perdida de datos). Por eso emitimos 'nueva_pub' como output
+    # para que 'consolidar' lo persista solo si el pipeline llego hasta el final.
     escribir_marcador(nueva_pub)
-    print(f"[watcher] Marcador avanzado a: {nueva_pub}")
+    print(f"[watcher] Marcador local escrito: {nueva_pub} (se commitea en 'consolidar')")
     set_output("has_new", "true")
+    set_output("nueva_pub", nueva_pub)
 
 
 if __name__ == "__main__":
