@@ -57,7 +57,7 @@ jobs:
       nueva_pub: ${{ steps.watch.outputs.nueva_pub }}
     steps:
       - name: Checkout repositorio
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Configurar Python
         uses: actions/setup-python@v6
@@ -97,7 +97,7 @@ jobs:
         zona: [Norte, Centro, Sur, Austral]
     steps:
       - name: Checkout repositorio
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Configurar Python
         uses: actions/setup-python@v6
@@ -147,7 +147,7 @@ jobs:
           PYEOF
 
       - name: Upload artifact docs/sentinel2 (zona ${{ matrix.zona }})
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sentinel2-${{ matrix.zona }}
           path: docs/sentinel2/
@@ -164,7 +164,7 @@ jobs:
     timeout-minutes: 45
     steps:
       - name: Checkout repositorio
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Configurar Python
         uses: actions/setup-python@v6
@@ -184,7 +184,7 @@ jobs:
           git add docs/volcanes.js || true
 
       - name: Descargar artifacts de las 4 zonas a docs/sentinel2/
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: docs/sentinel2/
           pattern: sentinel2-*
@@ -308,13 +308,13 @@ jobs:
           echo "Tamano del sitio Pages liviano:"; du -sh _site
 
       - name: Configurar GitHub Pages
-        uses: actions/configure-pages@v4
+        uses: actions/configure-pages@v6
 
       - name: Subir artefacto a Pages
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: '_site'
 
       - name: Deploy a GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

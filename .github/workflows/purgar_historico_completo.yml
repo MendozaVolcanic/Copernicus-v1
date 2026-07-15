@@ -41,7 +41,7 @@ jobs:
           echo "✅ Confirmacion recibida (PURGAR-TODO)"
 
       - name: Checkout shallow (solo HEAD, no necesitamos historial)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: true
