@@ -134,6 +134,17 @@ Spike de visor client-side (OpenLayers + COG público) descartado tras prueba ha
 - **Decisión tomada**: NO re-renderizar histórico viejo. Las descargas nuevas ya salen con el evalscript corregido; re-render puntual de un mes solo si hace falta y hay PU.
 - **Meta-lección**: un subagente afirmó "cero PU, re-procesa desde .npz local" — era falso. Verificar siempre las afirmaciones de costo/PU de subagentes contra el código antes de actuar (regla "no adivinar valores instrumentales").
 
+## El repo LOCAL desactualizado se disfrazó de "cron caído" (2026-07-26)
+
+- **Síntoma**: al portar el temporizador al dashboard de Landsat-v1, el badge no aparecía en 38 de 43 volcanes. `docs/proximas_pasadas_landsat.json` tenía `generado_utc: 2026-06-16` (40 días) y solo 5 volcanes conservaban un paso futuro → `info()` devolvía `null` correctamente.
+- **Diagnóstico equivocado y su corrección**: concluí "el cron de Landsat no publica" mirando **solo el archivo local**. Falso. `gh run list` mostró el cron corriendo **cada hora, todos en success**, y el JSON **remoto** (raw) estaba al día (`generado_utc` de minutos antes, 43/43 volcanes con paso futuro). Lo viejo era **mi clon local**, parado en `6d01217` del 2026-06-16 — 40 días de commits del bot sin traer.
+- **Por poco escribo un dato peor que el que había**: alcancé a regenerar el JSON local (el script corre sin red, solo pandas + metadata en disco) y estuve a punto de commitearlo. Como la **metadata local también estaba 40 días vieja**, ese JSON habría pisado el del cron con una predicción calculada sobre datos peores. Descartado con `git checkout --`.
+- **Reglas que salen de esto**:
+  1. Antes de declarar "el pipeline está roto", **comparar contra el REMOTO** (`curl` a raw / `gh run list`), no contra el working tree. Un clon viejo produce exactamente los mismos síntomas que un cron muerto.
+  2. En repos donde **el bot commitea seguido**, el clon local envejece rápido y en silencio: `git log -1 --date=short` del archivo sospechoso es el primer chequeo.
+  3. Verificar si el HTML/código remoto divergió antes de commitear ediciones hechas sobre base vieja (acá `index.html` remoto era **idéntico**: los 40 días eran solo datos, así que las ediciones aplicaban limpio; si hubiera divergido, commitear habría borrado 40 días de cambios).
+- **Estructura real del cron de Landsat** (sana, para no volver a sospechar): `landsat.yml` corre cada hora, pero el job de descarga —y con él el paso "Regenerar prediccion"— está tras el gate `if: needs.detectar.outputs.has_new == 'true'`. Los runs de ~35-42 s son solo el watcher (sin novedad); los de 8-17 min son los que descargaron. **La predicción se regenera solo cuando llega imagen nueva**, lo cual es correcto pero significa que su frescura depende de la revisita (~8 d combinada) y de la cola L2 de USGS.
+
 ## countdown.js: componente compartido Sala ↔ dashboard (2026-07-26)
 
 - **El temporizador de pasadas vivía solo en `sala_monitoreo.html`**. Al pedirlo también en el dashboard se extrajo a **`docs/countdown.js`** (fuente única) en vez de duplicar ~160 líneas + CSS que iban a divergir. API: `configurar()` / `cargarFuentes()` / `info()` / `crearBadge(volcan, sensor, 'overlay'|'inline')` / `actualizarTodos()` / `iniciarTick()`. El CSS viaja dentro del JS (se inyecta una vez, id `countdown-css`), con el **posicionamiento en modificadores** (`cd-overlay` absoluto sobre la imagen para la Sala, `cd-inline` en el flujo para el dashboard) — sin eso el mismo badge no sirve en dos layouts distintos.
