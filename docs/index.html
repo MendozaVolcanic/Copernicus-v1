@@ -972,7 +972,11 @@
                 queda disponible aquí pasan típicamente <strong>4 a 6 horas</strong> — ese tiempo
                 lo determina el procesamiento de la ESA, no nuestro sistema.
             </p>
-            
+
+            <!-- Cuenta regresiva al proximo paso del volcan seleccionado. La
+                 llena cargarTimelapesAutomaticos() via countdown.js. -->
+            <div id="countdown-individual" style="display:flex; justify-content:center; margin-bottom:14px;"></div>
+
             <div class="timelapse-grid">
                 <div class="timelapse-card">
                     <h3>Color Verdadero (B4-B3-B2)</h3>
@@ -1311,6 +1315,9 @@
     </footer>
 
     <script src="volcanes.js"></script>
+    <!-- Cuenta regresiva al proximo paso satelital: MISMO componente que usa la
+         Sala de Monitoreo (docs/countdown.js), para que no divergan. -->
+    <script src="countdown.js"></script>
     <script>
         const REPO_BASE = 'https://raw.githubusercontent.com/MendozaVolcanic/Copernicus-v1/main';
 
@@ -1828,6 +1835,7 @@
                         </div>
                     </div>`;
                 grid.appendChild(panel);
+                agregarCountdownAPanel(panel, volcan);   // cuenta regresiva al proximo paso
                 if (ultimaFecha) {
                     const rgbUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
                     const thermalUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_${composite2}.png?t=${Date.now()}`;
@@ -1911,7 +1919,8 @@
                 `;
                 
                 volcanesGrid.appendChild(panel);
-                
+                agregarCountdownAPanel(panel, volcan);   // cuenta regresiva al proximo paso
+
                 try {
                     if (ultimaFecha) {
                         const rgbUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
@@ -2250,6 +2259,16 @@
                 : '—';
             document.getElementById('update-date-rgb').textContent = ultimaFechaVol;
             document.getElementById('update-date-thermal').textContent = ultimaFechaVol;
+
+            // Cuenta regresiva al proximo paso (componente compartido con la Sala).
+            const contCd = document.getElementById('countdown-individual');
+            if (contCd) {
+                while (contCd.firstChild) contCd.removeChild(contCd.firstChild);
+                sincronizarCountdownDash();
+                if (CountdownPasadas.info(volcano, 's2')) {
+                    contCd.appendChild(CountdownPasadas.crearBadge(volcano, 's2', 'inline'));
+                }
+            }
         }
 
         function verTimelapseFullscreen(tipo) {
@@ -2508,8 +2527,46 @@
             }
         }
 
+        // ============================================
+        // CUENTA REGRESIVA AL PROXIMO PASO (componente compartido countdown.js)
+        // ============================================
+        // El dashboard no cargaba las predicciones de pasadas (solo linkeaba a la
+        // pagina aparte) ni tenia ningun setInterval. Acá se carga el JSON, se
+        // conecta el componente y se arranca el tick de 1 min. Todos los modos de
+        // este archivo son Sentinel-2 (Landsat vive en el repo Landsat-v1).
+        const PRED_S2_URL_DASH = 'proximas_pasadas.json';
+
+        async function inicializarCountdown() {
+            await CountdownPasadas.cargarFuentes({ predS2: PRED_S2_URL_DASH });
+            sincronizarCountdownDash();
+            CountdownPasadas.iniciarTick(60000, 's2');
+        }
+
+        // Re-apunta el componente a las fechas VIGENTES (la global se reasigna en
+        // varias funciones, asi que hay que re-configurar tras cada carga).
+        function sincronizarCountdownDash() {
+            CountdownPasadas.configurar({ fechasS2: fechasDisponiblesCopernicus });
+        }
+
+        // Inserta el badge en un panel de volcan, justo antes de la grilla de
+        // imagenes (o sea, debajo del nombre y la fecha). createElement, sin
+        // innerHTML dinamico.
+        function agregarCountdownAPanel(panel, volcan) {
+            if (!panel || !volcan) return;
+            sincronizarCountdownDash();
+            if (!CountdownPasadas.info(volcan, 's2')) return;
+            const badge = CountdownPasadas.crearBadge(volcan, 's2', 'inline');
+            const grilla = panel.lastElementChild;   // div con las 2 imagenes
+            if (grilla) panel.insertBefore(badge, grilla);
+            else panel.appendChild(badge);
+        }
+
         window.onload = function() {
-            cambiarZona(); // Carga zona Sur por defecto
+            // Las predicciones se cargan ANTES del primer render: si no, los
+            // paneles se pintarian sin badge (info() devuelve null sin predS2) y
+            // recien apareceria al cambiar de zona. cargarFuentes() NUNCA lanza
+            // -> si el JSON falla, el dashboard renderiza igual, solo sin badge.
+            inicializarCountdown().finally(() => cambiarZona());
         };
 
         // ============================================
