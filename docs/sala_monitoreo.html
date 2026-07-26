@@ -269,52 +269,8 @@
     object-fit: contain;
     display: block;
   }
-  /* Cuenta regresiva al proximo paso satelital: esquina inferior DERECHA
-     de la tarjeta. No topa con el nombre (arriba-izq), la fecha (arriba-der)
-     ni los labels de banda (abajo-izq de cada sub-imagen). */
-  .card-countdown {
-    position: absolute;
-    bottom: 2px; right: 3px;
-    z-index: 3;
-    background: rgba(0,0,0,0.62);
-    color: #cdd9e5;
-    padding: 2px 7px;
-    border-radius: 8px;
-    font-size: 0.62em;
-    font-weight: 600;
-    white-space: pre-line;   /* permite 2 lineas: paso + ventana */
-    text-align: right;
-    line-height: 1.25;
-    max-width: calc(100% - 6px);  /* nunca desborda: envuelve en tarjetas angostas */
-    text-shadow: 0 1px 2px rgba(0,0,0,0.85);
-  }
-  .card-countdown .cd-ventana {
-    display: block;
-    font-weight: 500;
-    font-size: 0.92em;
-    color: #9aa7b3;          /* ventana de incertidumbre, mas tenue */
-  }
-  .card-countdown.img-camino { color: #ffd479; }
-  .card-countdown.img-camino .cd-ventana { color: #d8b364; }
-  /* Pasada la ventana P95 de publicacion sin imagen: dato genuinamente atrasado */
-  .card-countdown.atrasado { color: #ff6b6b; }
-  .card-countdown.atrasado .cd-ventana { color: #e89090; }
-  /* Barra de progreso de publicacion: el punto "ahora" avanza de paso (izq) al
-     limite "a mas tardar" (der); la marca gris es la hora habitual (mediana). */
-  .card-countdown .cd-barra {
-    position: relative; width: 100%; min-width: 92px;
-    height: 4px; margin-top: 5px;
-    background: #21262d; border-radius: 2px;
-  }
-  .card-countdown .cd-barra .cd-tick {
-    position: absolute; top: -2px; width: 2px; height: 8px;
-    background: #8b949e; transform: translateX(-1px);
-  }
-  .card-countdown .cd-barra .cd-dot {
-    position: absolute; top: -3px; width: 9px; height: 9px;
-    border-radius: 50%; background: #ffd479;
-    border: 1.5px solid rgba(0,0,0,0.65); transform: translateX(-4.5px);
-  }
+  /* El CSS del badge .card-countdown lo inyecta docs/countdown.js
+     (fuente unica compartida con el dashboard). */
   /* Abajo-izquierda: arriba topaba con el nombre del volcan cuando el
      header va overlay sobre la imagen (vista por zona) */
   .card-sub .sub-label {
@@ -360,6 +316,40 @@
     font-size: 0.8em;
   }
   .ctrl-pause:hover { background: rgba(255,255,255,0.15); }
+
+  /* === CONTROL DE SONIDO DE ALERTA ===
+     El navegador BLOQUEA audio hasta que hay un gesto del usuario (politica de
+     autoplay). En un kiosko desatendido eso haria que la alerta no suene NUNCA
+     sin avisar -> falla silenciosa. Por eso el estado del audio es VISIBLE:
+     activo (verde) / silenciado (gris) / bloqueado (ambar, pide un click). */
+  .ctrl-sonido {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 3px 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8em;
+  }
+  .ctrl-sonido:hover { background: rgba(255,255,255,0.15); }
+  .ctrl-sonido.activo    { border-color: #2ea043; color: #7ee787; }
+  .ctrl-sonido.silenciado{ color: var(--muted); }
+  .ctrl-sonido.bloqueado {
+    border-color: #d29922; color: #f2cc60;
+    animation: blink 2s infinite;
+  }
+
+  /* Aviso de imagen nueva: acompana al sonido (si el audio esta bloqueado o
+     el turno esta lejos, la vista igual lo grita). Se auto-oculta. */
+  .aviso-nueva {
+    display: none;
+    background: #14532d; color: #b7f7c4;
+    font-weight: 800; font-size: 0.95em; text-align: center;
+    padding: 6px 14px; letter-spacing: 0.02em;
+    border-bottom: 2px solid #2ea043;
+    cursor: pointer;   /* click = acuse de recibo, corta las repeticiones */
+  }
+  .aviso-nueva.visible { display: block; animation: blink 1.6s 3; }
 
   /* === BANDA DE ESTADO GLOBAL (stale / sin conexion) ===
      La Sala es kiosko desatendido 24/7. Si los datos envejecen o el refresco
@@ -412,6 +402,7 @@
 </nav>
 
 <div class="estado-global" id="estado-global"></div>
+<div class="aviso-nueva" id="aviso-nueva"></div>
 
 <main>
   <div class="grid-volcanes" id="grid"></div>
@@ -422,12 +413,14 @@
   <div style="display: flex; align-items: center; gap: 10px;">
     <span>Próximo sensor: <strong id="next-sensor-time">--</strong></span>
     <div class="progress-bar"><div class="progress-fill" id="prog-refresh"></div></div>
+    <button class="ctrl-sonido" id="btn-sonido" title="Sonido al llegar una imagen nueva">🔔 Sonido</button>
     <button class="ctrl-pause" id="btn-pause">⏸️ Pausar</button>
   </div>
   <span>Copernicus-v1 · S2 / L8-9</span>
 </footer>
 
 <script src="volcanes.js"></script>
+<script src="countdown.js"></script>
 <script>
 // ============================================================
 // CONFIG
@@ -473,7 +466,6 @@ let nivelesLandsat = {};
 // Landsat: con el hibrido L1+L2 la imagen aparece ~1 dia (bajamos la L1-RT que
 // USGS publica ~T+0/T+1, sin esperar la cola larga del L2). La L2 final llega
 // despues y reemplaza la L1 en silencio. Antes (solo L2) era ~1-2 días o más.
-const VENTANA_IMG = { s2: '~6-8 h', landsat: '~1 día' };
 let predS2 = null, predLandsat = null;
 
 // ============================================================
@@ -546,6 +538,7 @@ async function init() {
     fetch(PRED_LANDSAT_URL + '?t=' + Date.now()).then(r => r.json()).then(j => predLandsat = j),
     fetch(NIVELES_LANDSAT_URL + '?t=' + Date.now()).then(r => r.json()).then(j => nivelesLandsat = j || {})
   ]);
+  sincronizarCountdown();
 
   // Wire zone selector
   document.querySelectorAll('.btn-zona').forEach(b => {
@@ -570,30 +563,63 @@ async function init() {
 
   render();
   firmaActualS2 = firmaUltimasFechas();
+  mapaActual = mapaUltimasFechas();   // linea base: lo ya pintado NO es "nuevo"
   actualizarIndicadorStale();   // evaluar stale ya en el primer pintado
 
   setInterval(actualizarReloj, 1000);
   setInterval(tickRotacion, 1000);
   setInterval(refrescarDatos, REFRESCO_DATOS_MS);
-  setInterval(actualizarCountdowns, 60000);  // refresca la cuenta regresiva
+  // Refresca la cuenta regresiva (componente compartido countdown.js). El sensor
+  // se resuelve en cada tick porque la Sala rota entre S2 y Landsat.
+  CountdownPasadas.iniciarTick(60000, () => sensorActual);
   // Hard reload cada 6 horas: el kiosko queda solo, evita drift de memoria
   // y garantiza que tome cualquier cambio de versión del HTML/JS deployado.
   setTimeout(() => location.reload(), HARD_RELOAD_MS);
   document.getElementById('btn-pause').addEventListener('click', togglePausa);
+  document.getElementById('btn-sonido').addEventListener('click', () => SonidoAlerta.alternar());
+  document.getElementById('aviso-nueva').addEventListener('click', () => SecuenciaAlerta.acusar());
+  SonidoAlerta.engancharGestos();   // cualquier click del operador desbloquea el audio
+  SonidoAlerta.cargarBuffer();      // precarga la locucion (no requiere gesto)
+  SonidoAlerta.pintarBoton();
   actualizarReloj();
+}
+
+// Mapa "<sensor> <volcan>" -> ultima fecha disponible.
+// FIX: antes la firma solo miraba S2, asi que una Landsat nueva no contaba como
+// "imagen nueva" (ni re-render ni, ahora, sonido). La Sala rota entre los dos
+// sensores, asi que la deteccion cubre ambos.
+function mapaUltimasFechas() {
+  const m = {};
+  for (const [sensor, dic] of [['S2', fechasS2], ['Landsat', fechasLandsat]]) {
+    if (!dic) continue;
+    for (const v of Object.keys(dic)) {
+      const f = dic[v];
+      if (f && f.length) m[sensor + ' ' + v] = f[f.length - 1];
+    }
+  }
+  return m;
 }
 
 // Calcula firma de "qué fecha es la última por volcán" para detectar nuevas imágenes
 function firmaUltimasFechas() {
-  if (!fechasS2) return '';
-  const partes = [];
-  for (const v of Object.keys(fechasS2).sort()) {
-    const f = fechasS2[v];
-    if (f && f.length) partes.push(v + ':' + f[f.length - 1]);
-  }
-  return partes.join('|');
+  const m = mapaUltimasFechas();
+  return Object.keys(m).sort().map(k => k + ':' + m[k]).join('|');
 }
+
+// Diff entre el mapa pintado y el recien traido: devuelve las etiquetas cuya
+// fecha AVANZO (o que aparecieron). Solo cuenta fechas mas nuevas, para que un
+// borrado por retencion no se anuncie como novedad.
+function detectarNuevas(mapaViejo, mapaNuevo) {
+  const nuevas = [];
+  for (const k of Object.keys(mapaNuevo)) {
+    const antes = mapaViejo[k];
+    if (!antes || mapaNuevo[k] > antes) nuevas.push(k + ' ' + mapaNuevo[k]);
+  }
+  return nuevas.sort();
+}
+
 let firmaActualS2 = '';
+let mapaActual = {};
 
 function seleccionarZona(z) {
   zonaActual = z;
@@ -710,165 +736,17 @@ function aplicarVistaZoom(mostrarZoom) {
 }
 
 // === CUENTA REGRESIVA AL PROXIMO PASO ===
-// El PASO es casi-certeza (mecanica orbital). La aparicion de la IMAGEN es una
-// distribucion (latencia variable + nubes), por eso mostramos el contador al
-// paso + una VENTANA de disponibilidad, no un numero al minuto (falsa precision).
-function fmtCountdown(ms) {
-  if (ms < 0) ms = 0;
-  const min = Math.floor(ms / 60000);
-  const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = min % 60;
-  if (d > 0) return d + 'd ' + h + 'h';
-  if (h > 0) return h + 'h ' + m + 'm';
-  return m + 'm';
+// Pasa al componente compartido las referencias VIGENTES de predicciones y
+// fechas. Hay que llamarla despues de CADA carga: los fetch REASIGNAN las
+// globales (predS2 = j), asi que el modulo quedaria apuntando al objeto viejo.
+function sincronizarCountdown() {
+  CountdownPasadas.configurar({ predS2, predLandsat, fechasS2, fechasLandsat });
 }
 
-// Hora local Chile "HH:MM" (DST-aware) de un instante UTC en ms. Para mostrar la
-// ventana de publicacion como horas-reloj ("esperada 15:25 ... 22:25").
-function hhmmChile(ms) {
-  return new Date(ms).toLocaleString('es-CL', {
-    timeZone: 'America/Santiago', hour: '2-digit', minute: '2-digit', hour12: false
-  });
-}
-
-// Horizonte de latencia: cuanto tiempo tras el paso seguimos esperando la
-// imagen (mas alla, si no llego, asumimos que esa pasada fue muy nubosa o no
-// se proceso). S2 publica ~6-8h; Landsat ~1-2 dias.
-const HORIZONTE_CAMINO_H = { s2: 24, landsat: 48 };
-
-// Modelo de latencia de publicacion (de los JSON de prediccion). La imagen NO
-// aparece al instante del paso: hay una distribucion (procesamiento + cola del
-// proveedor). Contamos hacia la MEDIANA (llegada esperada); pasada la mediana
-// seguimos dentro de la cola normal hasta P95; pasado P95 es genuinamente
-// atrasado (solo ~5% de las escenas tarda mas). Fallbacks si falta el campo.
-const LATENCIA_FALLBACK = { s2: { mediana_h: 4.7, p95_h: 11.7 },
-                            landsat: { mediana_h: 44, p95_h: 48 } };
-function latenciaSensor(sensor) {
-  const pred = sensor === 's2' ? predS2 : predLandsat;
-  const lat = pred && (pred.latencia_l2a || pred.latencia_l2);
-  if (lat && lat.mediana_h != null && lat.p95_h != null) return lat;
-  return LATENCIA_FALLBACK[sensor] || LATENCIA_FALLBACK.s2;
-}
-
-// Devuelve {texto, detalle, camino} o null si no hay prediccion para el volcan.
-function infoProximoPaso(volcan, sensor) {
-  const pred = sensor === 's2' ? predS2 : predLandsat;
-  const info = pred && pred.volcanes && pred.volcanes[volcan];
-  if (!info || !info.proxima_combinada || !info.proxima_combinada.length) return null;
-  const horaUtc = info.hora_utc_estimada || (sensor === 's2' ? '14:34' : '14:45');
-  const ventana = VENTANA_IMG[sensor] || '';
-  const horizonte = (HORIZONTE_CAMINO_H[sensor] || 24) * 3600000;
-  const now = Date.now();
-
-  // Ultima imagen que YA tenemos (las listas vienen ascendentes -> ultimo elem).
-  const fechasObj = sensor === 's2' ? fechasS2 : fechasLandsat;
-  const lista = fechasObj && fechasObj[volcan];
-  const ultimaImg = (lista && lista.length) ? lista[lista.length - 1] : null;
-
-  const pasos = info.proxima_combinada.map(p => ({
-    p, ms: new Date(p.fecha + 'T' + horaUtc + ':00Z').getTime()
-  }));
-
-  // 1) Paso que YA ocurrio, cuya imagen aun NO tenemos, y sigue dentro del
-  //    horizonte de latencia -> "imagen en camino" (tiene prioridad sobre la
-  //    proxima pasada lejana, porque es lo mas inminente para el usuario).
-  const reciente = pasos
-    .filter(x => x.ms <= now && (now - x.ms) <= horizonte && (!ultimaImg || x.p.fecha > ultimaImg))
-    .sort((a, b) => b.ms - a.ms)[0];
-  if (reciente) {
-    const passMs = reciente.ms;
-    const detalleBase = 'Paso ' + (reciente.p.sat || '') + ' del ' + reciente.p.fecha + ' ya ocurrió';
-
-    if (sensor === 's2') {
-      // VENTANA HORARIA + BARRA (S2): la imagen aparece dentro de una franja
-      // horaria (de la hora "habitual"=mediana al limite "a mas tardar"=P95). El
-      // punto de la barra marca AHORA y avanza con los minutos; la marca gris es
-      // la hora habitual. Asi se entiende cuando llegara sin fingir un "0 min".
-      const lat = latenciaSensor('s2');
-      const medMs = passMs + lat.mediana_h * 3600000;   // llegada habitual
-      const p95Ms = passMs + lat.p95_h * 3600000;       // a mas tardar
-      if (now < p95Ms) {
-        const span = p95Ms - passMs;
-        return {
-          linea1: '🛰️ imagen en camino',
-          ventana: 'esperada ' + hhmmChile(medMs) + ' (habitual) – ' + hhmmChile(p95Ms) + ' (a más tardar)',
-          detalle: detalleBase + ' · imagen habitualmente ~' + hhmmChile(medMs) +
-                   ', a más tardar ~' + hhmmChile(p95Ms) + ' (hora Chile)',
-          camino: true,
-          barra: { posNow: Math.max(0, Math.min(1, (now - passMs) / span)),
-                   posMed: (medMs - passMs) / span }
-        };
-      }
-      // Paso el limite "a mas tardar" (P95) sin imagen -> atrasado.
-      return {
-        linea1: '⚠️ dato atrasado',
-        ventana: 'se esperaba antes de ' + hhmmChile(p95Ms),
-        detalle: detalleBase + ' · superó el plazo máximo normal (~' + hhmmChile(p95Ms) +
-                 ' hora Chile) sin imagen — probable nubosidad o demora del proveedor',
-        camino: false,
-        atrasado: true
-      };
-    }
-
-    // Landsat: latencia larga (~1 día, producto L1-RT) que cruza dias, asi que la
-    // hora-reloj seria ambigua. Mantener la ventana relativa simple.
-    return {
-      linea1: '🛰️ imagen en camino',
-      ventana: 'en ' + (VENTANA_IMG.landsat || '~1 día'),
-      detalle: detalleBase + ' · imagen ' + (VENTANA_IMG.landsat || '~1 día') + ' después del paso',
-      camino: true
-    };
-  }
-
-  // 2) Cuenta regresiva al proximo paso futuro.
-  const futuro = pasos.find(x => x.ms > now);
-  if (futuro) {
-    return {
-      linea1: '⏱️ paso en ' + fmtCountdown(futuro.ms - now),
-      ventana: 'imagen ' + ventana,   // ventana de incertidumbre tras el paso
-      detalle: 'Próximo paso ' + (futuro.p.sat || '') + ': ' + futuro.p.fecha +
-               ' · imagen ' + ventana + ' después del paso',
-      camino: false
-    };
-  }
-  return null;
-}
-
-// Pinta {linea1, ventana, [barra]} en un elemento .card-countdown (sin innerHTML).
-function pintarCountdown(el, info) {
-  while (el.firstChild) el.removeChild(el.firstChild);
-  el.appendChild(document.createTextNode(info.linea1));
-  const vent = document.createElement('span');
-  vent.className = 'cd-ventana';
-  vent.textContent = info.ventana;
-  el.appendChild(vent);
-  // Barra de progreso de publicacion (solo "imagen en camino" con ventana horaria):
-  // marca gris = hora habitual (mediana), punto = ahora avanzando hacia el limite.
-  if (info.barra) {
-    const barra = document.createElement('div');
-    barra.className = 'cd-barra';
-    const tick = document.createElement('span');
-    tick.className = 'cd-tick';
-    tick.style.left = (info.barra.posMed * 100).toFixed(1) + '%';
-    barra.appendChild(tick);
-    const dot = document.createElement('span');
-    dot.className = 'cd-dot';
-    dot.style.left = (info.barra.posNow * 100).toFixed(1) + '%';
-    barra.appendChild(dot);
-    el.appendChild(barra);
-  }
-  el.classList.toggle('img-camino', !!info.camino);
-  el.classList.toggle('atrasado', !!info.atrasado);
-}
-
-// Actualiza el texto de los badges ya pintados sin re-renderizar (tick liviano).
-function actualizarCountdowns() {
-  document.querySelectorAll('.card-countdown').forEach(el => {
-    const info = infoProximoPaso(el.dataset.volcan, sensorActual);
-    if (!info) { el.textContent = ''; el.title = ''; return; }
-    pintarCountdown(el, info);
-    el.title = info.detalle;
-  });
-}
+// La logica de la cuenta regresiva (fmtCountdown, hhmmChile, latencia,
+// infoProximoPaso, pintado y tick) vive ahora en el componente compartido
+// docs/countdown.js, usado tambien por el dashboard (index.html). Se movio
+// para no mantener dos copias que divergen. API: CountdownPasadas.*
 
 function crearCard(volcan) {
   const card = document.createElement('div');
@@ -885,15 +763,10 @@ function crearCard(volcan) {
   header.appendChild(badgeFecha);
   card.appendChild(header);
 
-  // Badge de cuenta regresiva (esquina inferior derecha)
-  const cdInfo = infoProximoPaso(volcan, sensorActual);
-  if (cdInfo) {
-    const cdEl = document.createElement('div');
-    cdEl.className = 'card-countdown';
-    cdEl.dataset.volcan = volcan;
-    pintarCountdown(cdEl, cdInfo);
-    cdEl.title = cdInfo.detalle;
-    card.appendChild(cdEl);
+  // Badge de cuenta regresiva (esquina inferior derecha) — componente compartido
+  // con el dashboard (countdown.js). 'overlay' = absoluto sobre la imagen.
+  if (CountdownPasadas.info(volcan, sensorActual)) {
+    card.appendChild(CountdownPasadas.crearBadge(volcan, sensorActual, 'overlay'));
   }
 
   const body = document.createElement('div');
@@ -1105,6 +978,245 @@ function actualizarIndicadorStale() {
   band.classList.remove('visible');
 }
 
+// ============================================================
+// SONIDO DE ALERTA DE IMAGEN NUEVA
+// ============================================================
+// Se SINTETIZA con Web Audio API (oscilador), no es un archivo de audio.
+// Por que: el repo ya venia de una purga de .git (26 GB -> 2.6 GB) y no
+// queremos sumar binarios; ademas evita CORS y el cache ~5min de raw. El
+// patron es un arpegio ascendente de 3 notas (A5-C#6-E6) + repique: se
+// distingue del ruido de fondo de la sala y no suena a beep de error.
+//
+// AUTOPLAY: el navegador crea el AudioContext en estado 'suspended' hasta que
+// hay un gesto del usuario. Si no se maneja, la alerta NO suena y nadie se
+// entera (falla silenciosa). Por eso el boton hace de gesto de desbloqueo y
+// el estado se muestra en el footer.
+// Locucion grabada (voz) + parametros de insistencia.
+const ALERTA_AUDIO_URL   = 'audio/alerta_imagen_nueva.mp3';
+const ALERTA_REPETICIONES = 3;                  // emisiones totales
+const ALERTA_INTERVALO_MS = 10 * 60 * 1000;     // 10 min entre emisiones
+
+const SonidoAlerta = (() => {
+  const LKEY = 'sala_sonido_alerta';
+  let ctx = null;
+  let buffer = null;          // locucion decodificada (null => usar chime)
+  // Preferencia del operador (persiste entre recargas; el kiosko hace hard
+  // reload cada 6 h y no queremos que vuelva a quedar mudo solo).
+  let habilitado = localStorage.getItem(LKEY) !== 'off';
+
+  // Descarga y decodifica la locucion una sola vez. Se puede decodificar con el
+  // ctx suspendido (no requiere gesto); solo REPRODUCIR lo requiere.
+  async function cargarBuffer() {
+    if (buffer || !crearCtx()) return;
+    try {
+      const r = await fetch(ALERTA_AUDIO_URL);
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      buffer = await ctx.decodeAudioData(await r.arrayBuffer());
+    } catch (e) {
+      // Fallback explicito al chime sintetizado: preferimos una alerta fea a
+      // ninguna alerta. Se avisa en consola para no ocultar el problema.
+      console.warn('[Sala] No se pudo cargar la locucion (' + ALERTA_AUDIO_URL + '), se usara el chime:', e);
+      buffer = null;
+    }
+  }
+
+  function crearCtx() {
+    if (ctx) return ctx;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    try { ctx = new AC(); } catch (e) { return null; }
+    return ctx;
+  }
+
+  // 'activo' | 'silenciado' | 'bloqueado'
+  function estado() {
+    if (!habilitado) return 'silenciado';
+    if (!ctx || ctx.state !== 'running') return 'bloqueado';
+    return 'activo';
+  }
+
+  function nota(freq, tStart, dur, vol) {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    // Envelope: ataque corto + decay exponencial => campanilla, no zumbido.
+    gain.gain.setValueAtTime(0.0001, tStart);
+    gain.gain.exponentialRampToValueAtTime(vol, tStart + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, tStart + dur);
+    osc.connect(gain).connect(ctx.destination);
+    osc.start(tStart);
+    osc.stop(tStart + dur + 0.02);
+  }
+
+  // Chime sintetizado: SOLO fallback si la locucion no cargo.
+  function chime() {
+    const t = ctx.currentTime + 0.02;
+    nota(880.00, t,        0.26, 0.34);  // A5
+    nota(1108.73, t + 0.16, 0.26, 0.32); // C#6
+    nota(1318.51, t + 0.32, 0.42, 0.34); // E6
+    nota(1318.51, t + 0.78, 0.42, 0.24); // repique del agudo
+    return true;
+  }
+
+  // Emite la alerta. Devuelve true SOLO si realmente sono algo (nunca finge
+  // exito: si el navegador tiene el audio suspendido, devuelve false y el
+  // indicador queda en 'bloqueado').
+  function sonar() {
+    if (!habilitado) return false;
+    if (!crearCtx()) return false;
+    if (ctx.state !== 'running') {
+      // Intento de reanudar (por si el gesto ocurrio antes); si sigue
+      // suspendido, avisamos por el indicador y no fingimos exito.
+      ctx.resume().catch(() => {});
+      if (ctx.state !== 'running') { pintarBoton(); return false; }
+    }
+    if (!buffer) return chime();
+    const src = ctx.createBufferSource();
+    src.buffer = buffer;
+    src.connect(ctx.destination);
+    src.start(ctx.currentTime + 0.02);
+    return true;
+  }
+
+  // Debe llamarse DESDE un handler de gesto del usuario para desbloquear.
+  // OJO: no es un toggle ciego de la preferencia. Si el estado es 'bloqueado'
+  // (preferencia en ON pero el navegador tenia el audio suspendido), este click
+  // es justo el gesto que faltaba -> hay que DESBLOQUEAR, no silenciar. Sin esta
+  // distincion el boton decia "Activar sonido" y al apretarlo silenciaba.
+  async function activarCtx() {
+    crearCtx();
+    if (ctx && ctx.state !== 'running') { try { await ctx.resume(); } catch (e) {} }
+    await cargarBuffer();
+  }
+
+  async function alternar() {
+    if (estado() === 'activo') {
+      habilitado = false;
+      localStorage.setItem(LKEY, 'off');
+    } else {
+      // 'silenciado' o 'bloqueado' -> ambos casos terminan en sonido activo.
+      habilitado = true;
+      localStorage.setItem(LKEY, 'on');
+      await activarCtx();
+      sonar();   // confirmacion audible: el operador comprueba que se oye
+    }
+    pintarBoton();
+  }
+
+  // Desbloqueo oportunista: cualquier click/tecla en el kiosko sirve de gesto,
+  // asi el audio queda listo aunque nadie toque el boton.
+  function engancharGestos() {
+    const intento = (ev) => {
+      // El boton de sonido tiene su propio handler (alternar). Si lo tratamos
+      // tambien aca, el 'pointerdown' desbloquea el ctx ANTES de que corra el
+      // 'click' -> alternar() ve estado 'activo' y SILENCIA justo cuando el
+      // operador quiso activar. Carrera real detectada probando con click.
+      if (ev && ev.target && ev.target.closest && ev.target.closest('#btn-sonido')) return;
+      if (!habilitado) return;
+      crearCtx();
+      if (ctx && ctx.state !== 'running') ctx.resume().then(pintarBoton).catch(() => {});
+      else pintarBoton();
+    };
+    ['pointerdown', 'keydown'].forEach(ev =>
+      document.addEventListener(ev, intento, { passive: true }));
+  }
+
+  function pintarBoton() {
+    const b = document.getElementById('btn-sonido');
+    if (!b) return;
+    const e = estado();
+    b.classList.remove('activo', 'silenciado', 'bloqueado');
+    b.classList.add(e);
+    if (e === 'activo')      { b.textContent = '🔔 Sonido';  b.title = 'Alerta sonora activa. Click para silenciar.'; }
+    else if (e === 'silenciado') { b.textContent = '🔕 Silencio'; b.title = 'Alerta sonora silenciada. Click para activar.'; }
+    else { b.textContent = '⚠️ Activar sonido'; b.title = 'El navegador bloquea el audio hasta un click. Click aqui para habilitarlo.'; }
+  }
+
+  return { sonar, alternar, pintarBoton, engancharGestos, estado, cargarBuffer,
+           tieneLocucion: () => !!buffer };
+})();
+
+// ============================================================
+// SECUENCIA DE ALERTA: 1 emision + repeticiones, con COALESCENCIA de paquete
+// ============================================================
+// POR QUE COALESCE (dato real del indice de fechas): el cron NO baja de a una
+// imagen. Publica en paquete: la MEDIANA es 38 volcanes por fecha en S2 (p90=45,
+// max=48) y 36 en Landsat. Si sonara una alerta por volcan, un paquete normal
+// daria ~40 locuciones de 11 s superpuestas (>7 min de voces encimadas).
+//
+// Diseno: la alerta es por EVENTO ("llego un paquete"), no por volcan.
+//   - 1a emision INMEDIATA (no se hace esperar al operador).
+//   - Mientras la secuencia esta activa, mas novedades solo engordan el aviso
+//     visual; NO disparan sonido extra ni reinician el contador. Asi, aunque el
+//     paquete llegue partido en varios ciclos (S2 y Landsat son JSON distintos,
+//     de repos distintos, y raw cachea ~5 min), suena UNA vez.
+//   - Repite cada 10 min hasta 3 emisiones, o hasta que el operador acuse recibo.
+const SecuenciaAlerta = (() => {
+  let activa = false;
+  let emitidas = 0;
+  let timer = null;
+  let acumuladas = [];   // etiquetas "<sensor> <volcan> <fecha>" del evento actual
+
+  function emitir() {
+    emitidas++;
+    const ok = SonidoAlerta.sonar();
+    if (!ok) {
+      console.warn('[Sala] Alerta ' + emitidas + '/' + ALERTA_REPETICIONES +
+                   ' NO emitida (audio ' + SonidoAlerta.estado() + ')');
+    }
+    if (emitidas >= ALERTA_REPETICIONES) { finalizar(); return; }
+    timer = setTimeout(emitir, ALERTA_INTERVALO_MS);
+  }
+
+  function finalizar() {
+    if (timer) { clearTimeout(timer); timer = null; }
+    activa = false;
+    emitidas = 0;
+    acumuladas = [];
+  }
+
+  // Acuse de recibo del operador: corta las repeticiones pendientes.
+  function acusar() {
+    const habia = activa;
+    finalizar();
+    const el = document.getElementById('aviso-nueva');
+    if (el) el.classList.remove('visible');
+    return habia;
+  }
+
+  // Entrada unica desde el ciclo de refresco.
+  function notificar(nuevas) {
+    if (!nuevas || !nuevas.length) return;
+    // Acumular sin duplicar (el mismo volcan puede reaparecer entre ciclos).
+    for (const n of nuevas) if (!acumuladas.includes(n)) acumuladas.push(n);
+    mostrarAvisoNueva(acumuladas);
+    if (activa) {
+      console.log('[Sala] Novedad agregada al evento en curso (' +
+                  acumuladas.length + ' imagenes), sin sonido extra');
+      return;
+    }
+    activa = true;
+    emitidas = 0;
+    emitir();
+  }
+
+  return { notificar, acusar, activa: () => activa, pendientes: () => acumuladas.slice() };
+})();
+
+// Aviso visual que acompana al sonido (y lo cubre si el audio esta bloqueado).
+// NO se auto-oculta mientras la secuencia sonora sigue activa: el operador debe
+// poder ver que hubo novedad aunque estuviera lejos del kiosko. Click = acuse de
+// recibo (corta las repeticiones pendientes).
+function mostrarAvisoNueva(nuevas) {
+  const el = document.getElementById('aviso-nueva');
+  if (!el || !nuevas.length) return;
+  const n = nuevas.length;
+  const detalle = nuevas.slice(0, 3).join(' · ') + (n > 3 ? ' · +' + (n - 3) + ' mas' : '');
+  el.textContent = `🆕 ${n} imagen${n === 1 ? '' : 'es'} nueva${n === 1 ? '' : 's'}: ${detalle}  —  (click para silenciar)`;
+  el.classList.add('visible');
+}
+
 async function refrescarDatos() {
   try {
     const [rS2, rL] = await Promise.allSettled([
@@ -1126,14 +1238,23 @@ async function refrescarDatos() {
       fetch(PRED_S2_URL + '?t=' + Date.now()).then(r => r.json()).then(j => predS2 = j),
       fetch(PRED_LANDSAT_URL + '?t=' + Date.now()).then(r => r.json()).then(j => predLandsat = j),
       fetch(NIVELES_LANDSAT_URL + '?t=' + Date.now()).then(r => r.json()).then(j => nivelesLandsat = j || {})
-    ]);
+    ]).then(sincronizarCountdown);   // re-apuntar el modulo a los objetos nuevos
+    sincronizarCountdown();          // fechas ya actualizadas arriba
     // Solo re-renderizar (recarga las <img> con cache-buster) si hay
     // fechas nuevas vs lo que ya tenemos pintado. Evita parpadeo cada minuto.
     const nuevaFirma = firmaUltimasFechas();
     if (nuevaFirma !== firmaActualS2) {
-      console.log('[Sala] Imágenes nuevas detectadas, re-renderizando');
+      const mapaNuevo = mapaUltimasFechas();
+      const nuevas = detectarNuevas(mapaActual, mapaNuevo);
+      console.log('[Sala] Imágenes nuevas detectadas, re-renderizando', nuevas);
       firmaActualS2 = nuevaFirma;
+      mapaActual = mapaNuevo;
       render();
+      // Avisar SOLO si alguna fecha avanzo de verdad. Un cambio de firma por
+      // retencion (se borro una fecha vieja) no debe sonar como novedad.
+      // La alerta es por EVENTO, no por volcan: SecuenciaAlerta agrupa el
+      // paquete (mediana 38 imagenes/fecha) en una sola secuencia sonora.
+      if (nuevas.length) SecuenciaAlerta.notificar(nuevas);
     }
   } catch (e) {
     // Excepcion inesperada (no la red caida, que allSettled absorbe): contarla
