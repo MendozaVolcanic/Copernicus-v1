@@ -19,6 +19,14 @@ on:
         required: true
         default: 'NO'
 
+# FIX 2026-08-09: sin concurrency, este workflow podia hacer
+# `git push origin main --force` + `git push origin --tags --force`
+# (REESCRIBE HISTORIA, dos pushes) mientras corria un cron que pushea a main.
+# Grupo compartido 'push-main' -> queda serializado con los otros 13 escritores.
+concurrency:
+  group: push-main
+  cancel-in-progress: false
+
 permissions:
   contents: write
 

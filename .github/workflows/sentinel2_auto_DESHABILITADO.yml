@@ -8,9 +8,14 @@ name: Descarga Sentinel-2 (DESHABILITADO)
 on:
   workflow_dispatch:
 
+# FIX 2026-08-09: el grupo era 'sentinel2-download', aislado de los demas
+# escritores de main. Aunque solo corre por workflow_dispatch, hace
+# `git push origin main` -> debe serializarse en 'push-main'.
+# cancel-in-progress pasa a false OBLIGATORIAMENTE: en true cancelaria un
+# run de copernicus.yml en vuelo al entrar al grupo compartido.
 concurrency:
-  group: sentinel2-download
-  cancel-in-progress: true
+  group: push-main
+  cancel-in-progress: false
 
 jobs:
   download-sentinel2:

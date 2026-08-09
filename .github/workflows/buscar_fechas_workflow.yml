@@ -15,8 +15,11 @@ on:
         default: '2'
 
 # FIX 2026-05-17: concurrency para evitar runs simultáneos que pisan commits
+# FIX 2026-08-09: el grupo era ${{ github.workflow }}, que se resuelve al nombre
+# de ESTE workflow -> solo se serializaba contra si mismo, no contra los otros
+# 13 que pushean a main. Movido al grupo compartido 'push-main'.
 concurrency:
-  group: ${{ github.workflow }}
+  group: push-main
   cancel-in-progress: false
 
 permissions:
