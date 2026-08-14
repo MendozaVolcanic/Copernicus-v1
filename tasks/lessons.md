@@ -73,6 +73,15 @@ Spike de visor client-side (OpenLayers + COG público) descartado tras prueba ha
 - Vistas zoom en `config_sentinel2.py:VOLCANES` con campo `vista_zoom_de` apuntando al padre. Regenerar `docs/volcanes.js` con `scripts/generar_volcanes_js.py` tras cualquier cambio de coords.
 - Tests en `tests/` (pytest). Actualizar conteos hardcodeados (46→49 entidades, etc.) al agregar volcanes/zooms.
 
+## El calendario anunciaba pasadas que NO ocurrían: fases espurias (2026-08-14)
+
+- **Cómo se detectó**: backtesting. Parándose en un corte del pasado, calculando las pasadas con SOLO el histórico anterior y comparando contra lo que realmente ocurrió. Resultado inicial: **cobertura 98,8-100%** (nunca se pierde una imagen real) pero **acierto de sólo 82-89% en S2 y 68-89% en Landsat** → 1 de cada 5 pasadas anunciadas no producía imagen. Para un turno que planifica con eso, es información que no se cumple.
+- **Causa raíz**: el generador tomaba **todas** las fases orbitales (`día_ordinal % ciclo`) vistas en la ventana de 35 d y las proyectaba con igual peso. Las fases que aparecen 1-2 veces son **solapes marginales del borde del swath** —el volcán cae en el filo de la traza y a veces queda afuera—, no pasadas regulares.
+- **La separación es nítida** (backtest): en S2, fase vista **≥3 veces → 100% de acierto**; vista ≤2 → **27%**. En Landsat el umbral es 2 (ciclo de 16 d: una fase regular sólo alcanza a aparecer 2 veces en 35 d): **≥2 → 100%**, 1 vez → 80%.
+- **Fix**: no se descartan (sería ocultar información), se **califican**. Campo `confianza: alta|baja` por pasada, con umbral derivado del ciclo (`VENTANA_FASES_DIAS // CICLO_DIAS`, mínimo 2): da 3 para S2 y 2 para Landsat sin hardcodear. En el calendario, las de baja confianza se pintan **huecas** (borde sin relleno) y el tooltip dice "PROBABLE (pasada de borde)". KPI nuevo: "de ellas seguras".
+- **Impacto**: S2 marca 299/834 (36%) como probables; Landsat sólo 8/377 (2%).
+- **Lección de método**: una predicción se valida con **backtesting**, no mirando si "parece razonable". Y hay que medir **dos** métricas: acierto (¿lo anunciado ocurre?) y cobertura (¿nos perdemos algo?) — acá la cobertura era perfecta y el acierto malo, y sólo una de las dos lo habría mostrado.
+
 ## Las pasadas SON deterministas: medido empíricamente (2026-08-14)
 
 - **La órbita no cambia y se puede calendarizar.** Medida la hora real de captura sobre escenas del catálogo OData: **Villarrica 14,54 UTC ± 5 min** (120 escenas / 120 días) y **Lascar 14,62 UTC ± 25 segundos** (30 escenas). Es órbita heliosincrónica: cruza cada punto a la misma hora solar por diseño. **No hubo ningún cambio de órbita** en el histórico.

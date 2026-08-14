@@ -14,6 +14,7 @@ Uso (idealmente desde cron):
 Output: docs/proximas_pasadas.json
 """
 import os, sys, glob, json
+from collections import Counter
 import pandas as pd
 from datetime import datetime, timedelta, timezone
 from zoneinfo import ZoneInfo
@@ -30,6 +31,13 @@ PROYECCIONES = 4  # cuantos ciclos predecir hacia adelante
 # Horizonte del calendario. Antes se guardaban solo las 6 pasadas mas
 # cercanas (~14 d), insuficiente para una vista mensual.
 HORIZONTE_DIAS = 35
+# Una fase orbital se considera REGULAR si aparece al menos este numero de
+# veces en la ventana de analisis. Las que aparecen menos son solapes
+# marginales del borde del swath: proyectarlas como regulares anunciaba
+# pasadas que no ocurrian (backtest: 27% de acierto en S2 vs 100% de las
+# regulares). Se derivan del ciclo: 35 d de ventana / ciclo.
+VENTANA_FASES_DIAS = 35
+MIN_APARICIONES_FASE = max(2, VENTANA_FASES_DIAS // CICLO_DIAS)
 
 # Hora real de paso por longitud de path. Sentinel-2 pasa sobre Chile
 # entre 14:26 y 14:37 UTC (10:26-10:37 hora Chile).
@@ -107,15 +115,23 @@ def predecir(historial):
             # Fases (residuo mod 10) de las observaciones recientes (<=35d). El
             # solape de 2 orbitas da tipicamente 2 fases distintas por satelite.
             recientes = [d for d in obs if (ultima - d).days <= 35]
-            fases = sorted(set(d.toordinal() % CICLO_DIAS for d in recientes)) \
-                or [ultima.toordinal() % CICLO_DIAS]
+            # Frecuencia de cada fase: distingue pasada regular de solape marginal.
+            _cuenta_fase = Counter(d.toordinal() % CICLO_DIAS for d in recientes)
+            fases = sorted(_cuenta_fase) or [ultima.toordinal() % CICLO_DIAS]
 
             ciclos = []
+            conf_por_fecha = {}
             for fase in fases:
+                # confianza: 'alta' si la fase se repite como pasada regular
+                conf = 'alta' if _cuenta_fase.get(fase, 0) >= MIN_APARICIONES_FASE else 'baja'
                 off = (fase - hoy_ord) % CICLO_DIAS  # dias hasta la 1a fecha >= hoy con esa fase
                 primera = hoy + timedelta(days=off)
                 for k in range(PROYECCIONES):
-                    ciclos.append((primera + timedelta(days=CICLO_DIAS * k)).isoformat())
+                    _f = (primera + timedelta(days=CICLO_DIAS * k)).isoformat()
+                    ciclos.append(_f)
+                    # si dos fases caen el mismo dia, gana la de mayor confianza
+                    if conf == 'alta' or _f not in conf_por_fecha:
+                        conf_por_fecha[_f] = conf
             ciclos = sorted(set(ciclos))
 
             sats_data[sat] = {
@@ -123,7 +139,7 @@ def predecir(historial):
                 'proximas': ciclos[:PROYECCIONES * 2],
             }
             for f in ciclos:
-                proximas_sat.append((f, sat))
+                proximas_sat.append((f, sat, conf_por_fecha.get(f, 'baja')))
 
         # Combinada: fechas futuras (>= hoy), dedup por fecha, las 6 mas cercanas.
         hoy_iso = hoy.isoformat()
@@ -131,10 +147,10 @@ def predecir(historial):
         vistos = set()
         combinada = []
         limite_iso = (hoy + timedelta(days=HORIZONTE_DIAS)).isoformat()
-        for f, s in proximas_sat:
+        for f, s, conf in proximas_sat:
             if f >= hoy_iso and f <= limite_iso and f not in vistos:
                 vistos.add(f)
-                combinada.append({'fecha': f, 'sat': s,
+                combinada.append({'fecha': f, 'sat': s, 'confianza': conf,
                                   'hora_chile': calcular_hora_chile(hora_utc, f)})
 
         # ultima_imagen: fecha de la imagen mas reciente YA descargada. El HTML la

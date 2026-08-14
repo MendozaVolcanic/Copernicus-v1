@@ -54,6 +54,10 @@
   /* Una pasada es una pasada: sin distinguir satelite (el detalle va en el tooltip). */
   .celda{width:15px;height:15px;border-radius:3px;background:#1c2128;display:inline-block;}
   .celda.p{background:var(--pasada);}
+  /* Baja confianza: la fase orbital aparecio pocas veces en el historico
+     (solape marginal del swath). Backtest: ~27% de estas se cumplen en S2,
+     contra 100% de las de alta. Se muestran huecas para no prometer de mas. */
+  .celda.p.baja{background:transparent;border:2px solid var(--pasada);}
   .celda.hoy{outline:1.5px solid var(--orange);}
   .col-hoy{background:rgba(249,115,22,.07);}
   .col-finde{background:rgba(255,255,255,.02);}
@@ -116,6 +120,7 @@
 
 <div class="leyenda">
   <div class="it"><span class="celda p"></span> pasada del satélite</div>
+  <div class="it"><span class="celda p baja"></span> pasada probable (borde del swath: no siempre cubre)</div>
   <div class="it"><span class="celda"></span> sin pasada</div>
   <div class="it"><span style="color:var(--orange)">▮</span> hoy</div>
   <div class="it">Pasá el mouse sobre una celda para ver el satélite y la hora</div>
@@ -166,9 +171,12 @@ function renderResumen(){
   const hoyIso = iso(new Date());
   const prox = Object.keys(porFecha).filter(f=>f>=hoyIso).sort()[0];
   const total = Object.values(porFecha).reduce((a,b)=>a+b,0);
+  const altas = vols.reduce((a,[n,i]) => a + (i.proxima_combinada||[])
+      .filter(p => p.confianza !== 'baja').length, 0);
   [['volcanes', vols.length],
    ['días con pasada', Object.keys(porFecha).length + ' / ' + HORIZONTE],
    ['pasadas totales', total],
+   ['de ellas seguras', altas],
    ['revisita mediana', revMed!=null ? revMed+' d' : '—'],
    ['próxima', prox ? prox.slice(5) : '—']
   ].forEach(([l,n])=>{
@@ -232,9 +240,11 @@ function renderTabla(){
       const p = porFecha[di];
       if (p){
         sp.classList.add('p');
+        if (p.confianza === 'baja') sp.classList.add('baja');
         // El satelite no se codifica en color: va en el tooltip.
         sp.title = nombre+' · '+d.toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'})+
-                   ' · '+(p.sat||'')+(p.hora_chile ? ' · '+p.hora_chile+' h' : '');
+                   ' · '+(p.sat||'')+(p.hora_chile ? ' · '+p.hora_chile+' h' : '')+
+                   (p.confianza === 'baja' ? ' · PROBABLE (pasada de borde: no siempre cubre el volcán)' : '');
       }
       if (di===hoyIso) sp.classList.add('hoy');
       td.appendChild(sp); tr.appendChild(td);
