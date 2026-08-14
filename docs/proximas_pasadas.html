@@ -125,6 +125,39 @@
     padding: 6px 0;
   }
   .next-volcanoes { font-size: 0.9em; color: var(--muted); }
+
+  /* ===== CALENDARIO DE PROXIMAS PASADAS (35 dias) =====
+     El paso satelital es determinista (orbita heliosincrona: hora de paso estable
+     dentro de ~5 min sobre 120 escenas medidas), asi que se puede calendarizar con
+     confianza. Lo que NO es determinista es si habra nubes ese dia. */
+  .cal-wrap { background:#161b22; border:1px solid #30363d; border-radius:10px;
+              padding:14px 16px; margin:14px 0; }
+  .cal-head { display:flex; justify-content:space-between; align-items:baseline;
+              flex-wrap:wrap; gap:8px; margin-bottom:10px; }
+  .cal-head h3 { margin:0; color:#58a6ff; font-size:1em; }
+  .cal-head .hint { color:#8b949e; font-size:0.82em; }
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+  .cal-dow { text-align:center; font-size:0.72em; color:#8b949e; font-weight:700;
+             text-transform:uppercase; letter-spacing:.5px; padding-bottom:2px; }
+  .cal-day { background:#0d1117; border:1px solid #30363d; border-radius:7px;
+             min-height:58px; padding:4px 5px; position:relative; }
+  .cal-day.vacio { background:transparent; border-color:transparent; }
+  .cal-day.tiene { cursor:pointer; border-color:#1f6feb; }
+  .cal-day.tiene:hover { background:#161b22; }
+  .cal-day.hoy { outline:2px solid #f97316; outline-offset:-2px; }
+  .cal-day .n { font-size:0.78em; color:#8b949e; font-weight:700; }
+  .cal-day.hoy .n { color:#f97316; }
+  .cal-day .cnt { font-size:1.15em; font-weight:800; color:#7ee787; line-height:1.1; }
+  .cal-day .sats { display:flex; gap:2px; flex-wrap:wrap; margin-top:2px; }
+  .cal-day .sats span { font-size:0.6em; padding:0 3px; border-radius:4px;
+                        font-weight:700; color:#fff; }
+  .cal-detalle { margin-top:12px; border-top:1px solid #30363d; padding-top:10px;
+                 font-size:0.88em; display:none; }
+  .cal-detalle.visible { display:block; }
+  .cal-detalle h4 { margin:0 0 6px; color:#58a6ff; font-size:0.95em; }
+  .cal-detalle ul { margin:0; padding-left:18px; columns:2; }
+  .cal-detalle li { margin-bottom:2px; color:#e6edf3; }
+  @media (max-width:700px){ .cal-detalle ul { columns:1; } }
 </style>
 </head>
 <body>
@@ -187,6 +220,16 @@
   Por eso el cron del repo corre concentrado en esos 2 picos en lugar de horarios uniformes.
 </div>
 
+
+<div class="cal-wrap">
+  <div class="cal-head">
+    <h3>&#128197; Calendario de pr&oacute;ximas pasadas &mdash; 35 d&iacute;as</h3>
+    <span class="hint">Click en un d&iacute;a para ver qu&eacute; volcanes. Respeta los filtros de arriba.</span>
+  </div>
+  <div class="cal-grid" id="cal-grid"></div>
+  <div class="cal-detalle" id="cal-detalle"></div>
+</div>
+
 <div id="grid" class="grid"></div>
 
 <div class="meta" id="meta"></div>
@@ -205,6 +248,7 @@ async function cargar() {
       'Datos generados: ' + new Date(datos.generado_utc).toLocaleString('es-CL') +
       ' · ' + Object.keys(datos.volcanes).length + ' volcanes monitoreados';
     render();
+    renderCalendario();
     renderProxima24h();
     renderStaleBanner();
   } catch (e) {
@@ -217,6 +261,7 @@ async function cargar() {
 setInterval(() => {
   if (!datos) return;
   render();
+  renderCalendario();
   renderProxima24h();
   renderStaleBanner();
 }, 30000);
@@ -233,6 +278,7 @@ setInterval(async () => {
         'Datos generados: ' + new Date(datos.generado_utc).toLocaleString('es-CL') +
         ' · ' + Object.keys(datos.volcanes).length + ' volcanes monitoreados';
       render();
+      renderCalendario();
       renderProxima24h();
       renderStaleBanner();
     }
@@ -326,6 +372,115 @@ function makeSatPill(sat) {
   span.className = 'pill ' + cls;
   span.textContent = sat.slice(-2);
   return span;
+}
+
+
+// ===== CALENDARIO DE PASADAS (35 dias) =====
+// Agrupa por FECHA las pasadas de todos los volcanes que pasan el filtro.
+// Sin innerHTML dinamico (politica del proyecto): createElement + textContent.
+var DOW_CAL = ['Lun', 'Mar', 'Mie', 'Jue', 'Vie', 'Sab', 'Dom'];
+
+function isoLocal(d) {
+  // ISO local (no UTC): toISOString() corre la fecha por timezone y desalineaba
+  // el calendario un dia en Chile (UTC-4/-3).
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') +
+         '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function volcanesFiltradosCal() {
+  var fz = document.getElementById('filtro-zona').value;
+  var fn = document.getElementById('filtro-nombre').value.toLowerCase();
+  var e = Object.entries(datos.volcanes);
+  if (fz) e = e.filter(function (x) { return x[1].zona === fz; });
+  if (fn) e = e.filter(function (x) { return x[0].toLowerCase().indexOf(fn) !== -1; });
+  return e;
+}
+
+function renderCalendario() {
+  var grid = document.getElementById('cal-grid');
+  if (!grid || !datos) return;
+  while (grid.firstChild) grid.removeChild(grid.firstChild);
+  document.getElementById('cal-detalle').classList.remove('visible');
+
+  var porFecha = {};
+  volcanesFiltradosCal().forEach(function (par) {
+    var nombre = par[0], info = par[1];
+    (info.proxima_combinada || []).forEach(function (p) {
+      (porFecha[p.fecha] = porFecha[p.fecha] || []).push(
+        { volcan: nombre, sat: p.sat, hora: p.hora_chile });
+    });
+  });
+
+  var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  var hoyIso = isoLocal(hoy);
+  var finIso = isoLocal(new Date(hoy.getTime() + 35 * 86400000));
+  // arrancar el lunes de la semana en curso para que la grilla cuadre
+  var inicio = new Date(hoy);
+  inicio.setDate(inicio.getDate() - ((inicio.getDay() + 6) % 7));
+
+  DOW_CAL.forEach(function (d) {
+    var h = document.createElement('div');
+    h.className = 'cal-dow'; h.textContent = d; grid.appendChild(h);
+  });
+
+  for (var i = 0; i < 42; i++) {
+    var dia = new Date(inicio.getTime() + i * 86400000);
+    var di = isoLocal(dia);
+    var cel = document.createElement('div');
+    cel.className = 'cal-day';
+    if (di < hoyIso || di > finIso) { cel.classList.add('vacio'); grid.appendChild(cel); continue; }
+    if (di === hoyIso) cel.classList.add('hoy');
+
+    var n = document.createElement('div');
+    n.className = 'n';
+    n.textContent = (dia.getDate() === 1 || di === hoyIso)
+      ? dia.getDate() + ' ' + dia.toLocaleDateString('es-CL', { month: 'short' })
+      : String(dia.getDate());
+    cel.appendChild(n);
+
+    var lista = porFecha[di];
+    if (lista && lista.length) {
+      cel.classList.add('tiene');
+      var c = document.createElement('div');
+      c.className = 'cnt'; c.textContent = String(lista.length);
+      cel.appendChild(c);
+      var sats = document.createElement('div'); sats.className = 'sats';
+      var unicos = [];
+      lista.forEach(function (x) { if (unicos.indexOf(x.sat) === -1) unicos.push(x.sat); });
+      unicos.sort().forEach(function (sat) {
+        var sp = document.createElement('span');
+        var k = String(sat || '').slice(-1).toUpperCase();
+        sp.textContent = '2' + k;
+        sp.style.background = k === 'A' ? '#1f6feb' : (k === 'B' ? '#238636' : '#8957e5');
+        sats.appendChild(sp);
+      });
+      cel.appendChild(sats);
+      cel.title = lista.length + ' volcan(es) con pasada el ' + di;
+      (function (f, l) {
+        cel.addEventListener('click', function () { mostrarDetalleDia(f, l); });
+      })(di, lista);
+    }
+    grid.appendChild(cel);
+  }
+}
+
+function mostrarDetalleDia(fechaISO, lista) {
+  var cont = document.getElementById('cal-detalle');
+  while (cont.firstChild) cont.removeChild(cont.firstChild);
+  var h = document.createElement('h4');
+  var f = new Date(fechaISO + 'T12:00:00');
+  h.textContent = f.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' }) +
+                  ' - ' + lista.length + ' volcan(es) con pasada';
+  cont.appendChild(h);
+  var ul = document.createElement('ul');
+  lista.slice().sort(function (a, b) { return a.volcan.localeCompare(b.volcan); })
+    .forEach(function (x) {
+      var li = document.createElement('li');
+      li.textContent = x.volcan + ' - ' + (x.sat || '') + (x.hora ? ' - ' + x.hora : '');
+      ul.appendChild(li);
+    });
+  cont.appendChild(ul);
+  cont.classList.add('visible');
 }
 
 function render() {
@@ -478,9 +633,11 @@ function renderProxima24h() {
   });
 }
 
-document.getElementById('filtro-zona').addEventListener('change', render);
-document.getElementById('filtro-nombre').addEventListener('input', render);
-document.getElementById('orden').addEventListener('change', render);
+// Los filtros afectan a la grilla Y al calendario (ambos leen el mismo filtro).
+function aplicarFiltros() { render(); renderCalendario(); }
+document.getElementById('filtro-zona').addEventListener('change', aplicarFiltros);
+document.getElementById('filtro-nombre').addEventListener('input', aplicarFiltros);
+document.getElementById('orden').addEventListener('change', render);   // el orden no afecta al calendario
 
 cargar();
 </script>

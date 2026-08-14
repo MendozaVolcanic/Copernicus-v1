@@ -27,6 +27,9 @@ from config_sentinel2 import VOLCANES
 
 CICLO_DIAS = 10
 PROYECCIONES = 4  # cuantos ciclos predecir hacia adelante
+# Horizonte del calendario. Antes se guardaban solo las 6 pasadas mas
+# cercanas (~14 d), insuficiente para una vista mensual.
+HORIZONTE_DIAS = 35
 
 # Hora real de paso por longitud de path. Sentinel-2 pasa sobre Chile
 # entre 14:26 y 14:37 UTC (10:26-10:37 hora Chile).
@@ -127,18 +130,26 @@ def predecir(historial):
         proximas_sat.sort()
         vistos = set()
         combinada = []
+        limite_iso = (hoy + timedelta(days=HORIZONTE_DIAS)).isoformat()
         for f, s in proximas_sat:
-            if f >= hoy_iso and f not in vistos:
+            if f >= hoy_iso and f <= limite_iso and f not in vistos:
                 vistos.add(f)
                 combinada.append({'fecha': f, 'sat': s,
                                   'hora_chile': calcular_hora_chile(hora_utc, f)})
-            if len(combinada) >= 6:
-                break
 
         # ultima_imagen: fecha de la imagen mas reciente YA descargada. El HTML la
         # usa para saber si la pasada de hoy ya produjo imagen (y mostrar countdown
         # de PUBLICACION L2A mientras se procesa, en vez de saltar a la siguiente).
         ultima_imagen = df_vol['fecha'].max().date().isoformat() if not df_vol.empty else None
+
+        # Revisita observada (mediana de dias entre imagenes consecutivas).
+        revisita = None
+        if not df_vol.empty:
+            _f = sorted(set(d.date() for d in df_vol['fecha']))
+            _iv = [(_f[i] - _f[i-1]).days for i in range(1, len(_f))]
+            if _iv:
+                _iv.sort()
+                revisita = round(_iv[len(_iv)//2], 1)
 
         proxima[vol] = {
             'lat': cfg['lat'],
@@ -147,6 +158,7 @@ def predecir(historial):
             'hora_utc_estimada': hora_utc,
             'hora_chile_estimada': calcular_hora_chile(hora_utc),
             'ultima_imagen': ultima_imagen,
+            'revisita_mediana_d': revisita,
             'satelites': sats_data,
             'proxima_combinada': combinada,
         }
