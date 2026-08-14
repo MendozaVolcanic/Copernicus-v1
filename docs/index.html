@@ -27,7 +27,10 @@
         body.personal-mode #monitoreo-personal-fullscreen { display: flex !important; }
         body.riesgosos-mode #main-content { display: none; }
         body.riesgosos-mode #riesgosos-fullscreen { display: flex !important; }
-        #monitoreo-personal-fullscreen, #riesgosos-fullscreen {
+        /* Prioritarios: subconjunto de seguimiento reforzado del turno OVDAS. */
+        body.prioritarios-mode #main-content { display: none; }
+        body.prioritarios-mode #prioritarios-fullscreen { display: flex !important; }
+        #monitoreo-personal-fullscreen, #riesgosos-fullscreen, #prioritarios-fullscreen {
             display: none;
             position: fixed;
             top: 0; left: 0;
@@ -788,6 +791,7 @@
                 <span class="btn-group-label">Vistas</span>
                 <button class="btn-ui" style="background: #da3633;" onclick="toggleTimelapseMode()" title="Comparación multi-volcán por zona">🌋 Multi-Volcán</button>
                 <button class="btn-ui" style="background: #6e40c9;" onclick="toggleMonitoreoPersonal()" title="Monitoreo personal (selección)">⭐ Personal</button>
+                <button class="btn-ui" style="background: #be123c;" onclick="togglePrioritarios()" title="Volcanes prioritarios de seguimiento del turno">🎯 Prioritarios</button>
                 <button class="btn-ui" style="background: #b45309;" onclick="toggleRiesgosos()" title="14 volcanes más riesgosos SERNAGEOMIN">⚠️ Riesgosos</button>
             </div>
 
@@ -809,6 +813,7 @@
             <div class="btn-group" title="Análisis automatizado y herramientas">
                 <span class="btn-group-label">Análisis</span>
                 <a href="change_detection.html" target="_blank" class="btn-ui" style="background: #8b5cf6; text-decoration: none;" title="Detección automática de cambios">🔍 Cambios</a>
+                <a href="calendario_pasadas.html" target="_blank" class="btn-ui" style="background: #0e7490; text-decoration: none;" title="Calendario de pasadas de los próximos 35 días (vista mensual y por volcán)">📅 Calendario</a>
                 <a href="proximas_pasadas.html" target="_blank" class="btn-ui" style="background: #0891b2; text-decoration: none;" title="Predicción próximas pasadas Sentinel-2">🛰️ Pasadas S2</a>
                 <a href="proximas_pasadas_landsat.html" target="_blank" class="btn-ui" style="background: #e67e22; text-decoration: none;" title="Predicción próximas pasadas Landsat 8/9">🛰️ Pasadas L8/9</a>
                 <a href="gif_builder.html" target="_blank" class="btn-ui" style="background: #16a34a; text-decoration: none;" title="Constructor GIF interactivo">🎬 GIF</a>
@@ -1131,7 +1136,7 @@
                             </div>
                             <div class="metadata-item">
                                 <div class="metadata-label">Bandas</div>
-                                <div class="metadata-value">B12-B11-B04</div>
+                                <div class="metadata-value meta-bandas-swir">B12-B11-B04</div>
                             </div>
                             <div class="metadata-item">
                                 <div class="metadata-label">Resolución</div>
@@ -1188,7 +1193,7 @@
                             </div>
                             <div class="metadata-item">
                                 <div class="metadata-label">Bandas</div>
-                                <div class="metadata-value">B12-B11-B04</div>
+                                <div class="metadata-value meta-bandas-swir">B12-B11-B04</div>
                             </div>
                             <div class="metadata-item">
                                 <div class="metadata-label">Resolución</div>
@@ -1215,6 +1220,7 @@
                 </select>
             </div>
             <div style="display: flex; gap: 8px;">
+                <button class="btn-ui btn-swir-toggle" onclick="toggleComposite2()" title="Alternar el composite SWIR del panel 2 (B12-B11-B04 / B12-B11-B8A)" style="background:#0f766e;">Ver SWIR B8A</button>
                 <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
                 <button class="btn-ui" onclick="toggleTimelapseMode()"> Volver al Dashboard</button>
             </div>
@@ -1238,7 +1244,8 @@
                 <span id="personal-count" style="color: #58a6ff; font-size: 0.85em; font-weight: bold;"></span>
             </div>
             <div style="display:flex;gap:8px;">
-                <button class="btn-ui" style="background:#1f2937;border:1px solid #58a6ff;" onclick="toggleFullscreen()">⛶ Pantalla Completa</button>
+                <button class="btn-ui btn-swir-toggle" onclick="toggleComposite2()" title="Alternar el composite SWIR del panel 2 (B12-B11-B04 / B12-B11-B8A)" style="background:#0f766e;">Ver SWIR B8A</button>
+                    <button class="btn-ui" style="background:#1f2937;border:1px solid #58a6ff;" onclick="toggleFullscreen()">⛶ Pantalla Completa</button>
                 <button class="btn-ui" onclick="toggleMonitoreoPersonal()">Volver al Dashboard</button>
             </div>
         </div>
@@ -1271,6 +1278,25 @@
     </div>
 
     <!-- MODO 14 MÁS RIESGOSOS -->
+    <!-- PRIORITARIOS: subconjunto de seguimiento reforzado del turno OVDAS.
+         Lista fija (no es el ranking SERNAGEOMIN, que vive en Riesgosos). -->
+    <div id="prioritarios-fullscreen">
+        <div class="timelapse-header">
+            <div style="display: flex; align-items: center; gap: 20px;">
+                <h2 style="color: #58a6ff; margin: 0;">🎯 Volcanes Prioritarios</h2>
+                <span style="color: #8b949e; font-size: 0.85em;">Seguimiento reforzado del turno</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-ui btn-swir-toggle" onclick="toggleComposite2()" title="Alternar el composite SWIR del panel 2 (B12-B11-B04 / B12-B11-B8A)" style="background:#0f766e;">Ver SWIR B8A</button>
+                <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
+                <button class="btn-ui" onclick="togglePrioritarios()">← Volver al Dashboard</button>
+            </div>
+        </div>
+        <div class="timelapse-content">
+            <div id="prioritarios-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; padding: 8px;"></div>
+        </div>
+    </div>
+
     <div id="riesgosos-fullscreen">
         <div class="timelapse-header">
             <div style="display: flex; align-items: center; gap: 20px;">
@@ -1278,6 +1304,7 @@
                 <span style="color: #8b949e; font-size: 0.85em;">Ranking SERNAGEOMIN · Peligrosidad Volcánica</span>
             </div>
             <div style="display: flex; gap: 8px;">
+                <button class="btn-ui btn-swir-toggle" onclick="toggleComposite2()" title="Alternar el composite SWIR del panel 2 (B12-B11-B04 / B12-B11-B8A)" style="background:#0f766e;">Ver SWIR B8A</button>
                 <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
                 <button class="btn-ui" onclick="toggleRiesgosos()"> Volver al Dashboard</button>
             </div>
@@ -1357,11 +1384,30 @@
             if (titulo) titulo.textContent = info.titulo;
             const bandas = document.getElementById('swir-card-bandas');
             if (bandas) bandas.textContent = info.bandas;
+            // Hay VARIOS botones: el de la card SWIR (#btn-composite2, vista
+            // individual) y uno por cada modo fullscreen (.btn-swir-toggle), que
+            // se agregaron porque el original vive en #main-content y esos modos
+            // lo ocultan. Todos deben mostrar el mismo texto.
+            // Las etiquetas "Bandas" del panel de metadatos estaban fijas en
+            // B12-B11-B04: mentian al pasar a SWIR B8A. Se sincronizan aca.
+            document.querySelectorAll('.meta-bandas-swir').forEach(e => { e.textContent = info.bandas; });
+
+            const etiqueta = 'Ver ' + COMPOSITE2_INFO[otroKey].corto;
             const btn = document.getElementById('btn-composite2');
-            if (btn) btn.textContent = 'Ver ' + COMPOSITE2_INFO[otroKey].corto;
-            // Re-render de lo visible que usa el composite del panel 2
+            if (btn) btn.textContent = etiqueta;
+            document.querySelectorAll('.btn-swir-toggle').forEach(b => { b.textContent = etiqueta; });
+
+            // Re-render de lo visible que usa el composite del panel 2.
             if (currentVolcano) cargarTimelapesAutomaticos(currentVolcano);
-            try { actualizarComparacion(); } catch (e) {}
+            try { actualizarComparacion(); } catch (e) { console.warn('comparacion:', e); }
+
+            // Los modos fullscreen pintan sus grillas aparte: si no se recargan,
+            // quedan mostrando el composite anterior con el titulo nuevo.
+            const cls = document.body.classList;
+            if (cls.contains('timelapse-mode'))    loadMultiVolcanoViewZona();
+            if (cls.contains('personal-mode'))     loadMonitoreoPersonal();
+            if (cls.contains('riesgosos-mode'))    loadRiesgososView();
+            if (cls.contains('prioritarios-mode')) loadPrioritariosView();
         }
         
         // Año dinámico — antes estaba hardcoded como 2026, se rompía en 2027
@@ -1374,6 +1420,14 @@
 
         // Generar opciones de año dinámicamente: del año actual hacia atrás 3 años
         function populateYearSelectors() {
+            // FIX: ademas del anio, marcar el MES actual. Los <select> de mes no
+            // traen <option selected>, y updateCalendar() lee del select -> el
+            // calendario abria siempre en Enero, ignorando el mes en curso.
+            const mesActual = new Date().getMonth();
+            ['calendar-month', 'calendar-copernicus-month'].forEach(id => {
+                const sel = document.getElementById(id);
+                if (sel) sel.value = String(mesActual);
+            });
             const anioActual = new Date().getFullYear();
             const anios = [anioActual - 2, anioActual - 1, anioActual, anioActual + 1];
             ['calendar-year', 'calendar-copernicus-year'].forEach(id => {
@@ -1623,7 +1677,7 @@
         }
 
         function toggleTimelapseMode() {
-            document.body.classList.remove('personal-mode', 'riesgosos-mode');
+            document.body.classList.remove('personal-mode', 'riesgosos-mode', 'prioritarios-mode');
             document.body.classList.toggle('timelapse-mode');
             if (document.body.classList.contains('timelapse-mode')) {
                 document.getElementById('zona-multi-select').value = 'Norte';
@@ -1702,7 +1756,7 @@
         }
 
         function toggleMonitoreoPersonal() {
-            document.body.classList.remove('timelapse-mode', 'riesgosos-mode');
+            document.body.classList.remove('timelapse-mode', 'riesgosos-mode', 'prioritarios-mode');
             document.body.classList.toggle('personal-mode');
             if (document.body.classList.contains('personal-mode')) {
                 personalBuildCheckboxes();
@@ -1724,8 +1778,31 @@
             await cargarPanelesList(seleccionados, 'personal-grid', '');
         }
 
+        // PRIORITARIOS: lista fija de seguimiento reforzado del turno OVDAS.
+        // OJO: NO es el ranking SERNAGEOMIN (eso es Riesgosos) ni la seleccion
+        // libre del usuario (eso es Personal). Nombres EXACTOS de config_sentinel2.
+        const VOLCANES_PRIORITARIOS = [
+            'Nevados de Chillan',
+            'Villarrica',
+            'Calbuco',
+            'Llaima',
+            'Puyehue - Cordon Caulle'
+        ];
+
+        function togglePrioritarios() {
+            document.body.classList.remove('timelapse-mode', 'personal-mode', 'riesgosos-mode');
+            document.body.classList.toggle('prioritarios-mode');
+            if (document.body.classList.contains('prioritarios-mode')) {
+                loadPrioritariosView();
+            }
+        }
+
+        async function loadPrioritariosView() {
+            await cargarPanelesList(VOLCANES_PRIORITARIOS, 'prioritarios-grid', {});
+        }
+
         function toggleRiesgosos() {
-            document.body.classList.remove('timelapse-mode', 'personal-mode');
+            document.body.classList.remove('timelapse-mode', 'personal-mode', 'prioritarios-mode');
             document.body.classList.toggle('riesgosos-mode');
             if (document.body.classList.contains('riesgosos-mode')) {
                 loadRiesgososView();
@@ -2722,7 +2799,7 @@
                             
                             if (cols[1] === 'RGB') {
                                 metadataRGB = metadata;
-                            } else if (cols[1] === 'ThermalFalseColor') {
+                            } else if (cols[1] === composite2) {   // FIX: seguia el composite activo, no el fijo
                                 metadataThermal = metadata;
                             }
                         }
