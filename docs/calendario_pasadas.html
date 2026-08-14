@@ -257,7 +257,10 @@ function renderTablaVol(){
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   const hoyIso = iso(hoy);
   const dias = [];
-  for (let i=0;i<HORIZONTE;i++) dias.push(iso(new Date(hoy.getTime()+i*86400000)));
+  // <= HORIZONTE (no <): el calendario usa finIso = hoy+HORIZONTE INCLUSIVE, y
+  // con < la matriz cortaba un dia antes y perdia las pasadas de ese ultimo dia
+  // (41 de 834 en la primera medicion). Ambas vistas deben cubrir el mismo rango.
+  for (let i=0;i<=HORIZONTE;i++) dias.push(iso(new Date(hoy.getTime()+i*86400000)));
 
   const thead = document.createElement('thead'), trh = document.createElement('tr');
   ['Volcán','Revisita'].forEach(x=>{ const th=document.createElement('th'); th.textContent=x; trh.appendChild(th); });
