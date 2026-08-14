@@ -164,7 +164,7 @@
 
 <header>
   <h1>🛰️ Próximas pasadas — Sentinel-2 sobre volcanes chilenos</h1>
-  <p>Predicción basada en el ciclo orbital observado (10 días por satélite, 3 satélites combinados)</p>
+  <p>Calculado desde el ciclo orbital observado (10 días exactos por satélite, 3 satélites combinados). El paso es determinista; lo que varía es si habrá nubes y cuándo se publica la imagen.</p>
 </header>
 
 <div class="toolbar">
@@ -297,7 +297,7 @@ function renderStaleBanner() {
   cont.style.display = 'block';
   const span = document.createElement('span');
   span.textContent = '⚠️ Datos desactualizados hace ' + Math.round(horas) +
-    'h — la predicción puede no reflejar la órbita actual.';
+    'h — el calendario puede no reflejar la órbita actual.';
   cont.appendChild(span);
 }
 

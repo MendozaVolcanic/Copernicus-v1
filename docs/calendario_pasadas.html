@@ -6,7 +6,8 @@
 <title>Calendario de pasadas — Copernicus-v1</title>
 <style>
   :root{--bg:#0d1117;--surface:#161b22;--border:#30363d;--text:#e6edf3;
-        --muted:#8b949e;--accent:#58a6ff;--green:#7ee787;--orange:#f97316;}
+        --muted:#8b949e;--accent:#58a6ff;--green:#7ee787;--orange:#f97316;
+        --pasada:#2ea043;}
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg);color:var(--text);line-height:1.5;
        font-family:-apple-system,'Segoe UI',Roboto,sans-serif;}
@@ -26,10 +27,9 @@
   .toolbar label{color:var(--muted);}
   .toolbar select,.toolbar input{background:#1c2128;color:var(--text);
       border:1px solid var(--border);padding:6px 10px;border-radius:6px;font-size:.95em;}
-  .seg{display:inline-flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;}
-  .seg button{background:#1c2128;color:var(--muted);border:none;padding:6px 14px;
-              cursor:pointer;font-size:.9em;}
-  .seg button.active{background:var(--accent);color:#061020;font-weight:700;}
+  .btn{background:#1c2128;color:var(--text);border:1px solid var(--border);
+       padding:6px 12px;border-radius:6px;font-size:.9em;cursor:pointer;}
+  .btn:hover{background:#21262d;}
 
   .resumen{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;}
   .kpi{background:var(--surface);border:1px solid var(--border);border-radius:9px;
@@ -37,47 +37,37 @@
   .kpi .n{font-size:1.5em;font-weight:800;color:var(--green);line-height:1.1;}
   .kpi .l{font-size:.72em;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;}
 
-  /* ---- vista calendario ---- */
-  .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;}
-  .dow{text-align:center;font-size:.72em;color:var(--muted);font-weight:700;
-       text-transform:uppercase;letter-spacing:.5px;}
-  .day{background:var(--surface);border:1px solid var(--border);border-radius:8px;
-       min-height:76px;padding:5px 7px;}
-  .day.vacio{background:transparent;border-color:transparent;}
-  .day.tiene{cursor:pointer;border-color:#1f6feb;}
-  .day.tiene:hover{background:#1c2128;}
-  .day.hoy{outline:2px solid var(--orange);outline-offset:-2px;}
-  .day .n{font-size:.8em;color:var(--muted);font-weight:700;}
-  .day.hoy .n{color:var(--orange);}
-  .day .cnt{font-size:1.3em;font-weight:800;color:var(--green);line-height:1.15;}
-  .day .sats{display:flex;gap:3px;flex-wrap:wrap;margin-top:3px;}
-  .day .sats span{font-size:.62em;padding:1px 4px;border-radius:4px;font-weight:700;color:#fff;}
-
-  /* ---- vista por volcan ---- */
-  table{border-collapse:collapse;width:100%;font-size:.82em;}
-  th,td{padding:3px 5px;border-bottom:1px solid var(--border);}
-  th{color:var(--accent);text-align:left;position:sticky;top:0;background:var(--bg);}
-  td.vol{white-space:nowrap;color:var(--text);}
-  td.rev{color:var(--muted);font-family:Consolas,monospace;text-align:right;white-space:nowrap;}
-  .celda{width:15px;height:15px;border-radius:3px;background:#1c2128;display:inline-block;}
-  .celda.p{background:#238636;}
-  .celda.p.a{background:#1f6feb;} .celda.p.b{background:#238636;} .celda.p.c{background:#8957e5;}
-  .celda.hoy{outline:1.5px solid var(--orange);}
+  /* ---- matriz volcan x dia ---- */
   .scroll{overflow-x:auto;background:var(--surface);border:1px solid var(--border);
           border-radius:10px;padding:10px 12px;}
+  table{border-collapse:collapse;width:100%;font-size:.82em;}
+  th,td{padding:3px 5px;border-bottom:1px solid var(--border);}
+  thead th{color:var(--accent);text-align:center;position:sticky;top:0;
+           background:var(--bg);font-weight:600;}
+  thead th.izq{text-align:left;}
+  thead th.hoy{color:var(--orange);font-weight:800;}
+  thead th.finde{color:#6e7681;}
+  td.vol{white-space:nowrap;color:var(--text);}
+  td.rev{color:var(--muted);font-family:Consolas,monospace;text-align:right;white-space:nowrap;}
+  td.dia{text-align:center;}
+  tbody tr:hover{background:#1c2128;}
+  /* Una pasada es una pasada: sin distinguir satelite (el detalle va en el tooltip). */
+  .celda{width:15px;height:15px;border-radius:3px;background:#1c2128;display:inline-block;}
+  .celda.p{background:var(--pasada);}
+  .celda.hoy{outline:1.5px solid var(--orange);}
+  .col-hoy{background:rgba(249,115,22,.07);}
+  .col-finde{background:rgba(255,255,255,.02);}
 
-  .detalle{margin-top:14px;background:var(--surface);border:1px solid var(--border);
-           border-radius:10px;padding:12px 16px;display:none;}
-  .detalle.visible{display:block;}
-  .detalle h3{margin:0 0 8px;color:var(--accent);font-size:1em;}
-  .detalle ul{margin:0;padding-left:20px;columns:3;font-size:.88em;}
-  @media(max-width:900px){.detalle ul{columns:1;}}
   .nota{background:rgba(88,166,255,.1);border-left:3px solid var(--accent);
         padding:10px 14px;border-radius:0 6px 6px 0;font-size:.85em;margin:14px 0;}
+  .leyenda{display:flex;gap:16px;align-items:center;flex-wrap:wrap;
+           font-size:.82em;color:var(--muted);margin:10px 2px 0;}
+  .leyenda .it{display:flex;align-items:center;gap:6px;}
   .meta{color:var(--muted);font-size:.8em;margin-top:14px;}
   @media print{
     header,.toolbar,.back{display:none;}
-    body{background:#fff;color:#000;} .day{border-color:#999;}
+    body{background:#fff;color:#000;}
+    .scroll{border:none;padding:0;} .celda{border:1px solid #666;}
   }
 </style>
 </head>
@@ -86,7 +76,7 @@
 <header>
   <div>
     <h1>📅 Calendario de pasadas Sentinel-2</h1>
-    <p>Cuándo pasa el satélite sobre cada volcán — próximos 35 días</p>
+    <p>Cuándo pasa el satélite sobre cada volcán — próximos 35 días (paso orbital, no estimación)</p>
   </div>
   <div style="display:flex;gap:8px;">
     <a href="proximas_pasadas.html" class="back">🛰️ Detalle de pasadas</a>
@@ -99,35 +89,36 @@
 <div class="nota">
   <strong>Por qué se puede calendarizar:</strong> Sentinel-2 va en órbita <em>heliosincrónica</em>,
   así que el paso es determinista — medido sobre 120 escenas reales, la hora de paso se mantiene
-  estable dentro de <strong>±5 minutos</strong> y el ciclo es de 10 días exactos por satélite
-  (2A + 2B + 2C combinados dan la revisita real de cada volcán).
+  estable dentro de <strong>±5 minutos</strong> y el ciclo es de 10 días exactos por satélite.
   <br><strong>Lo que NO es determinista:</strong> si habrá nubes, y la publicación del L2A,
   que llega <strong>~5-6 h después del paso</strong> (mediana medida; P95 ≈ 12 h).
 </div>
 
 <div class="toolbar">
-  <div class="seg" id="vista">
-    <button data-v="cal" class="active">Vista calendario</button>
-    <button data-v="vol">Vista por volcán</button>
-  </div>
   <label>Zona:
     <select id="f-zona"><option value="">Todas</option>
       <option>Norte</option><option>Centro</option><option>Sur</option><option>Austral</option></select>
   </label>
   <label>Buscar: <input id="f-nombre" type="text" placeholder="ej: villarrica"></label>
-  <button class="back" style="border-color:var(--border);color:var(--text);cursor:pointer;background:#1c2128;"
-          onclick="window.print()">🖨️ Imprimir</button>
+  <label>Ordenar:
+    <select id="f-orden">
+      <option value="nombre">Nombre</option>
+      <option value="revisita">Revisita (más frecuente primero)</option>
+      <option value="zona">Zona</option>
+    </select>
+  </label>
+  <button class="btn" onclick="window.print()">🖨️ Imprimir</button>
 </div>
 
 <div class="resumen" id="resumen"></div>
 
-<div id="vista-cal">
-  <div class="cal" id="cal"></div>
-  <div class="detalle" id="detalle"></div>
-</div>
+<div class="scroll"><table id="tabla"></table></div>
 
-<div id="vista-vol" style="display:none;">
-  <div class="scroll"><table id="tabla-vol"></table></div>
+<div class="leyenda">
+  <div class="it"><span class="celda p"></span> pasada del satélite</div>
+  <div class="it"><span class="celda"></span> sin pasada</div>
+  <div class="it"><span style="color:var(--orange)">▮</span> hoy</div>
+  <div class="it">Pasá el mouse sobre una celda para ver el satélite y la hora</div>
 </div>
 
 <div class="meta" id="meta">Cargando…</div>
@@ -135,141 +126,85 @@
 </main>
 
 <script>
-const DOW = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
 const HORIZONTE = 35;
-let datos = null, vista = 'cal';
+const ZONAS_ORDEN = {'Norte':1,'Centro':2,'Sur':3,'Austral':4};
+let datos = null;
 
 // ISO en hora LOCAL (toISOString() usa UTC y corre la fecha un día en Chile).
 function iso(d){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
-function colorSat(sat){
-  const k = String(sat||'').slice(-1).toUpperCase();
-  return k==='A' ? '#1f6feb' : k==='B' ? '#238636' : '#8957e5';
-}
-function claseSat(sat){
-  const k = String(sat||'').slice(-1).toLowerCase();
-  return (k==='a'||k==='b'||k==='c') ? k : '';
-}
 
 function filtrados(){
   const fz = document.getElementById('f-zona').value;
   const fn = document.getElementById('f-nombre').value.toLowerCase();
+  const orden = document.getElementById('f-orden').value;
   let e = Object.entries(datos.volcanes);
   if (fz) e = e.filter(x => x[1].zona === fz);
   if (fn) e = e.filter(x => x[0].toLowerCase().indexOf(fn) !== -1);
-  return e.sort((a,b) => a[0].localeCompare(b[0]));
-}
-
-function agrupar(){
-  const m = {};
-  filtrados().forEach(([nombre, info]) => {
-    (info.proxima_combinada||[]).forEach(p => {
-      (m[p.fecha] = m[p.fecha] || []).push({volcan:nombre, sat:p.sat, hora:p.hora_chile});
-    });
-  });
-  return m;
+  if (orden === 'revisita') {
+    e.sort((a,b) => (a[1].revisita_mediana_d ?? 99) - (b[1].revisita_mediana_d ?? 99)
+                    || a[0].localeCompare(b[0]));
+  } else if (orden === 'zona') {
+    e.sort((a,b) => (ZONAS_ORDEN[a[1].zona]||99) - (ZONAS_ORDEN[b[1].zona]||99)
+                    || a[0].localeCompare(b[0]));
+  } else {
+    e.sort((a,b) => a[0].localeCompare(b[0]));
+  }
+  return e;
 }
 
 function renderResumen(){
   const cont = document.getElementById('resumen');
   while (cont.firstChild) cont.removeChild(cont.firstChild);
   const vols = filtrados();
-  const m = agrupar();
-  const dias = Object.keys(m).length;
-  const pasadas = Object.values(m).reduce((a,l)=>a+l.length,0);
+  const porFecha = {};
+  vols.forEach(([n,i]) => (i.proxima_combinada||[]).forEach(p => {
+    porFecha[p.fecha] = (porFecha[p.fecha]||0)+1; }));
   const revs = vols.map(v=>v[1].revisita_mediana_d).filter(x=>x!=null).sort((a,b)=>a-b);
   const revMed = revs.length ? revs[Math.floor(revs.length/2)] : null;
   const hoyIso = iso(new Date());
-  const proximo = Object.keys(m).filter(f=>f>=hoyIso).sort()[0];
-  [['volcanes', vols.length], ['días con pasada', dias + ' / ' + HORIZONTE],
-   ['pasadas totales', pasadas], ['revisita mediana', revMed!=null ? revMed+' d' : '—'],
-   ['próxima', proximo ? proximo.slice(5) : '—']
+  const prox = Object.keys(porFecha).filter(f=>f>=hoyIso).sort()[0];
+  const total = Object.values(porFecha).reduce((a,b)=>a+b,0);
+  [['volcanes', vols.length],
+   ['días con pasada', Object.keys(porFecha).length + ' / ' + HORIZONTE],
+   ['pasadas totales', total],
+   ['revisita mediana', revMed!=null ? revMed+' d' : '—'],
+   ['próxima', prox ? prox.slice(5) : '—']
   ].forEach(([l,n])=>{
-    const d = document.createElement('div'); d.className='kpi';
-    const a = document.createElement('div'); a.className='n'; a.textContent = n;
-    const b = document.createElement('div'); b.className='l'; b.textContent = l;
+    const d=document.createElement('div'); d.className='kpi';
+    const a=document.createElement('div'); a.className='n'; a.textContent=n;
+    const b=document.createElement('div'); b.className='l'; b.textContent=l;
     d.appendChild(a); d.appendChild(b); cont.appendChild(d);
   });
 }
 
-function renderCal(){
-  const cal = document.getElementById('cal');
-  while (cal.firstChild) cal.removeChild(cal.firstChild);
-  document.getElementById('detalle').classList.remove('visible');
-  const m = agrupar();
-  const hoy = new Date(); hoy.setHours(0,0,0,0);
-  const hoyIso = iso(hoy), finIso = iso(new Date(hoy.getTime()+HORIZONTE*86400000));
-  const inicio = new Date(hoy);
-  inicio.setDate(inicio.getDate() - ((inicio.getDay()+6)%7));
-
-  DOW.forEach(d=>{ const h=document.createElement('div'); h.className='dow'; h.textContent=d; cal.appendChild(h); });
-
-  for (let i=0;i<42;i++){
-    const dia = new Date(inicio.getTime()+i*86400000), di = iso(dia);
-    const cel = document.createElement('div'); cel.className='day';
-    if (di < hoyIso || di > finIso){ cel.classList.add('vacio'); cal.appendChild(cel); continue; }
-    if (di === hoyIso) cel.classList.add('hoy');
-    const n = document.createElement('div'); n.className='n';
-    n.textContent = (dia.getDate()===1 || di===hoyIso)
-      ? dia.getDate()+' '+dia.toLocaleDateString('es-CL',{month:'short'}) : String(dia.getDate());
-    cel.appendChild(n);
-    const lista = m[di];
-    if (lista && lista.length){
-      cel.classList.add('tiene');
-      const c = document.createElement('div'); c.className='cnt'; c.textContent=String(lista.length);
-      cel.appendChild(c);
-      const s = document.createElement('div'); s.className='sats';
-      const uniq=[]; lista.forEach(x=>{ if(uniq.indexOf(x.sat)===-1) uniq.push(x.sat); });
-      uniq.sort().forEach(sat=>{
-        const sp=document.createElement('span');
-        sp.textContent='2'+String(sat||'').slice(-1).toUpperCase();
-        sp.style.background=colorSat(sat); s.appendChild(sp);
-      });
-      cel.appendChild(s);
-      cel.addEventListener('click', ()=>detalleDia(di, lista));
-    }
-    cal.appendChild(cel);
-  }
-}
-
-function detalleDia(fecha, lista){
-  const c = document.getElementById('detalle');
-  while (c.firstChild) c.removeChild(c.firstChild);
-  const h = document.createElement('h3');
-  const f = new Date(fecha+'T12:00:00');
-  h.textContent = f.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'}) +
-                  ' — ' + lista.length + ' volcán(es)';
-  c.appendChild(h);
-  const ul = document.createElement('ul');
-  lista.slice().sort((a,b)=>a.volcan.localeCompare(b.volcan)).forEach(x=>{
-    const li=document.createElement('li');
-    li.textContent = x.volcan + ' · ' + (x.sat||'') + (x.hora ? ' · '+x.hora : '');
-    ul.appendChild(li);
-  });
-  c.appendChild(ul); c.classList.add('visible');
-}
-
-// Matriz volcan x dia: de un vistazo se ve a quien le toca y cada cuanto.
-function renderTablaVol(){
-  const t = document.getElementById('tabla-vol');
+function renderTabla(){
+  const t = document.getElementById('tabla');
   while (t.firstChild) t.removeChild(t.firstChild);
   const hoy = new Date(); hoy.setHours(0,0,0,0);
   const hoyIso = iso(hoy);
-  const dias = [];
-  // <= HORIZONTE (no <): el calendario usa finIso = hoy+HORIZONTE INCLUSIVE, y
-  // con < la matriz cortaba un dia antes y perdia las pasadas de ese ultimo dia
-  // (41 de 834 en la primera medicion). Ambas vistas deben cubrir el mismo rango.
-  for (let i=0;i<=HORIZONTE;i++) dias.push(iso(new Date(hoy.getTime()+i*86400000)));
 
-  const thead = document.createElement('thead'), trh = document.createElement('tr');
-  ['Volcán','Revisita'].forEach(x=>{ const th=document.createElement('th'); th.textContent=x; trh.appendChild(th); });
+  // <= HORIZONTE (inclusive): con < se perdian las pasadas del ultimo dia.
+  const dias = [];
+  for (let i=0;i<=HORIZONTE;i++) dias.push(new Date(hoy.getTime()+i*86400000));
+
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  [['Volcán','izq'],['Revisita','izq']].forEach(([txt,cls])=>{
+    const th=document.createElement('th'); th.className=cls; th.textContent=txt; trh.appendChild(th);
+  });
   dias.forEach(d=>{
-    const th=document.createElement('th');
-    th.textContent = d.slice(8);           // dia del mes
-    th.title = d;
-    th.style.fontWeight = (d===hoyIso)?'800':'400';
-    if (d===hoyIso) th.style.color='var(--orange)';
+    const di = iso(d);
+    const th = document.createElement('th');
+    const dow = d.getDay();                     // 0=dom, 6=sab
+    // primer dia y cambios de mes rotulados con el mes, el resto solo el numero
+    th.textContent = (d.getDate()===1 || di===hoyIso)
+      ? d.getDate()+' '+d.toLocaleDateString('es-CL',{month:'short'})
+      : String(d.getDate());
+    th.title = d.toLocaleDateString('es-CL',{weekday:'long',day:'numeric',month:'long'});
+    if (di===hoyIso) th.classList.add('hoy');
+    else if (dow===0||dow===6) th.classList.add('finde');
     trh.appendChild(th);
   });
   thead.appendChild(trh); t.appendChild(thead);
@@ -277,19 +212,31 @@ function renderTablaVol(){
   const tb = document.createElement('tbody');
   filtrados().forEach(([nombre, info])=>{
     const tr = document.createElement('tr');
-    const td1 = document.createElement('td'); td1.className='vol'; td1.textContent=nombre; tr.appendChild(td1);
+    const td1 = document.createElement('td'); td1.className='vol'; td1.textContent=nombre;
+    td1.title = (info.zona||'') + (info.ultima_imagen ? ' · última imagen: '+info.ultima_imagen : '');
+    tr.appendChild(td1);
     const td2 = document.createElement('td'); td2.className='rev';
     td2.textContent = info.revisita_mediana_d!=null ? info.revisita_mediana_d+' d' : '—';
+    td2.title = 'Cada cuántos días, en mediana, llega una imagen de este volcán';
     tr.appendChild(td2);
+
     const porFecha = {};
-    (info.proxima_combinada||[]).forEach(p=>{ porFecha[p.fecha]=p; });
+    (info.proxima_combinada||[]).forEach(p => { porFecha[p.fecha]=p; });
+
     dias.forEach(d=>{
-      const td=document.createElement('td');
-      const sp=document.createElement('span'); sp.className='celda';
-      const p=porFecha[d];
-      if (p){ sp.classList.add('p'); const k=claseSat(p.sat); if(k) sp.classList.add(k);
-              sp.title = nombre+' · '+d+' · '+(p.sat||'')+(p.hora_chile?' · '+p.hora_chile:''); }
-      if (d===hoyIso) sp.classList.add('hoy');
+      const di = iso(d), dow = d.getDay();
+      const td = document.createElement('td'); td.className='dia';
+      if (di===hoyIso) td.classList.add('col-hoy');
+      else if (dow===0||dow===6) td.classList.add('col-finde');
+      const sp = document.createElement('span'); sp.className='celda';
+      const p = porFecha[di];
+      if (p){
+        sp.classList.add('p');
+        // El satelite no se codifica en color: va en el tooltip.
+        sp.title = nombre+' · '+d.toLocaleDateString('es-CL',{weekday:'short',day:'numeric',month:'short'})+
+                   ' · '+(p.sat||'')+(p.hora_chile ? ' · '+p.hora_chile+' h' : '');
+      }
+      if (di===hoyIso) sp.classList.add('hoy');
       td.appendChild(sp); tr.appendChild(td);
     });
     tb.appendChild(tr);
@@ -297,37 +244,25 @@ function renderTablaVol(){
   t.appendChild(tb);
 }
 
-function refrescar(){
-  renderResumen();
-  if (vista==='cal') renderCal(); else renderTablaVol();
-}
+function refrescar(){ renderResumen(); renderTabla(); }
 
 async function cargar(){
   try{
     const r = await fetch('proximas_pasadas.json?t='+Date.now());
     datos = await r.json();
     document.getElementById('meta').textContent =
-      'Predicción generada: ' + new Date(datos.generado_utc).toLocaleString('es-CL') +
+      'Calendario calculado: ' + new Date(datos.generado_utc).toLocaleString('es-CL') +
       ' · ' + Object.keys(datos.volcanes).length + ' entidades · ciclo ' +
       (datos.ciclo_dias_por_satelite||10) + ' d/satélite';
     refrescar();
   }catch(e){
-    document.getElementById('meta').textContent = 'Error cargando la predicción: ' + e;
+    document.getElementById('meta').textContent = 'Error cargando el calendario de pasadas: ' + e;
   }
 }
 
 document.getElementById('f-zona').addEventListener('change', refrescar);
 document.getElementById('f-nombre').addEventListener('input', refrescar);
-document.querySelectorAll('#vista button').forEach(b=>{
-  b.addEventListener('click', ()=>{
-    document.querySelectorAll('#vista button').forEach(x=>x.classList.remove('active'));
-    b.classList.add('active');
-    vista = b.dataset.v;
-    document.getElementById('vista-cal').style.display = vista==='cal' ? '' : 'none';
-    document.getElementById('vista-vol').style.display = vista==='vol' ? '' : 'none';
-    refrescar();
-  });
-});
+document.getElementById('f-orden').addEventListener('change', refrescar);
 
 cargar();
 </script>

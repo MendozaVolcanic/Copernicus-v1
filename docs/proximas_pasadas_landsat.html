@@ -128,7 +128,7 @@
 
 <header>
   <h1>🛰️ Próximas pasadas — Landsat 8/9 sobre volcanes chilenos</h1>
-  <p>Predicción basada en el ciclo orbital observado (16 días por satélite, 2 satélites combinados ~4-8 días)</p>
+  <p>Calculado desde el ciclo orbital observado (16 días exactos por satélite, 2 satélites combinados ~4-8 días). El paso es determinista; lo que varía es si habrá nubes y cuándo se publica la imagen.</p>
 </header>
 
 <div class="toolbar">
@@ -253,7 +253,7 @@ function renderStaleBanner() {
   cont.style.display = 'block';
   const span = document.createElement('span');
   span.textContent = '⚠️ Datos desactualizados hace ' + Math.round(horas) +
-    'h — la predicción puede no reflejar la órbita actual.';
+    'h — el calendario puede no reflejar la órbita actual.';
   cont.appendChild(span);
 }
 
