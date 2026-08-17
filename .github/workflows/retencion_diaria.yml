@@ -1,0 +1,101 @@
+name: Retencion diaria (aplicar ventana de 45 dias)
+
+# POR QUE ESTE WORKFLOW EXISTE APARTE
+#
+# La retencion es una politica de TIEMPO, no de descargas: pasados 45 dias una
+# imagen sobra, haya o no haya pasadas nuevas. Pero en copernicus.yml el job
+# `consolidar` declara `needs: [detectar, descarga]` y `descarga` solo corre con
+# `if: needs.detectar.outputs.has_new == 'true'`. Sin productos nuevos los dos se
+# saltan, y con ellos cualquier purga que viva ahi.
+#
+# Ese acoplamiento ya nos costo caro una vez: limpiar_imagenes_antiguas() estaba
+# dentro de un `if resultados:` y la retencion quedaba apagada justo en invierno,
+# que es cuando menos imagenes nuevas llegan. Se acumularon 3.01 GB desde marzo
+# con la politica diciendo 60 dias. Ponerla en `consolidar` reproducia el mismo
+# error un nivel mas arriba.
+#
+# Aca corre una vez al dia pase lo que pase. El paso equivalente en `consolidar`
+# se mantiene a proposito: ese aplica la purga en la misma corrida en que llegan
+# imagenes nuevas, para que el JSON de fechas nunca liste un PNG recien borrado.
+# Este otro es la garantia de que la ventana se respeta aunque no baje nada.
+
+on:
+  schedule:
+    - cron: '30 23 * * *'   # 23:30 UTC diario, despues de las ventanas de descarga
+  workflow_dispatch:
+
+# Grupo compartido con los otros escritores de main. Sin esto, dos workflows
+# empujando a la vez se pisan; cancel-in-progress false porque una purga a medio
+# camino dejaria el JSON de fechas describiendo archivos que ya no estan.
+concurrency:
+  group: push-main
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  purgar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Configurar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.10'
+
+      - name: Instalar dependencias
+        # Desde requirements.txt, no lista a mano: una lista manual que olvido
+        # tifffile dejo SWIR_raw gastando PU sin guardar nada durante semanas.
+        run: pip install -r requirements.txt
+
+      - name: Aplicar retencion
+        # No necesita SH_CLIENT_ID/SECRET: --only-purga sale antes de tocar la API.
+        run: python sentinel2_downloader.py --only-purga
+
+      - name: Regenerar JSON de fechas
+        # Despues de purgar, nunca antes: el indice debe describir lo que quedo.
+        run: python sentinel2_downloader.py --only-json
+
+      - name: Guardar cambios en GitHub
+        run: |
+          git config --global user.name "Copernicus Bot"
+          git config --global user.email "bot@copernicus.local"
+
+          git add -A
+
+          if git diff --quiet --staged; then
+            echo "Nada que purgar hoy: no hay imagenes fuera de ventana."
+            exit 0
+          fi
+
+          BORRADAS=$(git diff --staged --name-only --diff-filter=D | wc -l)
+          echo "Archivos fuera de ventana: $BORRADAS"
+          git commit -m "chore(retencion): purga diaria, $BORRADAS archivos fuera de ventana"
+
+          max_retries=5
+          retry_count=0
+          while [ $retry_count -lt $max_retries ]; do
+            echo "Intento $((retry_count + 1)) de push..."
+            git fetch origin main
+            if ! git merge --ff-only origin/main; then
+              echo "No fast-forward posible, intentando rebase..."
+              if ! git pull origin main --rebase; then
+                echo "Rebase fallo, abortando para no perder cambios remotos."
+                git rebase --abort 2>/dev/null || true
+                exit 1
+              fi
+            fi
+            if git push origin main; then
+              echo "Push exitoso"
+              break
+            fi
+            retry_count=$((retry_count + 1))
+            [ $retry_count -lt $max_retries ] && sleep $((retry_count * 2))
+          done
+
+          if [ $retry_count -eq $max_retries ]; then
+            echo "Push fallo despues de $max_retries intentos"
+            exit 1
+          fi
