@@ -53,8 +53,14 @@ from image_compression import save_compressed
 #   3) timelapse 30 dias          -> vive en timelapse_generator(_auto).py
 #      (NO en este archivo); es la ventana del GIF del dashboard.
 # Regla: DIAS_RETENCION >= DIAS_BUSQUEDA_DEFAULT >= ventana del timelapse.
-DIAS_BUSQUEDA_DEFAULT = 60
-DIAS_RETENCION = 60
+#
+# 2026-08-17: 60 -> 45. Nicolas confirma que mas alla de mes y medio no se usa.
+# Las dos bajan juntas: dejar la busqueda en 60 con retencion 45 haria bajar
+# imagenes para borrarlas en la misma corrida, gastando PU a cambio de nada.
+# 45 respeta la regla (45 >= 45 >= 30). Efecto medido sobre el archivo actual:
+# docs/sentinel2 pasa de 3.01 GB a 0.84 GB.
+DIAS_BUSQUEDA_DEFAULT = 45
+DIAS_RETENCION = 45
 
 # Reintentos para errores transitorios (429/503). Distinto del 403-cuota
 # (rota cuenta) y del 401 (renueva token).
@@ -768,6 +774,9 @@ def main():
                         help="No regenerar fechas_disponibles_copernicus.json")
     parser.add_argument("--only-json", action="store_true",
                         help="SOLO regenerar JSON desde filesystem y salir (no descarga)")
+    parser.add_argument("--only-purga", action="store_true",
+                        help="SOLO aplicar la retencion (DIAS_RETENCION) y salir. Para el job "
+                             "consolidador: es el unico workspace cuyos borrados se commitean.")
     args = parser.parse_args()
     tipos_lista = [t.strip() for t in args.tipos.split(',') if t.strip()] if args.tipos else None
 
@@ -775,6 +784,24 @@ def main():
     if args.only_json:
         print("=== Solo regenerando fechas_disponibles_copernicus.json ===")
         generar_json_fechas_disponibles()
+        return
+
+    # Modo standalone de retencion.
+    #
+    # POR QUE EXISTE: los jobs de zona corren limpiar_imagenes_antiguas() en su
+    # propio workspace efimero y lo suben como artifact. Pero download-artifact
+    # SUPERPONE archivos --- agrega y sobrescribe, nunca borra --- y el job
+    # consolidador parte de un checkout completo donde las imagenes viejas
+    # siguen todas ahi. Resultado: los borrados de las zonas jamas llegaban al
+    # `git add -A` y la retencion nunca se aplico (3.01 GB acumulados con la
+    # politica diciendo 60 dias). Corriendo la purga ACA, en el unico workspace
+    # que se commitea, los borrados si quedan staged.
+    if args.only_purga:
+        print(f"=== Solo aplicando retencion ({DIAS_RETENCION} dias) ===")
+        total = 0
+        for nombre in get_active_volcanoes().keys():
+            total += limpiar_imagenes_antiguas(nombre)
+        print(f"\nTotal borrado: {total} archivos")
         return
 
     print("="*80)
@@ -819,8 +846,13 @@ def main():
 
             if resultados:
                 actualizar_metadata(nombre, resultados)
-                # LIMPIEZA AUTOMATICA
-                limpiar_imagenes_antiguas(nombre)
+
+            # LIMPIEZA AUTOMATICA — FUERA del `if resultados`.
+            # Antes estaba dentro: un volcan sin imagenes nuevas ese dia (nublado,
+            # sin pasada, o ya deduplicado) no se limpiaba nunca y acumulaba sin
+            # techo. En invierno, que es cuando casi ninguna corrida trae nada,
+            # la retencion quedaba practicamente apagada.
+            limpiar_imagenes_antiguas(nombre)
 
         # NO atrapamos SystemExit aqui: el fail-fast de auth y el failover de cuota
         # (que abortan con SystemExit) DEBEN propagar para dejar el run en ROJO.

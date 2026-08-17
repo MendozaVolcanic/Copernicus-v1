@@ -190,6 +190,19 @@ jobs:
           pattern: sentinel2-*
           merge-multiple: true
 
+      - name: Aplicar retencion (borrar imagenes fuera de ventana)
+        # DEBE correr aca y no en los jobs de zona. Las zonas borran en su
+        # workspace efimero, lo suben como artifact, y download-artifact
+        # SUPERPONE (agrega/sobrescribe, nunca borra) sobre un checkout completo
+        # donde lo viejo sigue presente. Por eso los borrados de zona nunca
+        # llegaban al `git add -A` y la retencion no se aplico nunca: 3.01 GB
+        # acumulados desde marzo con la politica diciendo 60 dias.
+        #
+        # Va ANTES de regenerar el JSON: si corriera despues, el indice listaria
+        # fechas cuyos PNG acabamos de borrar y el dashboard pediria 404.
+        run: |
+          python sentinel2_downloader.py --only-purga
+
       - name: Regenerar JSON de fechas desde filesystem
         # Standalone: no toca la API, solo escanea docs/sentinel2/*/
         run: |
