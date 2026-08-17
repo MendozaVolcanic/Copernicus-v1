@@ -1914,8 +1914,14 @@
                 grid.appendChild(panel);
                 agregarCountdownAPanel(panel, volcan);   // cuenta regresiva al proximo paso
                 if (ultimaFecha) {
-                    const rgbUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
-                    const thermalUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_${composite2}.png?t=${Date.now()}`;
+                    // SIN ?t=Date.now(): el nombre del PNG lleva la fecha, asi que el
+                    // archivo es inmutable. El cache-buster obligaba a re-bajar cada
+                    // imagen completa en cada carga de panel y nos gano un HTTP 429 de
+                    // raw.githubusercontent.com (2026-08-17): el dashboard entero quedo
+                    // en blanco. Los que SI se reescriben (metadata.csv, el JSON de
+                    // fechas) conservan su cache-buster.
+                    const rgbUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_RGB.png`;
+                    const thermalUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_${composite2}.png`;
                     const rgbId = `list-rgb-${gridId}-${volcan}`;
                     const thermalId = `list-thermal-${gridId}-${volcan}`;
                     const compositoCorto = COMPOSITE2_INFO[composite2].corto;
@@ -2000,8 +2006,10 @@
 
                 try {
                     if (ultimaFecha) {
-                        const rgbUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_RGB.png?t=${Date.now()}`;
-                        const thermalUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_${composite2}.png?t=${Date.now()}`;
+                        // Sin ?t=Date.now(): PNG con fecha en el nombre = inmutable.
+                        // Ver nota en cargarPanelesList (429 de raw, 2026-08-17).
+                        const rgbUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_RGB.png`;
+                        const thermalUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_${composite2}.png`;
                         
                         const compositoCorto = COMPOSITE2_INFO[composite2].corto;
                         const rgbId = `rgb-${volcan}`;
