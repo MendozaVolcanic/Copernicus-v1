@@ -1915,11 +1915,18 @@
                 agregarCountdownAPanel(panel, volcan);   // cuenta regresiva al proximo paso
                 if (ultimaFecha) {
                     // SIN ?t=Date.now(): el nombre del PNG lleva la fecha, asi que el
-                    // archivo es inmutable. El cache-buster obligaba a re-bajar cada
-                    // imagen completa en cada carga de panel y nos gano un HTTP 429 de
-                    // raw.githubusercontent.com (2026-08-17): el dashboard entero quedo
-                    // en blanco. Los que SI se reescriben (metadata.csv, el JSON de
-                    // fechas) conservan su cache-buster.
+                    // archivo es inmutable y cachearlo es correcto. El cache-buster
+                    // obligaba a re-bajar cada imagen completa en cada carga de panel
+                    // contra raw.githubusercontent.com, que es la unica fuente de
+                    // imagenes del dashboard (docs/sentinel2 no cabe en Pages).
+                    // Los que SI se reescriben (metadata.csv, el JSON de fechas)
+                    // conservan su cache-buster.
+                    //
+                    // NOTA 2026-08-17: este cambio se hizo el dia de una caida de
+                    // GitHub (incidente critical desde 13:40 UTC, raw devolvia 429
+                    // hasta para archivos de 13 KB). Se creyo que el cache-buster
+                    // causaba ese 429 y NO era asi. El cambio se conserva porque
+                    // ahorra trafico de verdad, pero no fue el fix de aquel apagon.
                     const rgbUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_RGB.png`;
                     const thermalUrl = `${REPO_BASE}/docs/sentinel2/${encodeURIComponent(volcan)}/${ultimaFecha}_${composite2}.png`;
                     const rgbId = `list-rgb-${gridId}-${volcan}`;
