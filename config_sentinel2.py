@@ -61,23 +61,44 @@ IMAGE_HEIGHT_THERMAL = 800
 # ============================================
 EVALSCRIPT_RGB = """
 //VERSION=3
-// TRUE COLOR que matchea Copernicus Browser: HighlightCompressVisualizer(0, 0.4).
+// TRUE COLOR: gamma sRGB sobre la reflectancia CRUDA, sin ganancia.
 //
-// POR QUE: el gain lineal anterior (sRGB(2.5 * B0x)) clipeaba TODO pixel con
-// reflectancia >= 0.40 a blanco puro (255). La nieve refleja 0.5-0.9 en el
-// visible -> en dias nevados TODA la nieve se iba a 255 y se perdia la
-// morfologia (verificado en Nevados de Chillan 2026-06-11/13). El gain lineal
-// no puede a la vez aclarar la tierra oscura y preservar la nieve.
+// HISTORIA (dos intentos fallidos antes de este, no repetirlos):
+//   1) sRGB(2.5 * B0x)                 -> clipeaba todo pixel >= 0.40 a blanco.
+//   2) HighlightCompressVisualizer(0, 0.4) -> se creyo que arreglaba (1), pero se
+//      valido contra Chillan 2026-06-11/13, dos escenas con 82% y 88% de NUBE:
+//      no podian testear nieve. Medido el 2026-08-17 sobre dias despejados de
+//      invierno: 82.3% de la escena en blanco puro y entropia 1.52 bits. El mismo
+//      dia de la "validacion", Lonquimay 06-13 (25% nube) ya estaba al 82.5%.
 //
-// HighlightCompressVisualizer(minVal=0, maxVal=0.4) mapea [0, 0.4] al rango
-// brillante con la MISMA pendiente efectiva que el 2.5x (1/0.4 = 2.5), pero los
-// valores por encima de 0.4 se COMPRIMEN con una curva suave (no se clipean) ->
-// la nieve queda en grises distinguibles, igual que Copernicus Browser. Es el
-// evalscript estandar "True color" de EO/Copernicus Browser. minVal/maxVal
-// editables si se quiere mas/menos brillo.
-let minVal = 0.0;
-let maxVal = 0.4;
-let viz = new HighlightCompressVisualizer(minVal, maxVal);
+// POR QUE ESTA CURVA. La sonda de reflectancia cruda sobre Lonquimay 2026-08-12
+// (4% nube) dio: mediana 0.937, percentil 90 = 1.000, 96.4% de pixeles > 0.4.
+// Con maxVal=0.4 la escena entera cae en la zona comprimida y se apelmaza contra
+// el techo. Pero subir maxVal no sirve: a 0.8 el invierno queda perfecto (0%
+// blanco) y el VERANO se destruye (79.4% negro, la lava de Lonquimay es oscura).
+// Ningun punto de quiebre fijo cubre los dos regimenes.
+//
+// El gamma sRGB puro no tiene punto de quiebre: comprime altas luces y levanta
+// sombras de forma continua. Medido sobre las dos estaciones:
+//
+//              invierno (nieve)        verano (lava)
+//   actual     82.3% blanco  ent 1.52   14.0% negro  ent 5.77
+//   esta       11.0% blanco  ent 5.15    0.0% negro  ent 5.66
+//
+// Mejor o igual en ambos regimenes; triplica la informacion en invierno y quita
+// los negros aplastados en verano.
+//
+// El 11% de blanco residual NO es de la curva: el percentil 90 de reflectancia
+// es 1.000, o sea ~10% de la escena ya viene saturada en el L2A. Es el piso
+// fisico; ninguna curva recupera lo que el sensor entrego topado.
+//
+// Si se vuelve a tocar: validar sobre dias DESPEJADOS de invierno Y una escena
+// de verano, midiendo blanco/negro/entropia. No a ojo, y no sobre escenas
+// nubladas --- ese fue exactamente el error de (2).
+function sRGB(c) {
+  c = Math.max(0, Math.min(1, c));
+  return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1.0 / 2.4) - 0.055;
+}
 
 function setup() {
   return {
@@ -87,7 +108,7 @@ function setup() {
 }
 
 function evaluatePixel(sample) {
-  return viz.processList([sample.B04, sample.B03, sample.B02]);
+  return [sRGB(sample.B04), sRGB(sample.B03), sRGB(sample.B02)];
 }
 """
 
