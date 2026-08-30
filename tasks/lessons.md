@@ -241,3 +241,43 @@ Spike de visor client-side (OpenLayers + COG público) descartado tras prueba ha
 **Coordinación entre sesiones concurrentes.**
 - Con dos sesiones en el mismo repo el working tree cambia bajo los pies entre comandos. Usar `git commit -o <path>` (ruta explícita) para no barrer trabajo ajeno; `git add -A` es peligroso.
 - El `concurrency: push-main` serializa **workflows**, no sesiones humanas. 15 escritores a `main`, los 15 en el grupo.
+
+## Auditoría cruzada de los dos repos (2026-08-30)
+
+**El instrumento que no mira una parte declara "todo bien" sobre lo que no miró.**
+- `auditoria_imagenes.py` nunca abrió un `*_RGB.png`: solo `*_ThermalFalseColor.png` (S2) y `*_SWIR.png` (Landsat). Era **estructuralmente ciego** al defecto más extendido de los dos repos, y de magnitud mayor que lo que sí medía. Su silencio se leyó como "el RGB está bien".
+- **Regla:** una auditoría tiene que declarar qué NO miró. Si solo cubre un camino, el informe lo dice en la primera página, no en las limitaciones del final.
+- Al agregar el camino RGB hay que agregar sus **propios controles positivos con ramas separables**: blanco total → PLANA; terreno con textura → nada; medio quemado por nieve → blanco alto **pero entropía alta**. Solo el % de blanco confunde los dos últimos; solo la entropía deja pasar el segundo.
+
+**El filtro de nubosidad es parte del criterio, no un detalle.**
+- Sin filtrar por `<20%` de nube, el detector marca 209 frames planos en Landsat. Con filtro, solo **2** ocurrieron con cielo despejado. Culpar al render de una escena tapada es el error inverso del de junio (validar el fix contra escenas nubladas). Las dos columnas se llaman distinto según el repo: `cobertura_nubosa` (Copernicus) y `cloud_cover` (Landsat).
+
+**Un fix nuevo se verifica contra su efecto, y hay que mirar si el efecto existe.**
+- El fix de MAXCOVERAGE para SWIR en Landsat es correcto, pero **solo 2 de 592 PNG SWIR del archivo tienen píxeles rojos**. Decirlo es parte del hallazgo: es el outlier raro y crítico, cuya frecuencia observada es baja *porque el mecanismo que lo borraba corría en silencio*. Reportar "arreglado" sin el alcance medido infla el valor del trabajo.
+
+**Dos hipótesis propias que murieron al medirlas — dejarlas escritas vale.**
+- *"La nubosidad publicada miente"*: falso. Correlación nube↔entropía **−0,565**, y solo 3 de 136 escenas con ≤25% de nube salen planas. El número no miente, es **grueso**: describe la escena Landsat completa (185×180 km), no el recorte de ~24 km. El valor real está al revés: **12 escenas declaradas ≥90% de nube tienen entropía >4** — miradas despejadas que hoy se descartan.
+- *"El realce 3.5 está borrando escenas útiles a gran escala"*: falso a esa escala. Sí quema (58 casos altos con cielo despejado), pero casi todos los frames planos son escenas genuinamente tapadas.
+
+**Un `| tee` en un step de CI se come el código de salida.**
+- Escribí un job de calidad cuyo paso final era `python comparar.py | tee log`. Sin `set -o pipefail` el job **nunca podía fallar**: exactamente el fallo silencioso que ese workflow existe para cazar. Detectado antes de commitear, pero es el patrón de la semilla 2 reapareciendo dentro de su propio fix.
+
+**Un control cuyas dos ramas no son separables no es un control.**
+- `scripts/watcher_m2m.py` devolvía `has_new=false` tanto para "no hubo escena" como para "el API falló". `alerta_cron_caido.yml` solo dispara con `failure`, así que **la única alarma de Landsat no podía dispararse por ninguna de las tres causas que su propio comentario nombra**. Evidencia: 0 issues `cron-failure` en toda la historia, 300/300 runs en `success`.
+- **Regla:** todo `except` alrededor de una llamada de red tiene que preguntarse *"¿esta salida se distingue de la del camino feliz?"*. Reintentar lo transitorio, fallar lo persistente.
+
+**Un archivo que nadie ejecuta no es inofensivo.**
+- `centroides_volcanes.kml` quedó 4 meses con las coordenadas de Antuco bajo el nombre de Nevados de Chillán, **después** de que el bug se corrigiera en `config_sentinel2.py` y en `volcanes.js`. Sobrevivió justamente porque es huérfano: quedó fuera del camino de la corrección. Es una referencia envenenada esperando a que alguien lo abra en QGIS.
+- **Cierre correcto:** no editarlo, **derivarlo** (`scripts/generar_kml.py` + `--check` en CI). Una copia con vida propia siempre vuelve a divergir.
+
+**El flujo de datos entre los dos repos es bidireccional; el de correcciones no.**
+- `change_analysis.py` lee Landsat, `auditoria_imagenes.py` sabe leer Landsat, `gif_optimizer.py` es casi el mismo archivo. Pero **cada fix hay que acordarse de copiarlo a mano**. Cuatro divergencias en una sola auditoría (tonalidad RGB, MAXCOVERAGE en SWIR, KML, centroides) son cuatro instancias del mismo hecho. Mientras no haya módulo compartido o chequeo cruzado que falle al divergir, la semilla 3 va a seguir apareciendo con caras nuevas.
+
+**Verde no ordena: hay que mirar la tasa base.**
+- La detección de cambios reportó **34 ALERTA de 51** durante semanas con todos los runs en verde. El delator no fue el conteo sino la magnitud: mediana de `cambio_morfologico_pct` **67%**, con 20 mediciones en 100%. Un volcán no cambia el 100% de su superficie en dos días → el instrumento está vivo midiendo **otra magnitud** (nieve, nube, ángulo solar).
+- **Regla:** todo clasificador desatendido necesita un diagnóstico de su propia distribución. Si la mediana de la métrica cae sobre el umbral de decisión, no discrimina: reparte.
+- El vuelco no vino de un commit (Mahalanobis se activa cuando `stack_historico >= 5`), así que **`git log` no lo puede mostrar**. Un cambio de comportamiento causado por datos acumulados es invisible a la arqueología de código.
+
+**Cosas del entorno que costaron tiempo.**
+- Los `while read` de Bash sobre nombres con espacios/acentos fallaron en silencio contra `raw.githubusercontent.com`; con `urllib` en Python funcionaron los 43. Para lotes con nombres no-ASCII, ir directo a Python.
+- `Write` deja CRLF y rompe los `assert old in s` de los parches por Python. Normalizar `newline=''` al leer o parchear con `sed -i` por número de línea.
