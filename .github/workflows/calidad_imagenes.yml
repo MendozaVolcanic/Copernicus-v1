@@ -1,0 +1,130 @@
+name: Calidad de imagenes publicadas
+
+# POR QUE EXISTE
+# ==============
+# El pipeline verificaba que la descarga OCURRIERA, no que la imagen SIRVIERA.
+# Media actividad, no resultado. Por eso una anomalia termica borrada sobrevivio
+# un mes en linea: nada fallo -- el workflow dio verde, el archivo se escribio con
+# su tamano normal, el dashboard lo mostro. Y por eso el true color quemado se
+# declaro "arreglado" en junio validandolo a ojo contra escenas nubladas, donde
+# el defecto no puede manifestarse.
+#
+# auditoria_imagenes.py existia desde el 17-ago y sabia leer los dos repos
+# (--landsat), pero corria a mano: grep de "auditoria" en los workflows de ambos
+# repos daba cero. El instrumento estaba construido y desconectado.
+#
+# Este workflow lo enchufa. No falla por el stock heredado -- 325 casos altos al
+# 2026-08-30, ya medidos y documentados en AUDITORIA_CALIDAD_IMAGENES.md -- sino
+# solo por casos NUEVOS contra tasks/auditoria_baseline.json. Un job que arranca
+# en rojo se ignora a la semana, y entonces el control existe pero no sirve.
+#
+# La alarma la da alerta_cron_caido.yml, que observa este workflow por nombre y
+# abre un Issue cuando termina en failure. Sin esa ruta de vuelta, un rojo mas en
+# la lista de Actions no es una notificacion.
+
+on:
+  schedule:
+    # 23:30 UTC, despues de change_analysis (22:30) y de las descargas del dia.
+    - cron: '30 23 * * *'
+  workflow_dispatch:
+    inputs:
+      actualizar_base:
+        description: 'Regenerar la linea base con lo que se mida hoy (revisar antes)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+concurrency:
+  group: calidad-imagenes
+  cancel-in-progress: false
+
+jobs:
+  auditar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Checkout Landsat-v1 (segundo sensor)
+        uses: actions/checkout@v5
+        with:
+          repository: MendozaVolcanic/Landsat-v1
+          path: _landsat_data
+          sparse-checkout: docs/landsat
+          sparse-checkout-cone-mode: false
+        continue-on-error: true
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      # El KML es una copia de las coordenadas que ya viven en
+      # config_sentinel2.py. Cuando divergio, se quedo cuatro meses con las
+      # coordenadas de Antuco bajo el nombre de Nevados de Chillan. Esto detecta
+      # la divergencia el dia que aparece, no cuatro meses despues.
+      - name: Verificar que el KML no divergio del config
+        run: python scripts/generar_kml.py --check
+
+      - name: Auditar imagenes publicadas (0 Processing Units)
+        id: auditar
+        run: |
+          set -uo pipefail
+          LANDSAT=""
+          if [ -d "_landsat_data/docs/landsat" ]; then
+            LANDSAT="--landsat _landsat_data"
+            echo "Landsat: $(find _landsat_data/docs/landsat -name '*.png' | wc -l) PNGs"
+          else
+            # No lo tapamos: una auditoria que mira la mitad de lo que dice mirar
+            # es peor que no correr, porque su silencio se lee como "todo bien".
+            echo "::warning::Landsat-v1 no disponible; esta corrida audita solo Sentinel-2"
+          fi
+          python auditoria_imagenes.py $LANDSAT --json auditoria_actual.json | tee auditoria.log
+          # auditoria_imagenes.py sale 1 cuando hay hallazgos altos, incluidos los
+          # heredados. Quien decide si el job falla es el paso de comparacion.
+          echo "ok=1" >> "$GITHUB_OUTPUT"
+
+      - name: Regenerar linea base (solo si se pidio a mano)
+        if: ${{ inputs.actualizar_base }}
+        run: |
+          python scripts/comparar_auditoria.py \
+            --actual auditoria_actual.json \
+            --escribir-base tasks/auditoria_baseline.json
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tasks/auditoria_baseline.json
+          git commit -m "chore(auditoria): actualizar linea base de calidad de imagenes" || echo "sin cambios"
+          git push
+
+      - name: Resumen en la pagina del run
+        if: always()
+        run: |
+          {
+            echo '## Auditoria de calidad de imagenes'
+            echo ''
+            echo '```'
+            sed -n '1,60p' auditoria.log 2>/dev/null || echo 'sin salida'
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fallar solo si aparecieron casos altos NUEVOS
+        if: ${{ !inputs.actualizar_base }}
+        run: |
+          # pipefail explicito: sin esto el codigo de salida seria el de tee y el
+          # job nunca fallaria -- exactamente el fallo silencioso que este workflow
+          # existe para cazar.
+          set -o pipefail
+          python scripts/comparar_auditoria.py \
+            --actual auditoria_actual.json \
+            --base tasks/auditoria_baseline.json | tee comparacion.log
+          echo '### Contra la linea base' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat comparacion.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

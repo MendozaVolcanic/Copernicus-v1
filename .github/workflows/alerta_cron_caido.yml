@@ -13,6 +13,9 @@ on:
       - "Monitoreo Copernicus Automatico"
       - "Change Analysis (Experimental)"
       - "Descarga Indices Espectrales (NDVI/NBR/SWIR)"
+      # Sin esta linea, un hallazgo de calidad nuevo seria un rojo mas en la
+      # lista de Actions, y un rojo que nadie mira no es una notificacion.
+      - "Calidad de imagenes publicadas"
     types: [completed]
 
 permissions:
