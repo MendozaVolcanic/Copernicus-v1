@@ -93,6 +93,42 @@ de nieve permanente quedan quemados **por construcción**, no por una escena mal
 
 ---
 
+### B3 · Landsat no puede mostrar estas anomalías — **confirmado, límite físico**
+
+Landsat nunca pinta una anomalía roja: **0 de 24 fechas** en Villarrica y Lascar,
+contra 21 de 103 en Sentinel-2. En pares separados por ≤3 días —el mismo volcán en
+el mismo estado— de 5 casos donde Sentinel-2 ve rojo, Landsat falla en 5.
+
+La hipótesis natural era el realce: Landsat usa 3,5 y Sentinel-2 usa 2,5, así que
+satura desde una reflectancia de 0,286 en vez de 0,40, y al empujar las dos bandas
+SWIR juntas contra el techo aplasta la diferencia entre ellas — que es justamente
+lo que hace ver rojo un píxel caliente. **Esa hipótesis es falsa.** Se bajaron 4
+escenas crudas de USGS M2M y se renderizaron con realces 3,5 / 2,5 / 2,0 / 1,5 /
+1,0: cero rojos en todos los casos.
+
+La causa está en el dato, no en el render. En Lascar 2026-06-27 —el único caso con
+calor real en el crudo, 160 px con NHI>0,15— la banda B7 tiene mediana 0,076 y
+**máximo 0,122**, mientras el umbral para verse rojo con realce 3,5 es 0,168: ni el
+píxel más caliente de la escena llega. Contra Sentinel-2 en Villarrica 2026-07-03,
+la mediana es parecida (0,100) pero el **máximo es 0,709**, seis veces más alto, y
+256 px cruzan el umbral.
+
+Mediana parecida con pico seis veces menor es la firma de **dilución sub-píxel**: la
+anomalía es más chica que un píxel, así que a 30 m se promedia con terreno frío y
+pierde el pico que a 20 m sobrevive casi puro. Un píxel de Landsat cubre 2,25 veces
+más superficie. **No hay ajuste de tonalidad que lo corrija.**
+
+Lo que sí sirve para Landsat: el **NHI calculado sobre el crudo detecta calor que el
+falso color no puede mostrar** (160 px en Lascar con 0 px rojos en pantalla). La
+detección en Landsat debe salir de una capa NHI, no del color — que es lo que
+propone Marchese 2019 y ya está priorizado en `bibliografia/IMPLEMENTACION.md`.
+
+> **Trampa metodológica.** El NHI leído de un PNG con un filtro de señal (`R ≥ 40`)
+> está sesgado: R está en el numerador del NHI, así que filtrar por R alto empuja el
+> resultado hacia positivo, y más todavía al comparar sensores con realces distintos.
+> Dio «NHI mediano positivo en Villarrica nevado», físicamente absurdo. **Para
+> comparar sensores el NHI se calcula del crudo, nunca del PNG renderizado.**
+
 ### P1 · Nada compara lo publicado contra lo que la escena contenía — **la brecha de proceso**
 
 **Lente:** proceso · **Ejes:** P5 (medición equivocada) + P1 (sin bucle de retroalimentación)
@@ -189,3 +225,19 @@ python auditoria_imagenes.py --landsat ../Landsat-v1 --detalle
 ---
 
 *Instrumento: `auditoria_imagenes.py`. Reproducible, 0 PU, con controles positivos obligatorios.*
+
+## Decisiones pendientes
+
+| # | Decisión | Qué se sabe |
+|---|---|---|
+| 1 | ¿Bajar el realce 3,5 de Landsat? | No recupera anomalías (descartado), pero sí arregla el terreno quemado: el visible satura al 100% hasta realce 1,5 y cae a 7,8% con 1,0. Beneficio: legibilidad, no detección. Toca `config_landsat.py`. |
+| 2 | ¿Prototipar la capa NHI de Landsat? | Único camino que sirve para detección en Landsat. Ya priorizado en `IMPLEMENTACION.md`. |
+| 3 | Copahue_Crater_Lake | 9 fechas donde el PNG guardado y la escena real difieren (55 vs 208 el 13-jun) sin llegar a anomalía roja. Sin diagnosticar. |
+| 4 | Los 25 `REQUIERE_VERIFICACION` | Son sospechas, no bugs: de 4 contrastados contra la fuente, solo 1 era real. ¿Verificar uno a uno (1 descarga cruda c/u) o dejar como monitoreo? |
+| 5 | ¿Integrar `auditoria_imagenes.py` al CI? | Hoy corre a mano. Es el control que habría detectado B1 sin que nadie lo mirara. |
+| 6 | 540 fechas quemadas | 304 en S2 (51 volcanes) + 236 en Landsat (39). Sin plan. En S2 el equivalente del punto 1 es la ganancia del visible. |
+
+**Nota sobre el prompt «caza brechas»:** se mencionó como fuente de ideas para esta
+auditoría, pero la búsqueda por nombre y contenido en el workspace quedó colgada y el
+archivo nunca se encontró. Este instrumento se diseñó sin él; conviene revisarlo
+contra ese prompt cuando aparezca la ruta.
