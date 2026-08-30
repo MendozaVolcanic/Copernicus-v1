@@ -212,3 +212,32 @@ Spike de visor client-side (OpenLayers + COG público) descartado tras prueba ha
 - **Coordinación**: pausar crons (`gh workflow disable`) antes del force-push, re-activarlos (`gh workflow enable`) después. NO olvidar el re-enable.
 - **`git add -A` del orphan respeta `.gitignore`**: los libs de `docs/lib/` (gif.js, gifenc) sobrevivieron SOLO porque estaban trackeados antes (el `--orphan` hereda el índice). Archivos force-added siguen tracked; untracked-gitignored se caen.
 - **Fetch lento**: sobre repo grande / red lenta, fetch/push timeoutean en foreground → usar `run_in_background`. NO mezclar `nohup` con el background del tool (queda sin trackear).
+
+## Retención, validación de tonalidad y falsos diagnósticos (2026-08-17)
+
+**El patrón que apareció 3 veces el mismo día: una política de TIEMPO colgada de un evento de datos.**
+- `limpiar_imagenes_antiguas()` vivía dentro de `if resultados:` → solo limpiaba volcanes que bajaron algo ese día. En invierno casi ninguna corrida trae nada → retención apagada justo cuando más crece el archivo.
+- Los jobs de zona borran en su workspace efímero y suben artifact, pero **`download-artifact` SUPERPONE: agrega y sobrescribe, nunca borra**. Sobre el checkout completo del consolidador lo viejo sigue presente → los borrados jamás llegaban al `git add -A`. **3.01 GB acumulados desde marzo con la política diciendo 60 días.**
+- Al mover la purga al job `consolidar` **se reintrodujo el bug**: ese job declara `needs:[descarga]` y `descarga` corre con `if: has_new=='true'`. Sin productos nuevos ambos se saltan. Verificado: run con `detectar=success, descarga=skipped, consolidar=skipped`.
+- **Regla:** para cualquier limpieza/expiración preguntar *«si hoy no llega ni un dato, ¿corre igual?»*. Si no, está mal cableada. Se resolvió con `retencion_diaria.yml`, cron propio, grupo `push-main`.
+- **Orden que importa:** purgar ANTES de regenerar `fechas_disponibles_*.json`; al revés el índice lista fechas borradas → 404.
+- `DIAS_RETENCION` y `DIAS_BUSQUEDA_DEFAULT` se mueven JUNTAS. Búsqueda 60 con retención 45 = bajar imágenes para borrarlas en la misma corrida, gastando PU.
+
+**Validación de tonalidad: la escena de prueba es parte del test.**
+- El fix RGB de junio (`HighlightCompressVisualizer(0,0.4)`) se validó contra Chillán 2026-06-11 y 06-13, con **81.8% y 88.2% de nube**: escenas donde la nieve no está en cuadro y el defecto no puede manifestarse. Ese mismo día Lonquimay 06-13 (25% nube) ya estaba al 82.5% de blanco. **Nunca estuvo arreglado.**
+- **Ningún punto de quiebre fijo cubre los dos regímenes.** Sonda de reflectancia cruda (Lonquimay 2026-08-12): mediana 0.937, p90=1.000, 96.4% de píxeles >0.4. Con `maxVal=0.8` el invierno queda impecable y **el verano se destruye (79.4% negro)**. Solución: gamma sRGB sobre reflectancia cruda, sin ganancia — no tiene punto de quiebre.
+- **Probar SIEMPRE los dos extremos**: día despejado de invierno con nieve Y escena de verano con terreno oscuro. Filtrar por nubosidad `<20%`, no aceptar la primera fecha disponible.
+- Métricas que sirven para RGB: **% de blanco puro** y **entropía de la banda roja** (antes 1.52 bits, después 5.15). `auditoria_imagenes.py` solo mide SWIR — por eso la auditoría de esa misma mañana no vio nada.
+- **Arnés barato**: monkeypatch `sd.EVALSCRIPTS['RGB']` antes de `dl.download_image(...)`. Probar una variante = 2 renders; el backfill completo = ~950. Verificar antes de gastar.
+- Distinguir "archivo guardado corrupto" de "el pipeline lo produce así": re-renderizar con el MISMO evalscript. Si la saturación se reproduce al dígito (82.3% → 82.3%), es el pipeline.
+
+**Falsos diagnósticos, dos formas.**
+- **El verde no prueba el efecto.** La retención estuvo rota 5 meses con todos los runs en `success`, porque descargar y commitear sí funcionaba. Tras disparar la purga salió verde en 2m7s; la prueba real fue ir a `main` y confirmar el commit de 6591 archivos y el rango de fechas. **Nunca reportar "funciona" con el ✅ como evidencia.**
+- **Coincidencia temporal ≠ causa.** El dashboard quedó en blanco el día que tocamos varias cosas; se culpó al cache-buster `?t=${Date.now()}` y quedó escrito en un commit. Era falso: GitHub tenía incidente `critical` y `raw` devolvía 429 **hasta para `volcanes.js`, 13 KB**. Prueba discriminante barata: si un archivo chico también falla, no es saturación por volumen. Revisar `https://www.githubstatus.com/api/v2/status.json` antes de culpar al código propio.
+
+**Trampa del historial: el orphan reset rompe la arqueología.**
+- `5c6fd333` es commit raíz, así que ahí TODO aparece como `A` (agregado) y `git log -S` / `git log -- <archivo>` no pueden datar nada anterior. Llevó a concluir falsamente cuándo cambió el evalscript. Profundidad total: 28 commits.
+
+**Coordinación entre sesiones concurrentes.**
+- Con dos sesiones en el mismo repo el working tree cambia bajo los pies entre comandos. Usar `git commit -o <path>` (ruta explícita) para no barrer trabajo ajeno; `git add -A` es peligroso.
+- El `concurrency: push-main` serializa **workflows**, no sesiones humanas. 15 escritores a `main`, los 15 en el grupo.
