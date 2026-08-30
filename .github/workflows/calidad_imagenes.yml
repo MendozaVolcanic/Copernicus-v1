@@ -54,7 +54,9 @@ jobs:
         with:
           repository: MendozaVolcanic/Landsat-v1
           path: _landsat_data
-          sparse-checkout: docs/landsat
+          sparse-checkout: |
+            docs/landsat
+            config_landsat.py
           sparse-checkout-cone-mode: false
         continue-on-error: true
 
@@ -72,6 +74,18 @@ jobs:
       # la divergencia el dia que aparece, no cuatro meses despues.
       - name: Verificar que el KML no divergio del config
         run: python scripts/generar_kml.py --check
+
+      # Los dos repos comparten datos pero no comparten instrumento: el flujo de
+      # datos es bidireccional y el de correcciones es manual. Cuatro divergencias
+      # en una sola auditoria (curva RGB, MAXCOVERAGE en SWIR, el KML y seis
+      # centroides) fueron cuatro instancias del mismo hecho, descubiertas por
+      # accidente meses despues. Esto lo mira todos los dias.
+      #
+      # Falla a proposito si el checkout de Landsat-v1 no trajo el config: un
+      # "no pude comparar" que sale verde se lee como "no divergen", que es
+      # justamente el modo de falla que este workflow existe para evitar.
+      - name: Verificar que los dos repos no divergieron
+        run: python scripts/verificar_divergencia_repos.py --landsat _landsat_data
 
       - name: Auditar imagenes publicadas (0 Processing Units)
         id: auditar
