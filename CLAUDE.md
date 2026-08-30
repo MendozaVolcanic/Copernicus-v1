@@ -44,7 +44,11 @@ Copernicus-v1/
 2. **Multi-Volcán por Zona** — toda una zona en grid (Norte/Centro/Sur/Austral)
 3. **Monitoreo Personal** — checkboxes multi-zona (violeta `#a371f7`)
 4. **14 más Riesgosos** — ranking SERNAGEOMIN (naranja `#f97316`)
-5. **Landsat 8/9** — modos Individual / Multi / Personal / Riesgosos con 3 composites (RGB, SWIR, THERMAL)
+5. **Landsat 8/9** — ⚠️ **ya no es un modo de este dashboard**: es un enlace externo al
+   dashboard hermano (`docs/index.html:806`). `VOLCANES_LANDSAT_ZONAS` no existe en el
+   HTML servido. Desde el 30-ago el enlace lleva `?volcan=<el actual>`, así que el
+   contexto ya no se pierde al cruzar. Los tres composites Landsat (RGB, SWIR, THERMAL)
+   viven en Landsat-v1.
 6. **Visores extra:** Change Detection, COG Viewer, Alta Resolución, Próximas Pasadas, Constructor GIF, Manual de Ayuda
 
 ## Reglas de edición (CRÍTICAS)
@@ -52,7 +56,13 @@ Copernicus-v1/
 - **NO usar innerHTML con contenido dinámico** → hook de seguridad lo bloquea. Usar `createElement` + `textContent`.
 - **Landsat data vive en repo externo** `Landsat-v1` (raw.githubusercontent.com). No duplicar imágenes acá.
 - **Nombres con espacios/guiones** (ej. "Puyehue - Cordon Caulle") → siempre `encodeURIComponent` en URLs.
-- **VOLCANES_LANDSAT_ZONAS vs PERSONAL_ZONAS** son listas distintas. No mezclar.
+- **`VOLCANES_LANDSAT_ZONAS` ya no existe** (el modo Landsat se fue a su propio repo).
+  `PERSONAL_ZONAS` sí. Verificado el 30-ago-2026 sobre el HTML servido.
+- **Las coordenadas tienen un solo dueño: `config_sentinel2.py`.** `docs/volcanes.js` y
+  `centroides_volcanes.kml` se derivan de ahí (`scripts/generar_volcanes_js.py`,
+  `scripts/generar_kml.py`). No editarlos a mano: el KML pasó meses con las coordenadas
+  de Antuco bajo el nombre de Nevados de Chillán justamente por ser una copia con vida
+  propia. `python scripts/generar_kml.py --check` falla si divergen.
 - **Vistas zoom** (8 en total: Melimoyu_Conos_Eruptivos, Mentolat_Sismicidad_VT, Hudson_Ultima_Erupcion, Lascar_Crater, Isluga_Crater_Fumarola, Copahue_Crater_Lake [2026-06-04], + Nevados_de_Chillan_Crater_Nicanor, Nevado_de_Longavi_Crater [2026-06-15]) viven en `config_sentinel2.py:VOLCANES` con campo extra `vista_zoom_de` que apunta al volcán padre. Se agregan exportando desde `revision_volcanes.html` y regenerando `docs/volcanes.js`.
 
 ## Tonalidad y processing
@@ -99,6 +109,8 @@ Aplicar SOLO a thermal — RGB usa ADAPTIVE normal.
 | `copernicus.yml` | `0 10,20 * * *` UTC | Descarga S2 + GIFs dashboard + JSON próximas pasadas |
 | `change_analysis.yml` | `0 22 30 * * *` (22:30 UTC) | Análisis V2 + change_results.json |
 | `spectral_indices.yml` | configurar | NDVI/NBR |
+| `retencion_diaria.yml` | diario | purga imágenes >45 días |
+| `calidad_imagenes.yml` | `30 23 * * *` | corre `auditoria_imagenes.py` sobre los dos repos y falla solo con hallazgos altos **nuevos** contra `tasks/auditoria_baseline.json` |
 
 **Auth:** `SH_CLIENT_ID` y `SH_CLIENT_SECRET` en GitHub Secrets. `sentinel2_downloader.py` aborta con `SystemExit` en 401/403 — fail-fast, sin fallas silenciosas.
 
@@ -110,11 +122,24 @@ Empírico (1.526 obs analizadas):
 - Combinada (3 sats 2A/2B/2C): **2.3 d** Villarrica/Melimoyu, **4.1 d** Hudson, **4.6 d** Lascar
 - Disponibilidad L2A: 6-12h después del paso
 
-## Estado de change detection (10 may 2026)
+## Estado de change detection (30 ago 2026) — ⚠️ calibración sospechosa
 
-- 49 entidades analizadas, 6 ATENCION · 0 ALERTA (resto NORMAL)
-- Z-score threshold: z>3.0 AND pct>3% → ALERTA; z>2.0 AND pct>1% → ATENCION
-- En ATENCION: Cay, Hudson, Maca, Ollague, Parinacota, Tupungatito (todos por anomalía térmica)
+- 51 entidades analizadas: **34 ALERTA · 10 ATENCION · 7 NORMAL**. Con dos tercios
+  de los volcanes en rojo, el estado dejó de ordenar cuál merece segunda mirada.
+- El delator no es el conteo sino la magnitud: **mediana de `cambio_morfologico_pct`
+  = 67 %**, con 20 mediciones en 100 %. Un volcán no cambia el 100 % de su superficie
+  entre dos pasadas: lo que se está midiendo ahí es nieve, nube o ángulo solar.
+- El umbral documentado (z>3.0 AND pct>3% → ALERTA; z>2.0 AND pct>1% → ATENCION)
+  **ya no es el que decide la mayoría de los casos**: el ensemble toma el peor de
+  tres (z-score, NHI, Mahalanobis) y 22 de las 34 ALERTA llevan
+  `[Mahalanobis override]`. Ese mecanismo no estaba documentado en ninguna parte.
+- `change_analysis.py` escribe ahora un bloque `diagnostico` con `alerta_pct` y
+  `calibracion_sospechosa`; el dashboard pinta un aviso cuando se pasa de 25 % en
+  ALERTA. **Eso avisa, no corrige.** Recalibrar es decisión de Nicolás contra
+  escenas crudas — ver `AUDITORIA_BRECHAS_2026-08-30.md`.
+- Esta sección estuvo casi cuatro meses describiendo el estado del 10-may. Si la
+  vuelves a leer, contrasta contra `docs/change_detection/change_results.json`
+  antes de creerle.
 
 ## Bibliografía y roadmap
 
