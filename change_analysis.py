@@ -1553,6 +1553,88 @@ def obtener_lista_volcanes():
     return sorted(volcanes)
 
 
+# Un detector cuya mediana cae encima de su propio umbral no discrimina: reparte.
+# Estos dos numeros existen para que eso se vea sin que nadie tenga que abrir el
+# JSON y contar a mano. No cambian ninguna clasificacion -- solo describen la
+# tanda -- porque recalibrar los umbrales es una decision cientifica, no de
+# software.
+ALERTA_PCT_SOSPECHOSO = 25.0    # % de la poblacion en ALERTA a partir del cual
+                                # el ranking deja de ordenar nada
+MORF_MEDIANA_SOSPECHOSA = 40.0  # % de "cambio morfologico" tipico; por encima de
+                                # esto lo que se esta midiendo es nieve, nube o
+                                # angulo solar, no morfologia
+
+
+def diagnostico_calibracion(resultados):
+    """Mide la tanda contra si misma y avisa si el detector dejo de discriminar.
+
+    Por que existe: el 2026-08-30 la salida publicada tenia 34 de 51 entidades
+    en ALERTA (67%), 10 en ATENCION y 7 en NORMAL, con una mediana de
+    cambio_morfologico_pct de 64.8% y casos de 100.0%. Un volcan no cambia el
+    100% de su morfologia en dos dias: eso es nieve fresca, nube o iluminacion.
+    Cada corrida salia en verde igual, porque "verde" certifica que el script
+    corrio, no que la proporcion de alertas tenga sentido. Nada comparaba la
+    tanda contra su propia tasa base.
+
+    No corrige nada ni mueve umbrales. Solo deja el numero escrito al lado del
+    resultado, para que la proxima vez se vea sin arqueologia.
+    """
+    import statistics
+
+    volcanes = resultados.get("volcanes", {}) or {}
+    conteo = resultados.get("resumen", {}) or {}
+    total = sum(conteo.get(k, 0) for k in
+                ("NORMAL", "ATENCION", "ALERTA", "NUBLADO", "SIN_DATOS", "ERROR"))
+    n_alerta = conteo.get("ALERTA", 0)
+    alerta_pct = round(100.0 * n_alerta / total, 1) if total else 0.0
+
+    morf = []
+    for v in volcanes.values():
+        for s_ in (v.get("por_sensor") or {}).values():
+            x = s_.get("cambio_morfologico_pct")
+            if isinstance(x, (int, float)):
+                morf.append(float(x))
+    morf_mediana = round(statistics.median(morf), 1) if morf else None
+    morf_100 = sum(1 for x in morf if x >= 99.9)
+
+    motivos = []
+    if alerta_pct >= ALERTA_PCT_SOSPECHOSO:
+        motivos.append(
+            "%.1f%% de las entidades en ALERTA (%d de %d): por encima de %.0f%% "
+            "el estado deja de ordenar cual merece segunda mirada"
+            % (alerta_pct, n_alerta, total, ALERTA_PCT_SOSPECHOSO))
+    if morf_mediana is not None and morf_mediana >= MORF_MEDIANA_SOSPECHOSA:
+        motivos.append(
+            "cambio_morfologico_pct mediano de %.1f%%: un volcan tipico no cambia "
+            "esa fraccion de su superficie entre dos pasadas, asi que la magnitud "
+            "medida no es morfologia" % morf_mediana)
+    if morf_100:
+        motivos.append(
+            "%d mediciones con cambio_morfologico_pct >= 99.9%%, o sea la escena "
+            "entera marcada como cambiada" % morf_100)
+
+    diag = {
+        "alerta_pct": alerta_pct,
+        "entidades_analizadas": total,
+        "cambio_morfologico_mediana_pct": morf_mediana,
+        "mediciones_morfologico_saturado": morf_100,
+        "umbral_alerta_pct": ALERTA_PCT_SOSPECHOSO,
+        "umbral_morfologico_mediana_pct": MORF_MEDIANA_SOSPECHOSA,
+        "calibracion_sospechosa": bool(motivos),
+        "motivos": motivos,
+    }
+
+    if motivos:
+        print("\n" + "!" * 70)
+        print("CALIBRACION SOSPECHOSA -- los estados de esta tanda no son fiables")
+        for m in motivos:
+            print("  - " + m)
+        print("  Esto no invalida la corrida: invalida usarla para priorizar.")
+        print("!" * 70 + "\n")
+
+    return diag
+
+
 def analizar_todos(volcanes=None):
     """Ejecuta análisis completo para todos los volcanes."""
     if volcanes is None:
@@ -1599,6 +1681,7 @@ def analizar_todos(volcanes=None):
 
     # Resumen
     resultados["resumen"] = conteo
+    resultados["diagnostico"] = diagnostico_calibracion(resultados)
 
     print(f"\n{'='*70}")
     print(f"RESUMEN:")

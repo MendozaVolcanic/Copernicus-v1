@@ -343,6 +343,7 @@
     </div>
     <div class="header-info" id="header-info">Cargando datos...</div>
 </div>
+<div id="aviso-calibracion"></div>
 <div class="resumen-bar" id="resumen-bar"></div>
 <div class="filtros-bar" id="filtros-bar"></div>
 <div class="zone-stats" id="zone-stats"></div>
@@ -419,6 +420,7 @@ async function cargarDatos() {
 }
 
 function renderizar() {
+    renderAvisoCalibracion();
     renderResumen();
     renderFiltros();
     renderZoneStats();
@@ -505,6 +507,27 @@ function renderHistoryChart(nombre) {
     wrapper.appendChild(labels);
 
     return wrapper;
+}
+
+function renderAvisoCalibracion() {
+    // El estado por volcan solo sirve para priorizar si unos pocos estan
+    // elevados. Cuando dos tercios de la poblacion salen en ALERTA, el color
+    // dejo de ordenar nada y el operador no tiene como saberlo mirando la
+    // pagina: cada tarjeta se ve igual de plausible que siempre.
+    const cont = document.getElementById('aviso-calibracion');
+    if (!cont) return;
+    clearEl(cont);
+    const d = datosGlobales && datosGlobales.diagnostico;
+    if (!d || !d.calibracion_sospechosa) return;
+
+    const box = el('div', { style: 'margin:0;padding:12px 20px;background:#3d1d00;'
+        + 'border-bottom:1px solid #7d3b00;color:#ffa657;font-size:0.85em;line-height:1.55;' });
+    box.appendChild(el('div', { style: 'font-weight:700;margin-bottom:6px;' },
+        'Calibracion sospechosa: usa esta tabla para mirar, no para priorizar'));
+    const ul = el('ul', { style: 'margin:0 0 0 18px;padding:0;color:#d0b090;' });
+    (d.motivos || []).forEach(function (m) { ul.appendChild(el('li', {}, m)); });
+    box.appendChild(ul);
+    cont.appendChild(box);
 }
 
 function renderResumen() {

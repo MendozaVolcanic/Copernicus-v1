@@ -12454,5 +12454,19 @@
     "NUBLADO": 0,
     "SIN_DATOS": 0,
     "ERROR": 0
+  },
+  "diagnostico": {
+    "alerta_pct": 66.7,
+    "entidades_analizadas": 51,
+    "cambio_morfologico_mediana_pct": 67.0,
+    "mediciones_morfologico_saturado": 20,
+    "umbral_alerta_pct": 25.0,
+    "umbral_morfologico_mediana_pct": 40.0,
+    "calibracion_sospechosa": true,
+    "motivos": [
+      "66.7% de las entidades en ALERTA (34 de 51): por encima de 25% el estado deja de ordenar cual merece segunda mirada",
+      "cambio_morfologico_pct mediano de 67.0%: un volcan tipico no cambia esa fraccion de su superficie entre dos pasadas, asi que la magnitud medida no es morfologia",
+      "20 mediciones con cambio_morfologico_pct >= 99.9%, o sea la escena entera marcada como cambiada"
+    ]
   }
 }
