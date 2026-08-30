@@ -281,3 +281,24 @@ Spike de visor client-side (OpenLayers + COG público) descartado tras prueba ha
 **Cosas del entorno que costaron tiempo.**
 - Los `while read` de Bash sobre nombres con espacios/acentos fallaron en silencio contra `raw.githubusercontent.com`; con `urllib` en Python funcionaron los 43. Para lotes con nombres no-ASCII, ir directo a Python.
 - `Write` deja CRLF y rompe los `assert old in s` de los parches por Python. Normalizar `newline=''` al leer o parchear con `sed -i` por número de línea.
+
+## Ejecutando las cuatro decisiones (2026-08-30, misma sesión)
+
+**Portar un workflow del repo hermano NO es copiarlo.** `purgar_historico_completo.yml` de Copernicus borra **todos** los `.pptx`. En Landsat los dos únicos `.pptx` del repo son la **plantilla** que `ppt_generator.py` necesita: copiarlo tal cual habría repetido el incidente de la plantilla borrada por la purga. Tres cambios obligatorios al portar: la rama (`master`, no `main`), la lista de lo que se borra, y el grupo de `concurrency` (el del cron de ese repo, no el del otro).
+- **Regla:** al portar un workflow, listar explícitamente qué supuestos del repo origen NO valen en el destino, antes de correrlo.
+
+**Una purga irreversible necesita guardas que se ejecuten ANTES del push, no después.** Agregué dos que la versión original no tiene: abortar si hay <500 PNGs antes de empezar, y abortar si el orphan commit tiene <600 archivos o le falta la plantilla / `index.html` / el config. Lo único que separa "purga" de "borrado irreversible" es no publicar un árbol mutilado, y eso sólo se puede comprobar antes del `--force`.
+
+**La retención puede estar bien y el repo crecer igual: son dos planos.** En Landsat `limpiar_imagenes_antiguas()` corría en cada ciclo y el árbol estaba limpio — 566 MB, PNGs desde hace 60 días. Pero `.git` pesaba **4,9 GB**: cada PNG borrado sigue vivo en la historia. **Preguntar siempre por los dos planos**: ¿se limpia el árbol? ¿y la historia?
+- Y al verificar: el `size` que reporta la API de GitHub **no baja al empujar** — baja cuando ellos repacan. Se puede verificar la historia (1 commit), el árbol (conteo de archivos) y el sitio servido; el tamaño hay que declararlo como *no confirmado todavía*.
+
+**"El catálogo lo ofrece" ≠ "la escena cubre el volcán".** El `scene-search` de M2M filtra por MBR (rectángulo envolvente) pero el footprint WRS-2 real es un paralelogramo rotado. Chillán tenía 7 escenas del path 232 ofrecidas y ninguna publicada: al renderizar una, el recorte salía **98,2 % nodata** y `_sin_cobertura()` la descartaba, correctamente. La sospecha ("es residuo del borrado de la cuarentena") era falsa y la medición la dio vuelta.
+- **Generalización que salió de ahí y vale más que el caso:** contando el path/row del `scene_id` en los metadata publicados, **7 volcanes tienen una sola huella WRS-2** → revisita ~8 d en vez de ~4. Cay, Guallatiri, Irruputuncu, Isluga, Láscar, Nevados de Chillán, Ollagüe. Sin ese dato, "Láscar lleva 8 días sin imagen" y "Villarrica lleva 8 días sin imagen" se leen igual y significan cosas opuestas.
+
+**Un invariante de igualdad exacta se defiende mejor que uno con tolerancia.** Al alinear los centroides alineé también los cinco que diferían por debajo del kilómetro. Con tolerancia hay que discutir cuánto es mucho cada vez; con igualdad exacta, cualquier deriva falla el mismo día. Pero **sólo donde hay una sola respuesta correcta**: los `buffer_km` se dejaron distintos a propósito, porque el encuadre depende de la resolución del sensor.
+
+**Un fix de tonalidad tiene ganadores y perdedores; hay que medir a los dos.** El gamma sRGB en Landsat sube Chillán de 1,30 a 4,72 bits y Villarrica en verano de 2,76 a 7,48 — pero **pierde ~1 bit en el altiplano árido** (Taapaca 7,40 → 6,30), porque el gamma comprime altas luces sobre una escena que nunca saturaba. Se acepta y **se declara**; una curva por zona reintroduciría la divergencia que el trabajo vino a cerrar.
+
+**Cosas del entorno, otra vez.**
+- USGS M2M devuelve **429** bajo ráfagas: `leer_banda` retorna None y la escena se salta en silencio (se reintenta al ciclo siguiente, así que se autocura, pero no avisa). Al hacer diagnósticos con varias lecturas seguidas, espaciarlas o reintentar.
+- El cron horario de Landsat commitea seguido: un `push` preparado hace 20 minutos puede rechazarse. Rebasar sobre `origin/master` — los commits del bot tocan sólo `docs/*.json`, así que no hay conflicto real.

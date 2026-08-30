@@ -147,9 +147,24 @@ de magnitud mayor que lo que sí medía.
 
 **Cierre — mitigación (aplicada):** el instrumento ahora mide RGB en los dos
 repos, con umbral numérico y filtro de nubosidad, y corre en CI.
-⏸️ **Cierre de fondo: NO lo apliqué.** Cambiar la curva de Landsat toca la
-tonalidad de una serie histórica, y la comparabilidad fotométrica de la serie RGB
-es una decisión que está en pausa. Ver *Decisiones para Nicolás* §1.
+**Cierre de fondo: aplicado el 30-ago**, con autorización explícita de Nicolás.
+Landsat pasa a gamma sRGB sobre reflectancia cruda, la misma curva de Copernicus.
+Verificado re-renderizando escenas **crudas** con las dos curvas (M2M, $0), sólo
+sobre escenas despejadas:
+
+| escena | nube | lineal 3,5 | gamma sRGB |
+|---|---|---|---|
+| Nevados de Chillán 08-06 | 6 % | 89,7 % blanco · 1,30 bits | 50,6 % · **4,72 bits** |
+| Lonquimay 08-06 | 11 % | 87,2 % · 1,43 | 60,9 % · **3,83** |
+| Villarrica 07-05 | 19 % | 73,0 % · 2,13 | 60,1 % · **3,56** |
+| Villarrica 01-11 *(verano)* | 1 % | 75,0 % · 2,76 | 5,5 % · **7,48** |
+| Taapaca 07-11 *(árido)* | 1 % | 0,7 % · 7,40 | 0,0 % · **6,30** |
+| Lascar 08-06 *(árido)* | 1 % | 0,1 % · 6,99 | 0,0 % · **6,10** |
+
+**Regresión que hay que declarar:** en el altiplano árido, que nunca saturaba, la
+curva nueva *pierde* ~1 bit. Se acepta: 6,3 bits es una imagen bien expuesta y
+1,3 bits es un rectángulo blanco, y una curva por zona reintroduciría justo la
+divergencia que este trabajo vino a cerrar. SWIR conserva el 3,5 a propósito.
 
 ---
 
@@ -324,8 +339,13 @@ para esos seis volcanes compara cosas distintas.
 Los mismos seis valores estaban en el KML, o sea que la revisión de centroides se
 hizo **sólo en Copernicus** y no se propagó ni a Landsat ni al KML.
 
-**No lo corregí:** mover el centroide cambia el encuadre de la serie histórica de
-Landsat para esos seis volcanes. Ver *Decisiones para Nicolás* §3.
+**Corregido el 30-ago**, con autorización explícita. Se alinearon los 43 a
+igualdad **exacta** con `config_sentinel2.py` — también los cinco que diferían por
+debajo del kilómetro — porque un invariante de igualdad exacta se verifica sin
+discutir tolerancias y cualquier deriva futura falla el mismo día. Los `buffer_km`
+**no** se tocaron: el centroide es un hecho del volcán, el encuadre es una decisión
+que difiere legítimamente entre 20 y 30 m/px. Ojo al leer esas seis series: el
+encuadre cambia el 2026-08-30.
 
 ---
 
@@ -350,8 +370,28 @@ Y de esas 5 fechas, **2 tienen `cloud_cover` 100**: quedan 3 miradas útiles en 
 días para uno de los 14 volcanes más peligrosos de Chile. El dashboard no dice
 nada de esto.
 
-**Cierre:** pendiente de diagnóstico — hay que determinar si es geometría real o
-residuo del borrado. No lo cerré: exige descargas de verificación. Ver *Decisiones*.
+**Diagnosticado el 30-ago, y el resultado da vuelta la sospecha.** No es residuo
+del borrado: **es geometría**. El catálogo M2M sí ofrece escenas del path 232 sobre
+Chillán —el rectángulo envolvente de la búsqueda las alcanza— pero el footprint
+WRS-2 real es un paralelogramo rotado que no cubre el volcán. Al renderizar
+`LC09_L2SP_232086_20260722` el recorte sale **98,2 % nodata** y el pipeline lo
+descarta, correctamente.
+
+**Y el hallazgo se generaliza, que es lo que vale.** Contando el path/row del
+`scene_id` en los metadata publicados, **siete volcanes se ven con una sola huella
+WRS-2**, o sea cada ~8 días en vez de ~4: **Cay, Guallatiri, Irruputuncu, Isluga,
+Láscar, Nevados de Chillán y Ollagüe.** Cinco son del norte y varios están activos.
+
+Eso convierte una brecha específica en una de interfaz: hasta hoy *"Láscar lleva 8
+días sin imagen nueva"* y *"Villarrica lleva 8 días sin imagen nueva"* se leían
+igual, y no significan lo mismo — en Láscar es lo normal, en Villarrica es que algo
+falló.
+
+**Cierre (aplicado):** `scripts/generar_cobertura_wrs2.py` publica
+`docs/cobertura_wrs2.json` con las huellas reales y la revisita nominal por volcán,
+se regenera en cada corrida del cron, y el dashboard lo muestra en el panel de
+metadatos. Verificado en el sitio público: Láscar *"~8 d (1 huella WRS-2 233076)"*,
+Villarrica *"~2,7 d (3 huellas)"*.
 
 ---
 
@@ -508,41 +548,59 @@ prioridad.
 
 | Qué | Por qué no |
 |---|---|
-| **Cambiar la curva RGB de Landsat** | Toca la tonalidad de una serie histórica. La comparabilidad fotométrica de la serie RGB está explícitamente en pausa como decisión tuya, y ya cambió de curva dos veces. Levantado, no resuelto. |
+| ~~Cambiar la curva RGB de Landsat~~ | **Hecho el 30-ago** tras tu autorización. Ver decisión 1. |
 | **Recalibrar los umbrales de change detection** | Es una decisión científica que exige contrastar contra escenas crudas, no un cambio de software. Instalé el aviso, no la corrección. |
-| **Portar la retención con orphan reset a Landsat** | Reescribe historia: destructivo e irreversible. Landsat pesa 4,31 GB y crece, así que hay que hacerlo — pero con tu visto bueno. |
-| **Mover los centroides de Landsat** | Cambia el encuadre de la serie histórica de seis volcanes. La decisión depende de si la revisión de centroides del 4-jun fue la autoritativa. |
-| **Re-descargar el historial de Nevados de Chillán** | Antes hay que saber si la falta del path 232 es geometría o residuo del borrado. Diagnosticar primero, descargar después. |
+| ~~Portar la retención con orphan reset a Landsat~~ | **Hecho el 30-ago** tras tu autorización. Ver decisión 2. |
+| ~~Mover los centroides de Landsat~~ | **Hecho el 30-ago** tras tu autorización. Ver decisión 3. |
+| **Re-descargar el historial de Nevados de Chillán** | Diagnosticado: es geometría, el path 232 no cubre el volcán. **Ninguna re-descarga lo arregla**, así que no se hizo — se publicó la revisita real en su lugar. |
 | **Backfill de las fechas quemadas** | Ya estaba degradado a opcional y medido: se purga solo el 2026-10-01. Gastar ~950 renders no se justifica salvo que necesites mirar julio-agosto con la curva nueva antes de octubre. |
 | **Tocar `docs/revision_turno.html` y `ESPEC_REVISION_TURNO_OVDAS.md`** | Son trabajo sin commitear de otra sesión. Todos mis commits van con ruta explícita. |
 
 ---
 
-# DECISIONES PARA NICOLÁS
+# LAS CUATRO DECISIONES — ejecutadas el 30-ago
 
-**1 · ¿La comparabilidad fotométrica de la serie RGB es un requisito?** ⏸️ *(en pausa
-por decisión tuya; la auditoría la tocó, así que la levanto y espero)*
-Si lo es, la curva de Landsat no se toca y hay que documentar la discontinuidad
-del 18-ago en Copernicus. Si no lo es, Landsat debería recibir el gamma sRGB: hoy
-publica escenas con 87 % de blanco donde Copernicus publica 14 %.
-**Mi recomendación:** no es un requisito, y conviene decirlo por escrito. La serie
-ya cambió de curva dos veces sin que nadie lo notara, lo que sugiere que nadie la
-estaba usando fotométricamente. Pero es tu llamada.
+Nicolás autorizó explícitamente las cuatro recomendaciones. Quedan aquí con lo que
+efectivamente se hizo y contra qué se verificó.
 
-**2 · Retención de repositorio en Landsat.** Pesa 4,31 GB y crece 2×/día sin freno
-(la retención de 60 días borra el working tree, no la historia). Copernicus bajó
-de 3,01 a 0,84 GB con un orphan reset. Es destructivo — pide tu autorización
-explícita. **Recomiendo hacerlo**, con la advertencia conocida: el reset rompe
-`git log -S`.
+**1 · Curva RGB de Landsat → aplicada.** Gamma sRGB, la misma de Copernicus.
+Verificada re-renderizando escenas crudas en los dos regímenes (tabla en B3), con
+la regresión del altiplano árido declarada. La discontinuidad fotométrica de la
+serie se cierra sola alrededor del **2026-10-29**, cuando la retención de 60 días
+haya renovado el archivo completo.
 
-**3 · Centroides desincronizados (6 volcanes, hasta 2,35 km).** Alinear Landsat a
-Copernicus cambia el encuadre de esas seis series. **Recomiendo alinear igual**,
-aceptando el corte, y anotar la fecha del cambio en el `metadata.csv` — dos
-dashboards mirando terreno distinto para el mismo volcán es peor que un corte
-documentado.
+**2 · Retención de repositorio en Landsat → ejecutada.** El diagnóstico decisivo:
+árbol de trabajo **566 MB**, `.git` **4,9 GB**. La retención de 60 días funcionaba,
+pero sólo sobre el árbol: cada PNG borrado seguía vivo en la historia. Se portó el
+`purgar_historico.yml` de Copernicus con tres cambios que **no** se podían copiar
+tal cual — rama `master`; **no** borrar los `.pptx`, porque los dos únicos del repo
+son la plantilla que `ppt_generator.py` necesita y ya pasó una vez que una purga se
+llevó una plantilla por delante; y grupo de concurrencia `landsat-download` para no
+pisar el cron horario. Más dos guardas que la versión original no tiene: aborta si
+hay menos de 500 PNGs antes de empezar, y si el orphan commit tiene menos de 600
+archivos o le falta la plantilla, el `index.html` o el config.
 
-**4 · Nevados de Chillán.** ¿Diagnostico por qué falta el path 232? Son 2–3
-descargas M2M, gratis.
+Verificado contra el remote, no contra el run verde: historia = **1 commit**, árbol
+= **1.802 archivos, 1.590 PNG, 129 GIF** (idénticos al conteo local), plantilla
+presente, y el sitio publicado sirviendo `index.html`, `change_detection.html`, el
+JSON nuevo y los PNG. **Lo que todavía NO puedo confirmar:** la reducción de tamaño.
+GitHub sigue reportando 4.314.396 KB porque su recolección de basura no ha corrido;
+baja cuando ellos repacan, no cuando nosotros empujamos.
+
+**3 · Centroides → alineados los 43 a igualdad exacta.** Detalle en B9.
+
+**4 · Nevados de Chillán → diagnosticado.** Es geometría, no el borrado, y salió
+algo mejor que el caso puntual: los siete volcanes de una sola huella. Detalle en
+B10.
+
+**Y el cierre de la brecha fuera de eje (T1):**
+`scripts/verificar_divergencia_repos.py` compara los dos catálogos todos los días
+en CI y falla si se separan. Control positivo contra el bug histórico real:
+reintroduciendo las coordenadas viejas de Chillán, lo caza por **dos caminos
+independientes** — la divergencia entre repos (60,202 km) y el detector de vecinos
+dentro del mismo config (*"Antuco y Nevados de Chillán están a 0,09 km entre sí"*).
+Si el checkout del repo hermano falla, el job falla a propósito: un *"no pude
+comparar"* que sale verde se lee como *"no divergen"*.
 
 ---
 
