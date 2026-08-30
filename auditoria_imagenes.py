@@ -39,7 +39,7 @@ escena donde ya no se puede saber si hay calor o solo brillo.
 
 COMO SE USA
 ===========
-    python auditoria_imagenes.py                  # audita todo, resumen
+    python auditoria_imagenes.py                  # audita todo (SWIR y RGB), resumen
     python auditoria_imagenes.py --detalle        # una linea por hallazgo
     python auditoria_imagenes.py --volcan Lascar  # filtra
     python auditoria_imagenes.py --json out.json  # para el dashboard o CI
@@ -77,6 +77,20 @@ TRUNC_RATIO = 0.55       # tope < 55% de la referencia del propio volcan
 TRUNC_MESETA = 50        # ...y con meseta: la firma de un clip, no de escena fria
 NHI_MIN_SENAL = 40       # piso de senal para que el NHI signifique algo (8 bits)
 NHI_CALOR = 0.15         # NHI que ya no se explica por ruido de cuantizacion
+
+# --- Camino RGB (true color) -----------------------------------------------
+# Hasta el 2026-08-30 esta auditoria solo miraba el falso color SWIR. Por eso no
+# vio el quemado del true color: 82% de escena en blanco puro y entropia 1.52
+# bits en dias despejados de invierno, un defecto que ademas se habia declarado
+# "arreglado" en junio validandolo contra escenas con 82-88% de nube, donde el
+# defecto no puede manifestarse. Sin criterio numerico de aceptacion ese cierre
+# a ojo se puede repetir. Estos umbrales son ese criterio.
+RGB_BLANCO = 250         # los tres canales por encima -> blanco puro
+RGB_BLANCO_ALTA = 40.0   # % de blanco puro que ya destruye la lectura
+RGB_BLANCO_MEDIA = 20.0
+RGB_ENTROPIA_MIN = 2.0   # bits de luminancia; por debajo casi no hay informacion
+RGB_ENTROPIA_PLANA = 0.1  # practicamente un solo tono: el frame esta muerto
+NUBE_LIMPIA = 20.0       # solo por debajo de esto el quemado es culpa del render
 
 
 def cargar(path):
@@ -129,6 +143,142 @@ def analizar(im):
         'nhi_p999': None if nhi_p999 != nhi_p999 else round(nhi_p999, 3),
         'px_calor': calor,
     }
+
+
+def entropia(canal):
+    """Bits de informacion de un canal de 8 bits. Un frame de un solo tono da 0."""
+    h = np.bincount(canal.ravel(), minlength=256).astype(np.float64)
+    h = h[h > 0]
+    if h.size == 0:
+        return 0.0
+    h /= h.sum()
+    return float(-(h * np.log2(h)).sum())
+
+
+def analizar_rgb(im):
+    """Metricas de una imagen en color verdadero (R=B04, G=B03, B=B02).
+
+    Aca la magnitud que importa NO es la fraccion ciega del SWIR sino cuanta
+    escena quedo en blanco puro: nieve, hielo y nube saturan los tres canales a
+    la vez y el operador pierde la textura del terreno. La entropia es el
+    control cruzado: blanco alto con entropia alta todavia tiene informacion
+    alrededor; entropia ~0 es un rectangulo de un solo color.
+    """
+    R, G, B = im[:, :, 0], im[:, :, 1], im[:, :, 2]
+    total = R.size
+    nodata = (R == 0) & (G == 0) & (B == 0)
+    n_val = total - int(nodata.sum())
+    if n_val == 0:
+        return None
+    val = ~nodata
+    blanco = val & (R >= RGB_BLANCO) & (G >= RGB_BLANCO) & (B >= RGB_BLANCO)
+    lum = (0.299 * R + 0.587 * G + 0.114 * B).clip(0, 255).astype(np.uint8)
+    return {
+        'nodata_pct': round(100.0 * float(nodata.mean()), 1),
+        'blanco_pct': round(100.0 * int(blanco.sum()) / n_val, 1),
+        'entropia': round(entropia(lum), 2),
+        'tonos': int(np.unique(lum).size),
+        'std': round(float(lum[val].std()), 1),
+    }
+
+
+def leer_nubosidad(raiz):
+    """{(volcan, fecha): % de nube} desde los metadata.csv de cualquiera de los
+    dos repos. Las columnas se llaman distinto -- 'cobertura_nubosa' en
+    Copernicus-v1 y 'cloud_cover' en Landsat-v1 -- asi que se aceptan las dos.
+
+    Hace falta porque una escena con 100% de nube SI debe salir blanca: culpar
+    al render ahi seria el error inverso del de junio, cuando el arreglo se
+    valido contra escenas nubladas. El quemado solo es atribuible al render
+    cuando el cielo estaba despejado.
+    """
+    import csv
+    nubes = {}
+    for f in glob.glob(os.path.join(raiz, 'docs', '*', '*', 'metadata.csv')):
+        volcan = os.path.basename(os.path.dirname(f))
+        try:
+            with open(f, encoding='utf-8', errors='replace') as fh:
+                for row in csv.DictReader(fh):
+                    fecha = (row.get('fecha') or '')[:10]
+                    crudo = row.get('cobertura_nubosa', row.get('cloud_cover'))
+                    if not fecha or crudo in (None, ''):
+                        continue
+                    try:
+                        v = float(crudo)
+                    except ValueError:
+                        continue
+                    # una fila por PNG en un repo, una por escena en el otro:
+                    # nos quedamos con el peor valor visto para esa fecha
+                    nubes[(volcan, fecha)] = max(nubes.get((volcan, fecha), v), v)
+        except OSError:
+            continue
+    return nubes
+
+
+def auditar_rgb(raiz, patron, filtro=None):
+    """Mismo esquema que auditar(), agrupando por VOLCAN.
+
+    Agrupar por volcan no es un detalle de estilo: promediar calidad por FECHA
+    produce patrones falsos, porque el filtro de nubosidad selecciona volcanes
+    distintos cada dia y los del norte no tienen nieve.
+    """
+    nubes = leer_nubosidad(raiz)
+    grupos = {}
+    for f in glob.glob(os.path.join(raiz, patron), recursive=True):
+        volcan = os.path.basename(os.path.dirname(f))
+        if filtro and filtro.lower() not in volcan.lower():
+            continue
+        fecha = os.path.basename(f)[:10]
+        if not (len(fecha) == 10 and fecha[4] == '-'):
+            continue
+        grupos.setdefault(volcan, []).append((fecha, f))
+
+    hallazgos = []
+    for volcan, items in sorted(grupos.items()):
+        for fecha, f in sorted(items):
+            im = cargar(f)
+            if im is None:
+                continue
+            m = analizar_rgb(im)
+            if not m:
+                continue
+            nube = nubes.get((volcan, fecha))
+            m['nube_pct'] = nube
+            despejado = nube is not None and nube < NUBE_LIMPIA
+            probs = []
+
+            if m['entropia'] < RGB_ENTROPIA_PLANA:
+                if despejado:
+                    probs.append(('RGB_PLANA', 'alta',
+                                  '%d tono(s) en toda la imagen con %.0f%% de nube: '
+                                  'el render borro una escena util'
+                                  % (m['tonos'], nube)))
+                else:
+                    cola = ('%.0f%% de nube: la escena no servia' % nube
+                            if nube is not None else 'sin dato de nubosidad')
+                    probs.append(('RGB_PLANA', 'baja',
+                                  '%d tono(s) en toda la imagen (%s)'
+                                  % (m['tonos'], cola)))
+            elif despejado and m['blanco_pct'] >= RGB_BLANCO_ALTA:
+                probs.append(('RGB_QUEMADA', 'alta',
+                              '%.1f%% en blanco puro con solo %.0f%% de nube, '
+                              'entropia %.2f' % (m['blanco_pct'], nube, m['entropia'])))
+            elif despejado and (m['blanco_pct'] >= RGB_BLANCO_MEDIA
+                                or m['entropia'] < RGB_ENTROPIA_MIN):
+                probs.append(('RGB_QUEMADA', 'media',
+                              '%.1f%% en blanco puro, entropia %.2f, %.0f%% de nube'
+                              % (m['blanco_pct'], m['entropia'], nube)))
+
+            if m['nodata_pct'] > NODATA_MAX:
+                probs.append(('NODATA', 'alta',
+                              '%.1f%% de la escena sin dato' % m['nodata_pct']))
+
+            for tipo, sev, det in probs:
+                hallazgos.append({'volcan': volcan, 'fecha': fecha, 'tipo': tipo,
+                                  'severidad': sev, 'detalle': det,
+                                  'archivo': os.path.relpath(f, raiz),
+                                  'metricas': m})
+    return hallazgos, sum(len(v) for v in grupos.values())
 
 
 def auditar(raiz, patron, filtro=None):
@@ -239,10 +389,39 @@ def control_positivo():
     pruebas.append(('anomalia con NHI real -> SI debe reportar calor', caliente,
                     lambda m: m['px_calor'] >= 60))
 
+    # --- camino RGB: sus propias ramas, que tambien deben ser separables ---
+    pruebas_rgb = []
+
+    blanco = np.full((60, 60, 3), 255, np.uint8)
+    pruebas_rgb.append(('RGB todo blanco -> PLANA (entropia ~0)', blanco,
+                        lambda m: m['entropia'] < RGB_ENTROPIA_PLANA
+                        and m['blanco_pct'] > 99))
+
+    rng3 = np.random.default_rng(2)
+    terreno = rng3.integers(30, 200, (60, 60, 3)).astype(np.uint8)
+    pruebas_rgb.append(('RGB con terreno visible -> NO debe reportarse', terreno,
+                        lambda m: m['entropia'] > RGB_ENTROPIA_MIN
+                        and m['blanco_pct'] < RGB_BLANCO_MEDIA))
+
+    # el caso que se escapo en junio: nieve saturada pero con textura alrededor.
+    # Si el detector solo mirara la entropia lo dejaria pasar; si solo mirara el
+    # blanco, confundiria esto con el frame muerto de arriba. Necesita las dos.
+    nieve = rng3.integers(20, 120, (60, 60, 3)).astype(np.uint8)
+    nieve[:, :30, :] = 255
+    pruebas_rgb.append(('RGB medio quemado por nieve -> blanco alto, entropia alta',
+                        nieve,
+                        lambda m: m['blanco_pct'] >= RGB_BLANCO_ALTA
+                        and m['entropia'] > RGB_ENTROPIA_PLANA))
+
     ok = True
     print("CONTROL POSITIVO DEL INSTRUMENTO")
     for nombre, img, cond in pruebas:
         m = analizar(img.astype(np.int16))
+        paso = bool(m) and cond(m)
+        print(f"   [{'ok ' if paso else 'FALLA'}] {nombre}")
+        ok = ok and paso
+    for nombre, img, cond in pruebas_rgb:
+        m = analizar_rgb(img.astype(np.int16))
         paso = bool(m) and cond(m)
         print(f"   [{'ok ' if paso else 'FALLA'}] {nombre}")
         ok = ok and paso
@@ -267,13 +446,21 @@ def main():
     if not control_positivo():
         return 2
 
-    fuentes = [('SENTINEL-2', raiz, 'docs/sentinel2/**/*_ThermalFalseColor.png')]
+    # (etiqueta, raiz, patron, funcion de auditoria)
+    # El camino RGB entra aca el 2026-08-30. Sin el, esta auditoria era
+    # estructuralmente ciega al defecto mas extendido de los dos repos: nunca
+    # abria un solo *_RGB.png.
+    fuentes = [
+        ('SENTINEL-2 SWIR', raiz, 'docs/sentinel2/**/*_ThermalFalseColor.png', auditar),
+        ('SENTINEL-2 RGB', raiz, 'docs/sentinel2/**/*_RGB.png', auditar_rgb),
+    ]
     if args.landsat:
-        fuentes.append(('LANDSAT 8/9', args.landsat, 'docs/landsat/**/*_SWIR.png'))
+        fuentes.append(('LANDSAT 8/9 SWIR', args.landsat, 'docs/landsat/**/*_SWIR.png', auditar))
+        fuentes.append(('LANDSAT 8/9 RGB', args.landsat, 'docs/landsat/**/*_RGB.png', auditar_rgb))
 
     todo = []
-    for nombre, base, patron in fuentes:
-        hall, n = auditar(base, patron, args.volcan)
+    for nombre, base, patron, fn in fuentes:
+        hall, n = fn(base, patron, args.volcan)
         todo.extend({**h, 'fuente': nombre} for h in hall)
         print(f"{nombre}: {n} imagenes revisadas, {len(hall)} hallazgos")
 
