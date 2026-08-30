@@ -803,7 +803,7 @@
             <!-- GRUPO 3: Visores satélite externos -->
             <div class="btn-group" title="Visores satelitales (otras fuentes)">
                 <span class="btn-group-label">Visores</span>
-                <a href="https://mendozavolcanic.github.io/Landsat-v1/" target="_blank" rel="noopener" class="btn-ui" style="background: #e67e22; text-decoration: none;" title="Dashboard Landsat 8/9 (otro repo)">🛰️ Landsat 8/9</a>
+                <a id="link-landsat" href="https://mendozavolcanic.github.io/Landsat-v1/" target="_blank" rel="noopener" class="btn-ui" style="background: #e67e22; text-decoration: none;" title="Dashboard Landsat 8/9 (otro repo)">🛰️ Landsat 8/9</a>
                 <button class="btn-ui" style="background: #0969da;" onclick="abrirCopernicusBrowser()" title="Abrir en Copernicus Browser oficial">🌐 Copernicus</button>
                 <a href="experimental/cog_viewer.html" target="_blank" class="btn-ui" style="background: #0e7490; text-decoration: none;" title="Mapa con zoom y desplazamiento libre a resolución completa (imágenes en vivo, 0 bytes)">🗺️ Mapa Interactivo</a>
                 <a href="experimental/alta_resolucion.html" target="_blank" class="btn-ui" style="background: #065f46; text-decoration: none;" title="Planet / Vantor alta resolución comercial">🔭 Alta Res</a>
@@ -1449,6 +1449,54 @@
         // CAMBIO QUIRRGICO 6: VARIABLE COPERNICUS
         let fechasDisponiblesCopernicus = {};
 
+        // --- Enlace profundo ---------------------------------------------
+        // Hasta ahora ninguno de los dos dashboards leia la URL: no habia forma
+        // de mandarle a alguien "mira Villarrica" sin explicarle los clics, ni
+        // de volver al mismo volcan tras recargar, ni de que el boton a Landsat
+        // llevara puesto de que volcan se estaba hablando. En turno eso se paga
+        // cada vez que hay que pasarle un caso a otra persona.
+        function volcanDesdeURL() {
+            try {
+                const v = new URLSearchParams(window.location.search).get('volcan');
+                return v && VOLCANES_CONFIG[v] ? v : null;
+            } catch (e) {
+                return null;
+            }
+        }
+
+        function sincronizarURL() {
+            if (!currentVolcano) return;
+            try {
+                const u = new URL(window.location.href);
+                u.searchParams.set('volcan', currentVolcano);
+                history.replaceState(null, '', u);
+            } catch (e) { /* navegador sin history API: no es critico */ }
+            // el puente al repo hermano se lleva el contexto puesto
+            const aL = document.getElementById('link-landsat');
+            if (aL) {
+                aL.href = 'https://mendozavolcanic.github.io/Landsat-v1/?volcan='
+                    + encodeURIComponent(currentVolcano);
+                aL.title = 'Ver ' + currentVolcano + ' en Landsat 8/9';
+            }
+        }
+
+        // Volcan pedido por URL, pendiente de aplicar en el primer cambiarZona().
+        let volcanPedido = null;
+
+        function aplicarEnlaceProfundo() {
+            const pedido = volcanDesdeURL();
+            if (pedido) {
+                const zona = VOLCANES_CONFIG[pedido].zona;
+                const zSel = document.getElementById('zona-select');
+                if (zona && zSel && Array.prototype.some.call(zSel.options,
+                        function (o) { return o.value === zona; })) {
+                    zSel.value = zona;
+                }
+                volcanPedido = pedido;
+            }
+            cambiarZona();
+        }
+
         async function init() {
             await loadVolcano();
         }
@@ -1477,8 +1525,14 @@
                 volcanoSelect.appendChild(option);
             });
             
-            // Cargar primer volcn de la zona
+            // Cargar el volcan pedido por URL si esta en esta zona; si no, el
+            // primero. volcanPedido se consume una sola vez: a partir de ahi
+            // cambiar de zona vuelve a comportarse como siempre.
             if (volcanesZona.length > 0) {
+                if (volcanPedido && volcanesZona.indexOf(volcanPedido) !== -1) {
+                    volcanoSelect.value = volcanPedido;
+                }
+                volcanPedido = null;
                 loadVolcano();
             }
         }
@@ -1513,6 +1567,7 @@
             actualizarBannerUltimaImagen();
             // MEJORA 7: Cargar fechas para comparación
             cargarFechasComparacion(currentVolcano);
+            sincronizarURL();
         }
 
         // Actualiza el banner "Última actualización" con la fecha REAL de la
@@ -2658,7 +2713,7 @@
             // paneles se pintarian sin badge (info() devuelve null sin predS2) y
             // recien apareceria al cambiar de zona. cargarFuentes() NUNCA lanza
             // -> si el JSON falla, el dashboard renderiza igual, solo sin badge.
-            inicializarCountdown().finally(() => cambiarZona());
+            inicializarCountdown().finally(() => aplicarEnlaceProfundo());
         };
 
         // ============================================
