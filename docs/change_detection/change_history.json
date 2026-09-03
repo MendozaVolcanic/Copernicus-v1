@@ -243,13 +243,6 @@
   ],
   "Lascar": [
     {
-      "fecha": "2026-04-02",
-      "estado": "NORMAL",
-      "cambio_termico_pct": 2.98,
-      "max_diff_termico": 107.0,
-      "z_score": -0.03
-    },
-    {
       "fecha": "2026-05-07",
       "estado": "NORMAL",
       "cambio_termico_pct": 0.35,
@@ -479,6 +472,14 @@
       "cambio_termico_pct": 2.45,
       "max_diff_termico": 130.0,
       "z_score": 0.08,
+      "confirmacion_cruzada": true
+    },
+    {
+      "fecha": "2026-09-01",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 5.63,
+      "max_diff_termico": 89.0,
+      "z_score": 1.5,
       "confirmacion_cruzada": true
     }
   ],
@@ -3116,6 +3117,14 @@
       "max_diff_termico": 147.0,
       "z_score": 1.9,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-09-02",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 4.43,
+      "max_diff_termico": 149.0,
+      "z_score": 1.08,
+      "confirmacion_cruzada": false
     }
   ],
   "Hornopiren": [
@@ -4538,14 +4547,6 @@
   ],
   "Lanin": [
     {
-      "fecha": "2026-06-20",
-      "estado": "ATENCION",
-      "cambio_termico_pct": 4.39,
-      "max_diff_termico": 105.0,
-      "z_score": 0.37,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-06-26",
       "estado": "ALERTA",
       "cambio_termico_pct": 3.09,
@@ -4776,6 +4777,14 @@
       "max_diff_termico": 29.0,
       "z_score": -0.98,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-09-01",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 3.85,
+      "max_diff_termico": 197.0,
+      "z_score": 0.96,
+      "confirmacion_cruzada": true
     }
   ],
   "Llaima": [
@@ -6232,14 +6241,6 @@
   ],
   "Mocho-Choshuenco": [
     {
-      "fecha": "2026-06-26",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 4.9,
-      "max_diff_termico": 227.0,
-      "z_score": 1.16,
-      "confirmacion_cruzada": true
-    },
-    {
       "fecha": "2026-06-27",
       "estado": "ATENCION",
       "cambio_termico_pct": 6.35,
@@ -6470,6 +6471,14 @@
       "max_diff_termico": 9.0,
       "z_score": -0.98,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-09-01",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 1.58,
+      "max_diff_termico": 219.0,
+      "z_score": -1.25,
+      "confirmacion_cruzada": true
     }
   ],
   "Nevado de Longavi": [
@@ -7629,6 +7638,14 @@
       "cambio_termico_pct": 0.52,
       "max_diff_termico": 98.0,
       "z_score": -0.22,
+      "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-09-02",
+      "estado": "NORMAL",
+      "cambio_termico_pct": 0.42,
+      "max_diff_termico": 101.0,
+      "z_score": -0.26,
       "confirmacion_cruzada": false
     }
   ],
@@ -8823,6 +8840,14 @@
       "max_diff_termico": 180.0,
       "z_score": 1.58,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-09-01",
+      "estado": "NUBLADO",
+      "cambio_termico_pct": null,
+      "max_diff_termico": null,
+      "z_score": null,
+      "confirmacion_cruzada": false
     }
   ],
   "Sollipulli": [
@@ -9290,6 +9315,14 @@
       "max_diff_termico": 215.0,
       "z_score": 1.51,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-09-02",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 5.17,
+      "max_diff_termico": 210.0,
+      "z_score": 0.84,
+      "confirmacion_cruzada": true
     }
   ],
   "Tatara-San Pedro": [
@@ -10750,6 +10783,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 2.45,
       "z_score": 0.08
+    },
+    {
+      "fecha": "2026-09-01",
+      "estado": "ATENCION",
+      "cambio_termico_pct": 5.63,
+      "z_score": 1.5
     }
   ],
   "Lascar::landsat": [
@@ -14178,6 +14217,12 @@
       "estado": "ALERTA",
       "cambio_termico_pct": 4.43,
       "z_score": 1.9
+    },
+    {
+      "fecha": "2026-09-02",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 4.43,
+      "z_score": 1.08
     }
   ],
   "Guallatiri::landsat": [
@@ -15849,12 +15894,6 @@
   ],
   "Isluga::sentinel2": [
     {
-      "fecha": "2026-06-16",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 1.64,
-      "z_score": -0.23
-    },
-    {
       "fecha": "2026-06-19",
       "estado": "ALERTA",
       "cambio_termico_pct": 0.24,
@@ -16027,6 +16066,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 0.92,
       "z_score": -0.78
+    },
+    {
+      "fecha": "2026-09-02",
+      "estado": "ATENCION",
+      "cambio_termico_pct": 0.7,
+      "z_score": -0.9
     }
   ],
   "Isluga::landsat": [
@@ -21193,6 +21238,12 @@
       "estado": "NORMAL",
       "cambio_termico_pct": 0.52,
       "z_score": -0.22
+    },
+    {
+      "fecha": "2026-09-02",
+      "estado": "NORMAL",
+      "cambio_termico_pct": 0.42,
+      "z_score": -0.26
     }
   ],
   "Parinacota::landsat": [
@@ -22755,6 +22806,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 4.83,
       "z_score": 1.58
+    },
+    {
+      "fecha": "2026-09-01",
+      "estado": "NUBLADO",
+      "cambio_termico_pct": 0,
+      "z_score": null
     }
   ],
   "San Pedro::landsat": [
@@ -23327,6 +23384,12 @@
       "estado": "ALERTA",
       "cambio_termico_pct": 6.38,
       "z_score": 1.51
+    },
+    {
+      "fecha": "2026-09-02",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 5.17,
+      "z_score": 0.84
     }
   ],
   "Taapaca::landsat": [
@@ -25162,14 +25225,6 @@
   "Copahue_Crater_Lake::landsat": [],
   "Isluga_Crater_Fumarola": [
     {
-      "fecha": "2026-06-16",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 1.23,
-      "max_diff_termico": 64.0,
-      "z_score": -0.47,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-06-19",
       "estado": "ALERTA",
       "cambio_termico_pct": 0.47,
@@ -25400,15 +25455,17 @@
       "max_diff_termico": 39.0,
       "z_score": -1.4,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-09-02",
+      "estado": "NORMAL",
+      "cambio_termico_pct": 1.21,
+      "max_diff_termico": 60.0,
+      "z_score": -0.77,
+      "confirmacion_cruzada": false
     }
   ],
   "Isluga_Crater_Fumarola::sentinel2": [
-    {
-      "fecha": "2026-06-16",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 1.23,
-      "z_score": -0.47
-    },
     {
       "fecha": "2026-06-19",
       "estado": "ALERTA",
@@ -25582,6 +25639,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 0.0,
       "z_score": -1.4
+    },
+    {
+      "fecha": "2026-09-02",
+      "estado": "NORMAL",
+      "cambio_termico_pct": 1.21,
+      "z_score": -0.77
     }
   ],
   "Isluga_Crater_Fumarola::landsat": [],
@@ -25761,6 +25824,14 @@
       "max_diff_termico": 130.0,
       "z_score": 0.46,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-09-01",
+      "estado": "ATENCION",
+      "cambio_termico_pct": 3.69,
+      "max_diff_termico": 89.0,
+      "z_score": 0.4,
+      "confirmacion_cruzada": false
     }
   ],
   "Lascar_Crater::sentinel2": [
@@ -25895,6 +25966,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 3.08,
       "z_score": 0.46
+    },
+    {
+      "fecha": "2026-09-01",
+      "estado": "ATENCION",
+      "cambio_termico_pct": 3.69,
+      "z_score": 0.4
     }
   ],
   "Lascar_Crater::landsat": [],
