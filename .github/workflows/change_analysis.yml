@@ -23,10 +23,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
@@ -34,7 +34,7 @@ jobs:
         run: pip install numpy Pillow
 
       - name: Checkout Landsat-v1 (segundo sensor)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: MendozaVolcanic/Landsat-v1
           path: _landsat_data
@@ -43,7 +43,7 @@ jobs:
         continue-on-error: true
 
       - name: Checkout NHI-Tool (cross-ref)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: MendozaVolcanic/NHI-v1
           path: _nhi_data
@@ -52,7 +52,7 @@ jobs:
         continue-on-error: true
 
       - name: Checkout Mirova (cross-ref)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           repository: MendozaVolcanic/Mirova-v1
           path: _mirova_data
