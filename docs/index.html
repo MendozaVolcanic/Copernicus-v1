@@ -1245,6 +1245,7 @@
             </div>
             <div style="display:flex;gap:8px;">
                 <button class="btn-ui btn-swir-toggle" onclick="toggleComposite2()" title="Alternar el composite SWIR del panel 2 (B12-B11-B04 / B12-B11-B8A)" style="background:#0f766e;">Ver SWIR B8A</button>
+                <button id="btn-personal-landsat" class="btn-ui" onclick="toggleLandsat('personal')" title="Mostrar junto a cada volcán la última escena Landsat 8/9 (RGB, SWIR, THERMAL)" style="background:#e67e22;">🛰️ Mostrar Landsat 8/9</button>
                     <button class="btn-ui" style="background:#1f2937;border:1px solid #58a6ff;" onclick="toggleFullscreen()">⛶ Pantalla Completa</button>
                 <button class="btn-ui" onclick="toggleMonitoreoPersonal()">Volver al Dashboard</button>
             </div>
@@ -1288,7 +1289,7 @@
             </div>
             <div style="display: flex; gap: 8px;">
                 <button class="btn-ui btn-swir-toggle" onclick="toggleComposite2()" title="Alternar el composite SWIR del panel 2 (B12-B11-B04 / B12-B11-B8A)" style="background:#0f766e;">Ver SWIR B8A</button>
-                <button id="btn-prioritarios-landsat" class="btn-ui" onclick="toggleLandsatPrioritarios()" title="Mostrar junto a cada volcán la última escena Landsat 8/9 (RGB, SWIR, THERMAL)" style="background:#e67e22;">🛰️ Mostrar Landsat 8/9</button>
+                <button id="btn-prioritarios-landsat" class="btn-ui" onclick="toggleLandsat('prioritarios')" title="Mostrar junto a cada volcán la última escena Landsat 8/9 (RGB, SWIR, THERMAL)" style="background:#e67e22;">🛰️ Mostrar Landsat 8/9</button>
                 <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
                 <button class="btn-ui" onclick="togglePrioritarios()">← Volver al Dashboard</button>
             </div>
@@ -1306,6 +1307,7 @@
             </div>
             <div style="display: flex; gap: 8px;">
                 <button class="btn-ui btn-swir-toggle" onclick="toggleComposite2()" title="Alternar el composite SWIR del panel 2 (B12-B11-B04 / B12-B11-B8A)" style="background:#0f766e;">Ver SWIR B8A</button>
+                <button id="btn-riesgosos-landsat" class="btn-ui" onclick="toggleLandsat('riesgosos')" title="Mostrar junto a cada volcán la última escena Landsat 8/9 (RGB, SWIR, THERMAL)" style="background:#e67e22;">🛰️ Mostrar Landsat 8/9</button>
                 <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
                 <button class="btn-ui" onclick="toggleRiesgosos()"> Volver al Dashboard</button>
             </div>
@@ -1831,7 +1833,8 @@
                 alert('Selecciona al menos un volcán.');
                 return;
             }
-            await cargarPanelesList(seleccionados, 'personal-grid', '');
+            actualizarBotonLandsat('personal');
+            await cargarPanelesList(seleccionados, 'personal-grid', '', await opcionesLandsat('personal'));
         }
 
         // PRIORITARIOS: lista fija de seguimiento reforzado del turno OVDAS.
@@ -1854,55 +1857,71 @@
         }
 
         async function loadPrioritariosView() {
-            actualizarBotonLandsatPrioritarios();
-            const opciones = {};
-            if (landsatPrioritarios) {
-                opciones.landsat = await cargarIndiceLandsat();
-            }
-            await cargarPanelesList(VOLCANES_PRIORITARIOS, 'prioritarios-grid', {}, opciones);
+            actualizarBotonLandsat('prioritarios');
+            await cargarPanelesList(VOLCANES_PRIORITARIOS, 'prioritarios-grid', {}, await opcionesLandsat('prioritarios'));
         }
 
-        // LANDSAT EN PRIORITARIOS: al activarlo, cada volcan ocupa una fila con su
-        // panel Sentinel-2 a la izquierda y la ultima escena Landsat 8/9 a la derecha.
-        // Las imagenes viven en el repo Landsat-v1 (rama master) y se leen por raw,
-        // igual que la Sala de Monitoreo. No se duplican aca.
+        // LANDSAT JUNTO A SENTINEL-2 (Prioritarios, Riesgosos, Personal): al activarlo,
+        // cada volcan ocupa una fila con su panel Sentinel-2 a la izquierda y la ultima
+        // escena Landsat 8/9 a la derecha. Las imagenes viven en el repo Landsat-v1
+        // (rama master) y se leen por raw, igual que la Sala de Monitoreo. No se
+        // duplican aca. El estado es por vista: activarlo en Prioritarios no carga 42
+        // imagenes extra al abrir Riesgosos.
         const REPO_LANDSAT_BASE_DASH = 'https://raw.githubusercontent.com/MendozaVolcanic/Landsat-v1/master';
         const LANDSAT_COMPOSITES = [
             { tipo: 'RGB',     titulo: 'Color Verdadero' },
             { tipo: 'SWIR',    titulo: 'SWIR (B7-B6-B4)' },
             { tipo: 'THERMAL', titulo: 'Térmico (B10)' }
         ];
-        let landsatPrioritarios = false;
-        try { landsatPrioritarios = localStorage.getItem('prioritarios_landsat') === '1'; } catch (e) {}
+        const LANDSAT_VISTAS = {
+            prioritarios: { btn: 'btn-prioritarios-landsat', recargar: () => loadPrioritariosView() },
+            riesgosos:    { btn: 'btn-riesgosos-landsat',    recargar: () => loadRiesgososView() },
+            personal:     { btn: 'btn-personal-landsat',
+                            // Sin seleccion no hay grilla que recargar (y loadMonitoreoPersonal avisaria con alert).
+                            recargar: () => { if (personalGetSeleccionados().length) loadMonitoreoPersonal(); } }
+        };
 
-        function toggleLandsatPrioritarios() {
-            landsatPrioritarios = !landsatPrioritarios;
-            try { localStorage.setItem('prioritarios_landsat', landsatPrioritarios ? '1' : '0'); } catch (e) {}
-            loadPrioritariosView();
+        // Clave '<vista>_landsat' ('prioritarios_landsat' ya existia: se conserva).
+        function landsatActivo(vista) {
+            try { return localStorage.getItem(vista + '_landsat') === '1'; } catch (e) { return false; }
         }
 
-        function actualizarBotonLandsatPrioritarios() {
-            const btn = document.getElementById('btn-prioritarios-landsat');
+        function toggleLandsat(vista) {
+            const nuevo = !landsatActivo(vista);
+            try { localStorage.setItem(vista + '_landsat', nuevo ? '1' : '0'); } catch (e) {}
+            actualizarBotonLandsat(vista);
+            LANDSAT_VISTAS[vista].recargar();
+        }
+
+        function actualizarBotonLandsat(vista) {
+            const btn = document.getElementById(LANDSAT_VISTAS[vista].btn);
             if (!btn) return;
-            btn.textContent = landsatPrioritarios ? '🛰️ Ocultar Landsat 8/9' : '🛰️ Mostrar Landsat 8/9';
-            btn.style.background = landsatPrioritarios ? '#9a3412' : '#e67e22';
-            const grid = document.getElementById('prioritarios-grid');
-            // Con Landsat, 5 filas volcan (S2 | Landsat); sin Landsat, la grilla de siempre.
-            if (grid) grid.style.gridTemplateColumns = landsatPrioritarios ? '1fr 1fr' : 'repeat(2, 1fr)';
+            const activo = landsatActivo(vista);
+            btn.textContent = activo ? '🛰️ Ocultar Landsat 8/9' : '🛰️ Mostrar Landsat 8/9';
+            btn.style.background = activo ? '#9a3412' : '#e67e22';
+        }
+
+        async function opcionesLandsat(vista) {
+            return landsatActivo(vista) ? { landsat: await cargarIndiceLandsat() } : {};
         }
 
         // Una sola lectura por carga de la vista. La fecha sale del indice de fechas
         // (el metadata.csv de Landsat se escribe por anexion, sin orden, con filas L1
         // y L2 repetidas: no sirve tomar su primera fila). Nunca lanza.
+        //   config_landsat.json  -> buffer_km PROPIO de Landsat (no el de S2) para la escala
+        //   proximas_pasadas_landsat.json -> cuenta regresiva (countdown.js, sensor 'landsat')
         async function cargarIndiceLandsat() {
             const t = Date.now();
             const leer = (ruta) => fetch(`${REPO_LANDSAT_BASE_DASH}/docs/${ruta}?t=${t}`)
                 .then(r => r.ok ? r.json() : {}).catch(() => ({}));
-            const [fechas, niveles] = await Promise.all([
+            const [fechas, niveles, config, pred] = await Promise.all([
                 leer('fechas_disponibles_landsat.json'),
-                leer('niveles_landsat.json')
+                leer('niveles_landsat.json'),
+                leer('config_landsat.json'),
+                leer('proximas_pasadas_landsat.json')
             ]);
-            return { fechas: fechas || {}, niveles: niveles || {} };
+            CountdownPasadas.configurar({ predLandsat: pred || null, fechasLandsat: fechas || {} });
+            return { fechas: fechas || {}, niveles: niveles || {}, config: (config && config.volcanes) || {} };
         }
 
         function crearPanelLandsat(volcan, indice, gridId) {
@@ -1940,6 +1959,12 @@
             }
             panel.appendChild(pFecha);
 
+            // Cuenta regresiva al proximo paso Landsat (el tick global la refresca:
+            // cada badge lleva dataset.sensor = 'landsat').
+            if (CountdownPasadas.info(volcan, 'landsat')) {
+                panel.appendChild(CountdownPasadas.crearBadge(volcan, 'landsat', 'inline'));
+            }
+
             const grilla = document.createElement('div');
             grilla.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px;';
             LANDSAT_COMPOSITES.forEach(({ tipo, titulo }) => {
@@ -1963,17 +1988,21 @@
         }
 
         // Se llama DESPUES de insertar el panel en el DOM (renderImagenPanel busca
-        // el contenedor por id). Sin barra de escala: el buffer_km de Landsat vive
-        // en config_landsat.py de otro repo y no coincide con el de S2 (Villarrica
-        // 1.5 vs 1.0 km); dibujar la escala S2 sobre la imagen Landsat mentiria.
-        function cargarImagenesLandsat(volcan, fecha, gridId) {
+        // el contenedor por id). La escala usa el buffer_km de LANDSAT publicado en
+        // Landsat-v1/docs/config_landsat.json, nunca el de S2: difieren (Villarrica
+        // 1.5 vs 1.0 km) y la escala S2 sobre la imagen Landsat mentiria. Si ese
+        // JSON no carga, la imagen va SIN escala antes que con una falsa.
+        function cargarImagenesLandsat(volcan, fecha, gridId, bufferKm) {
             LANDSAT_COMPOSITES.forEach(({ tipo, titulo }) => {
                 const id = `landsat-${tipo}-${gridId}-${volcan}`;
                 if (!fecha) { renderNoDisponible(id, 'Sin datos'); return; }
                 // Sin cache-buster: PNG con fecha en el nombre (ver nota en cargarPanelesList).
                 const url = `${REPO_LANDSAT_BASE_DASH}/docs/landsat/${encodeURIComponent(volcan)}/${fecha}_${tipo}.png`;
-                const img = new Image();
-                img.onload = () => renderImagenPanel(id, url, volcan + ' - Landsat ' + titulo, fecha);
+                const img = new Image(); img.crossOrigin = 'anonymous';
+                img.onload = async () => {
+                    const src = bufferKm ? await agregarEscalaAImagen(img, bufferKm) : url;
+                    renderImagenPanel(id, src, volcan + ' - Landsat ' + titulo, fecha);
+                };
                 img.onerror = () => renderNoDisponible(id);
                 img.src = url;
             });
@@ -1993,7 +2022,8 @@
             const nombres = VOLCANES_RIESGOSOS.map(v => v.nombre);
             const regiones = {};
             VOLCANES_RIESGOSOS.forEach((v, i) => { regiones[v.nombre] = `#${i+1} · ${v.region}`; });
-            await cargarPanelesList(nombres, 'riesgosos-grid', regiones);
+            actualizarBotonLandsat('riesgosos');
+            await cargarPanelesList(nombres, 'riesgosos-grid', regiones, await opcionesLandsat('riesgosos'));
         }
 
         // FIX 2026-05-17: usar Intl API con timeZone America/Santiago para manejar DST
@@ -2100,7 +2130,7 @@
                 if (opciones.landsat) {
                     const { panel: panelL, fecha: fechaL } = crearPanelLandsat(volcan, opciones.landsat, gridId);
                     grid.appendChild(panelL);
-                    cargarImagenesLandsat(volcan, fechaL, gridId);
+                    cargarImagenesLandsat(volcan, fechaL, gridId, opciones.landsat.config[volcan]?.buffer_km);
                 }
                 if (ultimaFecha) {
                     // SIN ?t=Date.now(): el nombre del PNG lleva la fecha, asi que el
