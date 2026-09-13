@@ -1288,6 +1288,7 @@
             </div>
             <div style="display: flex; gap: 8px;">
                 <button class="btn-ui btn-swir-toggle" onclick="toggleComposite2()" title="Alternar el composite SWIR del panel 2 (B12-B11-B04 / B12-B11-B8A)" style="background:#0f766e;">Ver SWIR B8A</button>
+                <button id="btn-prioritarios-landsat" class="btn-ui" onclick="toggleLandsatPrioritarios()" title="Mostrar junto a cada volcán la última escena Landsat 8/9 (RGB, SWIR, THERMAL)" style="background:#e67e22;">🛰️ Mostrar Landsat 8/9</button>
                 <button class="btn-ui" style="background: #1f2937; border: 1px solid #58a6ff;" onclick="toggleFullscreen()" title="Pantalla completa">⛶ Pantalla Completa</button>
                 <button class="btn-ui" onclick="togglePrioritarios()">← Volver al Dashboard</button>
             </div>
@@ -1853,7 +1854,129 @@
         }
 
         async function loadPrioritariosView() {
-            await cargarPanelesList(VOLCANES_PRIORITARIOS, 'prioritarios-grid', {});
+            actualizarBotonLandsatPrioritarios();
+            const opciones = {};
+            if (landsatPrioritarios) {
+                opciones.landsat = await cargarIndiceLandsat();
+            }
+            await cargarPanelesList(VOLCANES_PRIORITARIOS, 'prioritarios-grid', {}, opciones);
+        }
+
+        // LANDSAT EN PRIORITARIOS: al activarlo, cada volcan ocupa una fila con su
+        // panel Sentinel-2 a la izquierda y la ultima escena Landsat 8/9 a la derecha.
+        // Las imagenes viven en el repo Landsat-v1 (rama master) y se leen por raw,
+        // igual que la Sala de Monitoreo. No se duplican aca.
+        const REPO_LANDSAT_BASE_DASH = 'https://raw.githubusercontent.com/MendozaVolcanic/Landsat-v1/master';
+        const LANDSAT_COMPOSITES = [
+            { tipo: 'RGB',     titulo: 'Color Verdadero' },
+            { tipo: 'SWIR',    titulo: 'SWIR (B7-B6-B4)' },
+            { tipo: 'THERMAL', titulo: 'Térmico (B10)' }
+        ];
+        let landsatPrioritarios = false;
+        try { landsatPrioritarios = localStorage.getItem('prioritarios_landsat') === '1'; } catch (e) {}
+
+        function toggleLandsatPrioritarios() {
+            landsatPrioritarios = !landsatPrioritarios;
+            try { localStorage.setItem('prioritarios_landsat', landsatPrioritarios ? '1' : '0'); } catch (e) {}
+            loadPrioritariosView();
+        }
+
+        function actualizarBotonLandsatPrioritarios() {
+            const btn = document.getElementById('btn-prioritarios-landsat');
+            if (!btn) return;
+            btn.textContent = landsatPrioritarios ? '🛰️ Ocultar Landsat 8/9' : '🛰️ Mostrar Landsat 8/9';
+            btn.style.background = landsatPrioritarios ? '#9a3412' : '#e67e22';
+            const grid = document.getElementById('prioritarios-grid');
+            // Con Landsat, 5 filas volcan (S2 | Landsat); sin Landsat, la grilla de siempre.
+            if (grid) grid.style.gridTemplateColumns = landsatPrioritarios ? '1fr 1fr' : 'repeat(2, 1fr)';
+        }
+
+        // Una sola lectura por carga de la vista. La fecha sale del indice de fechas
+        // (el metadata.csv de Landsat se escribe por anexion, sin orden, con filas L1
+        // y L2 repetidas: no sirve tomar su primera fila). Nunca lanza.
+        async function cargarIndiceLandsat() {
+            const t = Date.now();
+            const leer = (ruta) => fetch(`${REPO_LANDSAT_BASE_DASH}/docs/${ruta}?t=${t}`)
+                .then(r => r.ok ? r.json() : {}).catch(() => ({}));
+            const [fechas, niveles] = await Promise.all([
+                leer('fechas_disponibles_landsat.json'),
+                leer('niveles_landsat.json')
+            ]);
+            return { fechas: fechas || {}, niveles: niveles || {} };
+        }
+
+        function crearPanelLandsat(volcan, indice, gridId) {
+            const lista = ((indice.fechas || {})[volcan] || []).slice().sort();
+            const fecha = lista.length ? lista[lista.length - 1] : '';
+            const esL1 = !!(fecha && indice.niveles && indice.niveles[volcan] && indice.niveles[volcan][fecha] === 'L1');
+
+            const panel = document.createElement('div');
+            panel.style.cssText = 'background: #161b22; border-radius: 4px; padding: 8px; border: 1px solid #e67e22;';
+
+            const cab = document.createElement('div');
+            cab.style.cssText = 'display:flex; justify-content:space-between; align-items:baseline; margin-bottom: 5px;';
+            const h2 = document.createElement('h2');
+            h2.style.cssText = 'color: #e67e22; margin: 0;';
+            h2.textContent = volcan + ' · Landsat 8/9';
+            cab.appendChild(h2);
+            const enlace = document.createElement('a');
+            enlace.href = 'https://mendozavolcanic.github.io/Landsat-v1/?volcan=' + encodeURIComponent(volcan);
+            enlace.target = '_blank';
+            enlace.rel = 'noopener';
+            enlace.textContent = 'Abrir en Landsat-v1 ↗';
+            enlace.style.cssText = 'color:#f0a14b; font-size:0.8em;';
+            cab.appendChild(enlace);
+            panel.appendChild(cab);
+
+            const pFecha = document.createElement('p');
+            pFecha.style.cssText = 'color: #8b949e; font-size: 0.85em; margin-bottom: 15px;';
+            pFecha.textContent = fecha ? (' ' + fecha) : ' Sin escenas Landsat';
+            if (esL1) {
+                const l1 = document.createElement('span');
+                l1.textContent = ' · L1 provisional';
+                l1.title = 'Level-1 (TOA, sin corrección atmosférica). USGS la reemplaza por L2 (superficie) en días.';
+                l1.style.cssText = 'color:#f0a14b; font-weight:bold;';
+                pFecha.appendChild(l1);
+            }
+            panel.appendChild(pFecha);
+
+            const grilla = document.createElement('div');
+            grilla.style.cssText = 'display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 3px;';
+            LANDSAT_COMPOSITES.forEach(({ tipo, titulo }) => {
+                const celda = document.createElement('div');
+                celda.style.cssText = 'background: #0d1117; border-radius: 6px; padding: 3px;';
+                const h4 = document.createElement('h4');
+                h4.style.cssText = 'color: #e67e22; margin: 0 0 10px 0; font-size: 0.9em;';
+                h4.textContent = titulo;
+                celda.appendChild(h4);
+                const cont = document.createElement('div');
+                cont.id = `landsat-${tipo}-${gridId}-${volcan}`;
+                cont.style.cssText = 'min-height: 220px; display: flex; align-items: center; justify-content: center;';
+                const spin = document.createElement('div');
+                spin.className = 'loading-spinner';
+                cont.appendChild(spin);
+                celda.appendChild(cont);
+                grilla.appendChild(celda);
+            });
+            panel.appendChild(grilla);
+            return { panel, fecha };
+        }
+
+        // Se llama DESPUES de insertar el panel en el DOM (renderImagenPanel busca
+        // el contenedor por id). Sin barra de escala: el buffer_km de Landsat vive
+        // en config_landsat.py de otro repo y no coincide con el de S2 (Villarrica
+        // 1.5 vs 1.0 km); dibujar la escala S2 sobre la imagen Landsat mentiria.
+        function cargarImagenesLandsat(volcan, fecha, gridId) {
+            LANDSAT_COMPOSITES.forEach(({ tipo, titulo }) => {
+                const id = `landsat-${tipo}-${gridId}-${volcan}`;
+                if (!fecha) { renderNoDisponible(id, 'Sin datos'); return; }
+                // Sin cache-buster: PNG con fecha en el nombre (ver nota en cargarPanelesList).
+                const url = `${REPO_LANDSAT_BASE_DASH}/docs/landsat/${encodeURIComponent(volcan)}/${fecha}_${tipo}.png`;
+                const img = new Image();
+                img.onload = () => renderImagenPanel(id, url, volcan + ' - Landsat ' + titulo, fecha);
+                img.onerror = () => renderNoDisponible(id);
+                img.src = url;
+            });
         }
 
         function toggleRiesgosos() {
@@ -1928,9 +2051,14 @@
             return esNueva ? 'border: 2px solid #dc2626; box-shadow: 0 0 12px rgba(220,38,38,0.5);' : 'border: 1px solid #30363d;';
         }
 
-        async function cargarPanelesList(volcanesList, gridId, subtitulos) {
+        async function cargarPanelesList(volcanesList, gridId, subtitulos, opciones = {}) {
             const grid = document.getElementById(gridId);
-            grid.innerHTML = '';
+            while (grid.firstChild) grid.removeChild(grid.firstChild);
+            // Marca de generacion: si la vista se recarga mientras esta corrida sigue
+            // esperando fetches (ej. dos clics seguidos en un toggle), la corrida vieja
+            // se retira en vez de seguir agregando paneles duplicados a la grilla.
+            const generacion = String(Date.now()) + Math.random();
+            grid.dataset.generacion = generacion;
             for (const volcan of volcanesList) {
                 const panel = document.createElement('div');
                 let ultimaFecha = '';
@@ -1941,6 +2069,7 @@
                     const lines = csvText.trim().split('\n');
                     if (lines.length > 1) ultimaFecha = lines[1].split(',')[0];
                 } catch (e) {}
+                if (grid.dataset.generacion !== generacion) return;
                 const esNueva = esNuevaHoy(volcan, ultimaFecha);
                 panel.style.cssText = `background: #161b22; border-radius: 4px; padding: 8px; ${bordeNuevoHTML(esNueva)}`;
                 const subtitulo = subtitulos && subtitulos[volcan] ? subtitulos[volcan] : '';
@@ -1968,6 +2097,11 @@
                     </div>`;
                 grid.appendChild(panel);
                 agregarCountdownAPanel(panel, volcan);   // cuenta regresiva al proximo paso
+                if (opciones.landsat) {
+                    const { panel: panelL, fecha: fechaL } = crearPanelLandsat(volcan, opciones.landsat, gridId);
+                    grid.appendChild(panelL);
+                    cargarImagenesLandsat(volcan, fechaL, gridId);
+                }
                 if (ultimaFecha) {
                     // SIN ?t=Date.now(): el nombre del PNG lleva la fecha, asi que el
                     // archivo es inmutable y cachearlo es correcto. El cache-buster
