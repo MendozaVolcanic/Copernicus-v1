@@ -2905,14 +2905,6 @@
   ],
   "Guallatiri": [
     {
-      "fecha": "2026-05-15",
-      "estado": "NORMAL",
-      "cambio_termico_pct": 1.57,
-      "max_diff_termico": 105.0,
-      "z_score": -0.58,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-05-17",
       "estado": "ATENCION",
       "cambio_termico_pct": 1.19,
@@ -3142,6 +3134,14 @@
       "cambio_termico_pct": 5.66,
       "max_diff_termico": 123.0,
       "z_score": 1.14,
+      "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-10-02",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 5.04,
+      "max_diff_termico": 132.0,
+      "z_score": 0.94,
       "confirmacion_cruzada": false
     }
   ],
@@ -4115,14 +4115,6 @@
   ],
   "Isluga": [
     {
-      "fecha": "2026-07-11",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 0.22,
-      "max_diff_termico": 62.0,
-      "z_score": -0.94,
-      "confirmacion_cruzada": true
-    },
-    {
       "fecha": "2026-07-14",
       "estado": "ALERTA",
       "cambio_termico_pct": 0.34,
@@ -4352,6 +4344,14 @@
       "cambio_termico_pct": 1.75,
       "max_diff_termico": 255.0,
       "z_score": -0.45,
+      "confirmacion_cruzada": true
+    },
+    {
+      "fecha": "2026-10-02",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 0.53,
+      "max_diff_termico": 72.0,
+      "z_score": -0.56,
       "confirmacion_cruzada": true
     }
   ],
@@ -9197,14 +9197,6 @@
   ],
   "Taapaca": [
     {
-      "fecha": "2026-05-20",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 2.07,
-      "max_diff_termico": 129.0,
-      "z_score": 0.32,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-05-25",
       "estado": "ALERTA",
       "cambio_termico_pct": 2.17,
@@ -9434,6 +9426,14 @@
       "cambio_termico_pct": 2.26,
       "max_diff_termico": 255.0,
       "z_score": -3.29,
+      "confirmacion_cruzada": true
+    },
+    {
+      "fecha": "2026-10-02",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 5.01,
+      "max_diff_termico": 158.0,
+      "z_score": 0.5,
       "confirmacion_cruzada": true
     }
   ],
@@ -14583,12 +14583,6 @@
   ],
   "Guallatiri::sentinel2": [
     {
-      "fecha": "2026-05-15",
-      "estado": "NORMAL",
-      "cambio_termico_pct": 1.57,
-      "z_score": -0.58
-    },
-    {
       "fecha": "2026-05-17",
       "estado": "ATENCION",
       "cambio_termico_pct": 1.19,
@@ -14761,6 +14755,12 @@
       "estado": "ALERTA",
       "cambio_termico_pct": 5.66,
       "z_score": 1.14
+    },
+    {
+      "fecha": "2026-10-02",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 5.04,
+      "z_score": 0.94
     }
   ],
   "Guallatiri::landsat": [
@@ -16660,12 +16660,6 @@
   ],
   "Isluga::sentinel2": [
     {
-      "fecha": "2026-07-16",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 0.19,
-      "z_score": -0.95
-    },
-    {
       "fecha": "2026-07-21",
       "estado": "ALERTA",
       "cambio_termico_pct": 0.08,
@@ -16838,6 +16832,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 1.88,
       "z_score": 0.16
+    },
+    {
+      "fecha": "2026-10-02",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 0.53,
+      "z_score": -0.56
     }
   ],
   "Isluga::landsat": [
@@ -22294,12 +22294,6 @@
   ],
   "Parinacota::sentinel2": [
     {
-      "fecha": "2026-05-15",
-      "estado": "NORMAL",
-      "cambio_termico_pct": 5.13,
-      "z_score": 0.53
-    },
-    {
       "fecha": "2026-05-17",
       "estado": "NORMAL",
       "cambio_termico_pct": 1.68,
@@ -22472,6 +22466,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 5.81,
       "z_score": 1.92
+    },
+    {
+      "fecha": "2026-10-02",
+      "estado": "NORMAL",
+      "cambio_termico_pct": 0.37,
+      "z_score": -0.69
     }
   ],
   "Parinacota::landsat": [
@@ -24710,12 +24710,6 @@
   ],
   "Taapaca::sentinel2": [
     {
-      "fecha": "2026-05-15",
-      "estado": "NORMAL",
-      "cambio_termico_pct": 2.04,
-      "z_score": -0.55
-    },
-    {
       "fecha": "2026-05-17",
       "estado": "ATENCION",
       "cambio_termico_pct": 2.07,
@@ -24888,6 +24882,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 5.35,
       "z_score": 1.89
+    },
+    {
+      "fecha": "2026-10-02",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 5.01,
+      "z_score": 0.5
     }
   ],
   "Taapaca::landsat": [
@@ -26885,14 +26885,6 @@
   "Copahue_Crater_Lake::landsat": [],
   "Isluga_Crater_Fumarola": [
     {
-      "fecha": "2026-07-16",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 0.54,
-      "max_diff_termico": 60.0,
-      "z_score": -1.47,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-07-21",
       "estado": "ALERTA",
       "cambio_termico_pct": 0.26,
@@ -27123,15 +27115,17 @@
       "max_diff_termico": 143.0,
       "z_score": -1.02,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-10-02",
+      "estado": "NORMAL",
+      "cambio_termico_pct": 1.75,
+      "max_diff_termico": 72.0,
+      "z_score": -0.5,
+      "confirmacion_cruzada": false
     }
   ],
   "Isluga_Crater_Fumarola::sentinel2": [
-    {
-      "fecha": "2026-07-16",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 0.54,
-      "z_score": -1.47
-    },
     {
       "fecha": "2026-07-21",
       "estado": "ALERTA",
@@ -27305,6 +27299,12 @@
       "estado": "NORMAL",
       "cambio_termico_pct": 1.08,
       "z_score": -1.02
+    },
+    {
+      "fecha": "2026-10-02",
+      "estado": "NORMAL",
+      "cambio_termico_pct": 1.75,
+      "z_score": -0.5
     }
   ],
   "Isluga_Crater_Fumarola::landsat": [],
