@@ -45,7 +45,7 @@ jobs:
           echo "✅ Confirmacion recibida"
 
       - name: Checkout completo (todo el historial)
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0          # clone con todo el historial
           persist-credentials: true

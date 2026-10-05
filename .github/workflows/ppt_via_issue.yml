@@ -41,7 +41,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Parsear y validar datos del issue
         id: parsear
@@ -128,7 +128,7 @@ jobs:
 
       - name: Setup Python
         if: steps.parsear.outputs.valido == 'true'
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.10'
 
