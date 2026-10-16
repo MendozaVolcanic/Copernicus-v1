@@ -5,7 +5,7 @@
 //     python scripts/generar_volcanes_js.py
 //
 // Single source of truth: config_sentinel2.VOLCANES
-// Generado: 2026-10-15T20:16:26.127108+00:00
+// Generado: 2026-10-16T19:56:53.635092+00:00
 // Total entidades: 51 (43 volcanes + 8 vistas zoom)
 // =====================================================================
 
