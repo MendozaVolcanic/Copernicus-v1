@@ -1,14 +1,6 @@
 {
   "Villarrica": [
     {
-      "fecha": "2026-08-05",
-      "estado": "NORMAL",
-      "cambio_termico_pct": 0.82,
-      "max_diff_termico": 47.0,
-      "z_score": -0.44,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-08-07",
       "estado": "NORMAL",
       "cambio_termico_pct": 4.37,
@@ -239,17 +231,17 @@
       "max_diff_termico": 86.0,
       "z_score": 17.86,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 0.0,
+      "max_diff_termico": 189.0,
+      "z_score": -1.02,
+      "confirmacion_cruzada": true
     }
   ],
   "Lascar": [
-    {
-      "fecha": "2026-06-27",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 0.81,
-      "max_diff_termico": 68.0,
-      "z_score": -0.48,
-      "confirmacion_cruzada": false
-    },
     {
       "fecha": "2026-07-05",
       "estado": "ALERTA",
@@ -480,6 +472,14 @@
       "cambio_termico_pct": 0.15,
       "max_diff_termico": 194.0,
       "z_score": -0.57,
+      "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ATENCION",
+      "cambio_termico_pct": 3.21,
+      "max_diff_termico": 114.0,
+      "z_score": 1.17,
       "confirmacion_cruzada": false
     }
   ],
@@ -4115,14 +4115,6 @@
   ],
   "Isluga": [
     {
-      "fecha": "2026-08-15",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 0.15,
-      "max_diff_termico": 44.0,
-      "z_score": -1.96,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-08-18",
       "estado": "ALERTA",
       "cambio_termico_pct": 4.47,
@@ -4352,6 +4344,14 @@
       "cambio_termico_pct": 0.01,
       "max_diff_termico": 45.0,
       "z_score": -1.78,
+      "confirmacion_cruzada": true
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 0.0,
+      "max_diff_termico": 31.0,
+      "z_score": -1.31,
       "confirmacion_cruzada": true
     }
   ],
@@ -7019,14 +7019,6 @@
   ],
   "Ollague": [
     {
-      "fecha": "2026-06-26",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 4.66,
-      "max_diff_termico": 110.0,
-      "z_score": 21.42,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-07-01",
       "estado": "ALERTA",
       "cambio_termico_pct": 6.63,
@@ -7256,6 +7248,14 @@
       "cambio_termico_pct": 5.73,
       "max_diff_termico": 164.0,
       "z_score": 1.16,
+      "confirmacion_cruzada": true
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 1.39,
+      "max_diff_termico": 128.0,
+      "z_score": -0.68,
       "confirmacion_cruzada": true
     }
   ],
@@ -8713,14 +8713,6 @@
   ],
   "San Pedro": [
     {
-      "fecha": "2026-07-01",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 3.32,
-      "max_diff_termico": 233.0,
-      "z_score": 0.91,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-07-03",
       "estado": "ALERTA",
       "cambio_termico_pct": 0.34,
@@ -8950,6 +8942,14 @@
       "cambio_termico_pct": 7.32,
       "max_diff_termico": 197.0,
       "z_score": 0.99,
+      "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ATENCION",
+      "cambio_termico_pct": 2.5,
+      "max_diff_termico": 140.0,
+      "z_score": -0.47,
       "confirmacion_cruzada": false
     }
   ],
@@ -10771,12 +10771,6 @@
   ],
   "Lascar::sentinel2": [
     {
-      "fecha": "2026-07-03",
-      "estado": "NUBLADO",
-      "cambio_termico_pct": 0,
-      "z_score": null
-    },
-    {
       "fecha": "2026-07-06",
       "estado": "ATENCION",
       "cambio_termico_pct": 6.37,
@@ -10949,6 +10943,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 0.15,
       "z_score": -0.57
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ATENCION",
+      "cambio_termico_pct": 3.21,
+      "z_score": 1.17
     }
   ],
   "Lascar::landsat": [
@@ -16506,12 +16506,6 @@
   ],
   "Irruputuncu::sentinel2": [
     {
-      "fecha": "2026-07-01",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 4.98,
-      "z_score": 1.46
-    },
-    {
       "fecha": "2026-07-03",
       "estado": "ALERTA",
       "cambio_termico_pct": 5.14,
@@ -16684,6 +16678,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 5.12,
       "z_score": 1.81
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "NORMAL",
+      "cambio_termico_pct": 4.57,
+      "z_score": 1.56
     }
   ],
   "Irruputuncu::landsat": [
@@ -16809,12 +16809,6 @@
     }
   ],
   "Isluga::sentinel2": [
-    {
-      "fecha": "2026-08-20",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 1.37,
-      "z_score": -0.12
-    },
     {
       "fecha": "2026-08-23",
       "estado": "ATENCION",
@@ -16988,6 +16982,12 @@
       "estado": "ALERTA",
       "cambio_termico_pct": 0.01,
       "z_score": -1.78
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 0.0,
+      "z_score": -1.31
     }
   ],
   "Isluga::landsat": [
@@ -21932,12 +21932,6 @@
   ],
   "Ollague::sentinel2": [
     {
-      "fecha": "2026-07-01",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 6.63,
-      "z_score": 3.29
-    },
-    {
       "fecha": "2026-07-03",
       "estado": "ALERTA",
       "cambio_termico_pct": 4.88,
@@ -22110,6 +22104,12 @@
       "estado": "ALERTA",
       "cambio_termico_pct": 5.73,
       "z_score": 1.16
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 1.39,
+      "z_score": -0.68
     }
   ],
   "Ollague::landsat": [
@@ -24420,12 +24420,6 @@
   ],
   "San Pedro::sentinel2": [
     {
-      "fecha": "2026-07-03",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 0.34,
-      "z_score": -0.5
-    },
-    {
       "fecha": "2026-07-06",
       "estado": "ALERTA",
       "cambio_termico_pct": 6.63,
@@ -24598,6 +24592,12 @@
       "estado": "ALERTA",
       "cambio_termico_pct": 7.32,
       "z_score": 0.99
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ATENCION",
+      "cambio_termico_pct": 2.5,
+      "z_score": -0.47
     }
   ],
   "San Pedro::landsat": [
@@ -27323,14 +27323,6 @@
   "Copahue_Crater_Lake::landsat": [],
   "Isluga_Crater_Fumarola": [
     {
-      "fecha": "2026-08-20",
-      "estado": "ATENCION",
-      "cambio_termico_pct": 2.46,
-      "max_diff_termico": 87.0,
-      "z_score": -0.33,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-08-23",
       "estado": "ATENCION",
       "cambio_termico_pct": 0.0,
@@ -27561,15 +27553,17 @@
       "max_diff_termico": 34.0,
       "z_score": -1.92,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 0.0,
+      "max_diff_termico": 20.0,
+      "z_score": -1.94,
+      "confirmacion_cruzada": false
     }
   ],
   "Isluga_Crater_Fumarola::sentinel2": [
-    {
-      "fecha": "2026-08-20",
-      "estado": "ATENCION",
-      "cambio_termico_pct": 2.46,
-      "z_score": -0.33
-    },
     {
       "fecha": "2026-08-23",
       "estado": "ATENCION",
@@ -27743,18 +27737,16 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 0.0,
       "z_score": -1.92
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 0.0,
+      "z_score": -1.94
     }
   ],
   "Isluga_Crater_Fumarola::landsat": [],
   "Lascar_Crater": [
-    {
-      "fecha": "2026-07-03",
-      "estado": "NUBLADO",
-      "cambio_termico_pct": null,
-      "max_diff_termico": null,
-      "z_score": null,
-      "confirmacion_cruzada": false
-    },
     {
       "fecha": "2026-07-06",
       "estado": "ATENCION",
@@ -27986,15 +27978,17 @@
       "max_diff_termico": 194.0,
       "z_score": -0.32,
       "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "NORMAL",
+      "cambio_termico_pct": 1.0,
+      "max_diff_termico": 114.0,
+      "z_score": -0.16,
+      "confirmacion_cruzada": false
     }
   ],
   "Lascar_Crater::sentinel2": [
-    {
-      "fecha": "2026-07-03",
-      "estado": "NUBLADO",
-      "cambio_termico_pct": 0,
-      "z_score": null
-    },
     {
       "fecha": "2026-07-06",
       "estado": "ATENCION",
@@ -28168,6 +28162,12 @@
       "estado": "NORMAL",
       "cambio_termico_pct": 0.78,
       "z_score": -0.32
+    },
+    {
+      "fecha": "2026-10-31",
+      "estado": "NORMAL",
+      "cambio_termico_pct": 1.0,
+      "z_score": -0.16
     }
   ],
   "Lascar_Crater::landsat": [],
