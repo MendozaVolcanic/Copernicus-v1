@@ -1546,11 +1546,12 @@
             
             document.getElementById('system-status').textContent = 'Cargando...';
             
-            await loadTimeline();
-            
-            // CAMBIO QUIRRGICO 6: CARGAR FECHAS COPERNICUS
+            // Primero el JSON global de fechas: loadTimeline() lo usa como
+            // fuente unica (la misma que la Sala de Monitoreo).
             await cargarFechasDisponiblesCopernicus(currentVolcano);
-            
+
+            await loadTimeline();
+
             // CARGAR TIMELAPSES AUTOMTICOS
             await cargarTimelapesAutomaticos(currentVolcano);
             
@@ -1680,18 +1681,31 @@
         }
 
         async function loadTimeline() {
-            const metadata = await loadMetadata(currentVolcano);
-            metadataCache[currentVolcano] = metadata;
-            
+            // FIX 2026-11-15: las fechas salen del JSON global
+            // fechas_disponibles_copernicus.json, el mismo que lee la Sala de
+            // Monitoreo. Antes salian de sentinel2/<volcan>/metadata.csv, que
+            // puede quedar atrasado cuando las descargas paralelas se pisan
+            // (ver FIX 2026-05-28 en cargarFechasComparacion): la Sala mostraba
+            // imagenes que el dashboard no listaba. El CSV queda solo como
+            // respaldo si el JSON no carga o no trae el volcan.
+            const delJSON = (fechasDisponiblesCopernicus
+                             && fechasDisponiblesCopernicus[currentVolcano]) || [];
+            let fechasBase = delJSON;
+            if (!fechasBase.length) {
+                const metadata = await loadMetadata(currentVolcano);
+                metadataCache[currentVolcano] = metadata;
+                fechasBase = metadata.map(m => m.fecha).filter(Boolean);
+            }
+
             const timelineDiv = document.getElementById('timeline-dates');
-            
-            if (metadata.length === 0) {
+
+            if (fechasBase.length === 0) {
                 timelineDiv.innerHTML = '<div class="no-image">No hay fechas disponibles</div>';
                 availableDates = [];
                 return;
             }
-            
-            const fechas = [...new Set(metadata.map(m => m.fecha))].sort().reverse();
+
+            const fechas = [...new Set(fechasBase)].sort().reverse();
             availableDates = fechas;
             
             timelineDiv.innerHTML = '';
