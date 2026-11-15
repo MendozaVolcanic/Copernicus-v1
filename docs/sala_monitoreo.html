@@ -811,15 +811,21 @@ async function cargarImagenesVolcan(volcan, badgeFecha, subRGB, subTH, card) {
   } else {
     const fechas = fechasLandsat && fechasLandsat[volcan];
     if (fechas && fechas.length > 0) {
-      // La Sala prioriza FRESCURA: muestra siempre la última L1 e ignora la L2,
-      // porque cuando USGS publica la L2 de una fecha ya suele haber una L1 más
-      // reciente de la pasada siguiente. Si no hay ninguna L1, cae a la última
-      // disponible (que entonces será L2).
+      // La Sala muestra la fecha MAS RECIENTE, sea L1 o L2: la misma que abre
+      // el dashboard Landsat. FIX 2026-11-15: antes elegia "la ultima L1" y
+      // asumia que siempre era la pasada mas nueva. No lo es: cuando la pasada
+      // siguiente llega directo como L2, la Sala quedaba atras (el 15-nov, 30
+      // de 38 volcanes mostraban el 10-nov habiendo 11-nov; Parinacota, 9 dias).
+      // Union con las fechas L1 por si niveles_landsat.json se adelanta al JSON
+      // de fechas. El marcador L1 de abajo sigue indicando si es provisional.
       const l1 = nivelesLandsat[volcan];
-      const l1dates = l1 ? Object.keys(l1).sort() : [];
-      fecha = l1dates.length ? l1dates[l1dates.length - 1] : fechas[fechas.length - 1];
-      urlRGB = `${REPO_LANDSAT}/${encodeURIComponent(volcan)}/${fecha}_RGB.png`;
-      urlTH  = `${REPO_LANDSAT}/${encodeURIComponent(volcan)}/${fecha}_SWIR.png`;
+      const todas = [...new Set([...fechas, ...(l1 ? Object.keys(l1) : [])])].sort();
+      fecha = todas[todas.length - 1];
+      // Anticache: la L2 reemplaza a la L1 con el MISMO nombre de archivo; sin
+      // esto el navegador del kiosko puede seguir mostrando la L1 vieja.
+      const tLs = Date.now();
+      urlRGB = `${REPO_LANDSAT}/${encodeURIComponent(volcan)}/${fecha}_RGB.png?t=${tLs}`;
+      urlTH  = `${REPO_LANDSAT}/${encodeURIComponent(volcan)}/${fecha}_SWIR.png?t=${tLs}`;
     }
   }
 
@@ -846,9 +852,9 @@ async function cargarImagenesVolcan(volcan, badgeFecha, subRGB, subTH, card) {
       const l1 = document.createElement('span');
       l1.className = 'badge badge-l1';
       l1.textContent = 'L1';
-      l1.title = 'Level-1 (TOA): la imagen más reciente disponible (~1 día tras la ' +
-                 'pasada). La Sala prioriza la frescura y muestra siempre L1; el ' +
-                 'producto L2 corregido queda para el dashboard detallado.';
+      l1.title = 'Level-1 (TOA): imagen provisional (~1 día tras la ' +
+                 'pasada), sin corrección atmosférica. Se reemplaza por L2 ' +
+                 'cuando USGS publica el producto corregido.';
       header.appendChild(l1);
     }
   }
