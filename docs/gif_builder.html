@@ -572,9 +572,13 @@ async function generarGif() {
     return;
   }
 
-  // ── Codificar con gifenc (rgb444) — preserva anomalías térmicas ──────────────
+  // ── Codificar con gifenc (rgb565): preserva anomalías térmicas ──────────────
+// FIX 2026-11-15: rgb565 en vez de rgb444. rgb444 deja 16 niveles por canal y
+// la nieve salia en manchas planas (Planchon-Peteroa, 102 colores contra 223;
+// error medio 3,15 contra 1,60 por canal). rgb565 conserva igual los rojos de
+// anomalia (72/72 Villarrica y 17/17 Nevados de Chillan, 2026-11-08 y 13).
   // Por qué gifenc y no gif.js: gif.js (NeuQuant) APLASTA/PIERDE los píxeles rojos
-  // de anomalía térmica chica (verificado: 0/45 en Lascar). gifenc con format rgb444
+  // de anomalía térmica chica (verificado: 0/45 en Lascar). gifenc con format rgb565
   // cuantiza cada frame con su propia paleta local → preserva los rojos 100%,
   // equivalente a la cuantización MAXCOVERAGE server-side. Mismo encoder ya probado
   // en ppt_builder.html. Se usa para RGB y thermal por igual.
@@ -628,10 +632,10 @@ async function generarGif() {
       dibujarEscala(ctx, tamano, bufferKm);
     }
 
-    // Cuantización rgb444 por frame: paleta local que conserva los rojos de anomalía.
+    // Cuantización rgb565 por frame: paleta local que conserva los rojos de anomalía.
     const { data } = ctx.getImageData(0, 0, tamano, tamano);
-    const palette = quantize(data, 256, { format: 'rgb444' });
-    const index = applyPalette(data, palette, 'rgb444');
+    const palette = quantize(data, 256, { format: 'rgb565' });
+    const index = applyPalette(data, palette, 'rgb565');
     // repeat:0 en el 1er frame = loop infinito; delay en ms como pediste.
     enc.writeFrame(index, tamano, tamano, { palette, delay: ms, repeat: idx === 0 ? 0 : undefined });
 
