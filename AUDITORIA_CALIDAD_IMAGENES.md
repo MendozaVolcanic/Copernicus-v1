@@ -213,6 +213,32 @@ python auditoria_imagenes.py --landsat ../Landsat-v1 --detalle
 
 ---
 
+### C1 · La etapa de conversión borraba lo que el PNG sí tenía: **confirmado, corregido el 2026-11-15**
+
+**Lente:** artefacto · **Eje:** B4 (fallo silencioso)
+
+Esta auditoría y `calidad_imagenes.yml` miran el PNG publicado. Lo que pasa **después** (GIF,
+PPT, miniaturas) no lo revisaba nadie, y ahí había tres fallas del mismo tipo: cuantizar la
+paleta priorizando los colores frecuentes descarta los píxeles rojos de anomalía por ser raros.
+
+| Dónde | Qué hacía | Medido | Estado |
+|---|---|---|---|
+| `ppt_generator.py` (Copernicus y Landsat) | GIF > 1 MB se recuantizaba con ADAPTIVE 64. Pillow lee el 1er cuadro en P (intacto) y los demás en RGB (recuantizados) | Villarrica 2026-11-13: 128 rojos → **0** en todos los cuadros menos el primero. Los timelapses térmicos pesan 2,8 a 3,3 MB: se activaba siempre | Corregido: térmico con MAXCOVERAGE 128 y sin achicar (128/128) |
+| `docs/gif_builder.html` (Landsat) | `gif.js` (NeuQuant), el mismo que en Copernicus perdía 0/45 en Lascar | No medido en Landsat (rara vez hay rojo) | Corregido: gifenc rgb565 |
+| `docs/gif_builder.html` y `ppt_builder.html` (Copernicus) | gifenc rgb444: 16 niveles por canal, la nieve en manchas planas | Planchon-Peteroa: 102 colores contra 223; rojos 72/72 y 17/17 con rgb565 | Corregido: rgb565 |
+
+**Límites que no son error y conviene saber en turno:**
+- **Sala, vista "todos":** cada imagen ocupa ~130 px. Villarrica 128 rojos → 1-2 visibles; Nevados
+  de Chillán 27 → 0 (solo un tono rosado). En esa vista, que no se vea rojo no significa que no
+  haya anomalía. La vista por zona da ~3 veces más espacio.
+- **Timelapse achicado por peso** (`gif_optimizer.py`, escala 0,75): Nevados 27 → 7 rojos puros. La
+  mancha sigue, más tenue.
+
+**Cierre de proceso pendiente:** la auditoría automática debería revisar también los GIF y los PPT
+generados, no solo el PNG.
+
+---
+
 ## Oportunidades *(lista aparte — no compiten con las brechas)*
 
 | # | Eje | Oportunidad |
