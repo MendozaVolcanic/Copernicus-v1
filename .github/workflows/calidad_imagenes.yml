@@ -13,10 +13,17 @@ name: Calidad de imagenes publicadas
 # (--landsat), pero corria a mano: grep de "auditoria" en los workflows de ambos
 # repos daba cero. El instrumento estaba construido y desconectado.
 #
-# Este workflow lo enchufa. No falla por el stock heredado -- 325 casos altos al
-# 2026-08-30, ya medidos y documentados en AUDITORIA_CALIDAD_IMAGENES.md -- sino
-# solo por casos NUEVOS contra tasks/auditoria_baseline.json. Un job que arranca
-# en rojo se ignora a la semana, y entonces el control existe pero no sirve.
+# Este workflow lo enchufa. No falla por el stock heredado sino cuando la
+# frecuencia de un tipo de hallazgo en la ultima semana se dispara respecto de lo
+# habitual (scripts/comparar_auditoria.py explica por que tasas y no una lista de
+# casos). Un job que arranca en rojo se ignora a la semana, y entonces el control
+# existe pero no sirve.
+#
+# Del 2026-08-31 al 2026-11-16 fallo en 77 de 77 corridas sin haber comparado
+# nunca: el paso Auditar corre con bash -e, el script sale 1 si hay cualquier
+# caso alto y pipefail propagaba ese 1, asi que la comparacion quedaba skipped.
+# Y su linea base, por fecha, ya no tenia ningun caso vigente (auditoria
+# 2026-11-15, hallazgos 401 y 402).
 #
 # La alarma la da alerta_cron_caido.yml, que observa este workflow por nombre y
 # abre un Issue cuando termina en failure. Sin esa ruta de vuelta, un rojo mas en
@@ -27,14 +34,9 @@ on:
     # 23:30 UTC, despues de change_analysis (22:30) y de las descargas del dia.
     - cron: '30 23 * * *'
   workflow_dispatch:
-    inputs:
-      actualizar_base:
-        description: 'Regenerar la linea base con lo que se mida hoy (revisar antes)'
-        type: boolean
-        default: false
 
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: calidad-imagenes
@@ -100,22 +102,21 @@ jobs:
             # es peor que no correr, porque su silencio se lee como "todo bien".
             echo "::warning::Landsat-v1 no disponible; esta corrida audita solo Sentinel-2"
           fi
+          # auditoria_imagenes.py sale 1 cuando hay hallazgos altos (siempre los hay:
+          # nieve, bordes de pasada) y 2 cuando su control positivo falla. Solo el 2
+          # corta aca: quien decide por los hallazgos es el paso de comparacion.
+          # Sin este manejo, bash -e + pipefail abortaba el paso con el 1 y la
+          # comparacion nunca corrio (77 de 77 corridas).
+          set +e
           python auditoria_imagenes.py $LANDSAT --json auditoria_actual.json | tee auditoria.log
-          # auditoria_imagenes.py sale 1 cuando hay hallazgos altos, incluidos los
-          # heredados. Quien decide si el job falla es el paso de comparacion.
-          echo "ok=1" >> "$GITHUB_OUTPUT"
-
-      - name: Regenerar linea base (solo si se pidio a mano)
-        if: ${{ inputs.actualizar_base }}
-        run: |
-          python scripts/comparar_auditoria.py \
-            --actual auditoria_actual.json \
-            --escribir-base tasks/auditoria_baseline.json
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add tasks/auditoria_baseline.json
-          git commit -m "chore(auditoria): actualizar linea base de calidad de imagenes" || echo "sin cambios"
-          git push
+          rc=${PIPESTATUS[0]}
+          set -e
+          echo "auditoria_imagenes.py salio con $rc"
+          if [ "$rc" -ne 0 ] && [ "$rc" -ne 1 ]; then
+            echo "::error::la auditoria fallo (codigo $rc): instrumento roto, no hay nada que comparar"
+            exit "$rc"
+          fi
+          test -s auditoria_actual.json
 
       - name: Resumen en la pagina del run
         if: always()
@@ -128,17 +129,20 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Fallar solo si aparecieron casos altos NUEVOS
-        if: ${{ !inputs.actualizar_base }}
+      - name: Fallar si la calidad de la ultima semana se aparto de la habitual
         run: |
-          # pipefail explicito: sin esto el codigo de salida seria el de tee y el
-          # job nunca fallaria -- exactamente el fallo silencioso que este workflow
-          # existe para cazar.
-          set -o pipefail
+          # El codigo que cuenta es el del script, no el de tee (PIPESTATUS), y se
+          # devuelve al final: asi el resumen se escribe tambien cuando falla, que
+          # es justo cuando alguien lo va a leer.
+          set +e
           python scripts/comparar_auditoria.py \
-            --actual auditoria_actual.json \
-            --base tasks/auditoria_baseline.json | tee comparacion.log
-          echo '### Contra la linea base' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat comparacion.log >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+            --actual auditoria_actual.json | tee comparacion.log
+          rc=${PIPESTATUS[0]}
+          set -e
+          {
+            echo '### Ultima semana contra lo habitual'
+            echo '```'
+            cat comparacion.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit "$rc"

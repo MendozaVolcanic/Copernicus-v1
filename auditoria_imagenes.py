@@ -278,7 +278,14 @@ def auditar_rgb(raiz, patron, filtro=None):
                                   'severidad': sev, 'detalle': det,
                                   'archivo': os.path.relpath(f, raiz),
                                   'metricas': m})
-    return hallazgos, sum(len(v) for v in grupos.values())
+    # Imagenes revisadas por fecha: el denominador de las tasas que compara
+    # scripts/comparar_auditoria.py. Sin el, un dia sin descargas se leeria como
+    # un dia sin hallazgos.
+    por_fecha = {}
+    for items in grupos.values():
+        for fecha, _ in items:
+            por_fecha[fecha] = por_fecha.get(fecha, 0) + 1
+    return hallazgos, sum(len(v) for v in grupos.values()), por_fecha
 
 
 def auditar(raiz, patron, filtro=None):
@@ -339,7 +346,14 @@ def auditar(raiz, patron, filtro=None):
                                   'severidad': sev, 'detalle': det,
                                   'archivo': os.path.relpath(f, raiz),
                                   'metricas': m})
-    return hallazgos, sum(len(v) for v in grupos.values())
+    # Imagenes revisadas por fecha: el denominador de las tasas que compara
+    # scripts/comparar_auditoria.py. Sin el, un dia sin descargas se leeria como
+    # un dia sin hallazgos.
+    por_fecha = {}
+    for items in grupos.values():
+        for fecha, _ in items:
+            por_fecha[fecha] = por_fecha.get(fecha, 0) + 1
+    return hallazgos, sum(len(v) for v in grupos.values()), por_fecha
 
 
 def control_positivo():
@@ -459,8 +473,10 @@ def main():
         fuentes.append(('LANDSAT 8/9 RGB', args.landsat, 'docs/landsat/**/*_RGB.png', auditar_rgb))
 
     todo = []
+    revisadas = {}
     for nombre, base, patron, fn in fuentes:
-        hall, n = fn(base, patron, args.volcan)
+        hall, n, por_fecha = fn(base, patron, args.volcan)
+        revisadas[nombre] = por_fecha
         todo.extend({**h, 'fuente': nombre} for h in hall)
         print(f"{nombre}: {n} imagenes revisadas, {len(hall)} hallazgos")
 
@@ -487,7 +503,8 @@ def main():
 
     if args.json:
         with open(args.json, 'w', encoding='utf-8') as fh:
-            json.dump({'hallazgos': todo, 'total': len(todo)}, fh,
+            json.dump({'hallazgos': todo, 'total': len(todo),
+                       'revisadas': revisadas}, fh,
                       indent=2, ensure_ascii=False)
         print(f"\nJSON escrito en {args.json}")
 
