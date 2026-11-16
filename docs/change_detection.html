@@ -358,6 +358,7 @@
 // Imagenes Sentinel-2 servidas desde raw.githubusercontent (no desde Pages):
 // docs/sentinel2/ se excluye del artifact de Pages para no pasar el limite de 1GB.
 const REPO_BASE = 'https://raw.githubusercontent.com/MendozaVolcanic/Copernicus-v1/main';
+const REPO_LANDSAT_BASE = 'https://raw.githubusercontent.com/MendozaVolcanic/Landsat-v1/master';
 
 // --- Safe DOM helpers ---
 function el(tag, attrs, children) {
@@ -667,7 +668,11 @@ function crearImagenCard(labelText, src) {
     const card = el('div', { className: 'imagen-card' });
     card.appendChild(el('div', { className: 'img-label' }, labelText));
     const img = el('img', { src: src, alt: labelText });
-    img.onerror = function() { this.alt = 'Imagen no disponible'; this.src = ''; };
+    // Si falta el PNG se dice con texto: una imagen vacia sobre fondo negro se confunde con una escena oscura.
+    img.onerror = function() {
+        this.replaceWith(el('div', { style: 'padding:30px 10px;text-align:center;color:#f0883e;font-size:0.8em;' },
+            'No hay PNG publicado para esta fecha'));
+    };
     card.appendChild(img);
     return card;
 }
@@ -682,6 +687,8 @@ function renderDetalle(nombre) {
     // volcan (nombres con espacios o ' - ' rompen raw.githubusercontent si van crudos).
     const imgUrl = (fecha, tipo) =>
         REPO_BASE + '/docs/sentinel2/' + encodeURIComponent(nombre) + '/' + fecha + '_' + tipo + '.png';
+    const imgUrlLandsat = (fecha, tipo) =>
+        REPO_LANDSAT_BASE + '/docs/landsat/' + encodeURIComponent(nombre) + '/' + fecha + '_' + tipo + '.png';
 
     // Header
     const header = el('div', { className: 'detalle-header' });
@@ -902,33 +909,50 @@ function renderDetalle(nombre) {
     crossref.appendChild(mirovaCard);
     panel.appendChild(crossref);
 
-    // Imágenes Thermal
-    if (v.fecha_nueva && v.fecha_anterior) {
-        const thermalSection = el('div', { className: 'imagenes-section' });
-        thermalSection.appendChild(el('h3', {}, 'Thermal False Color (SWIR2/SWIR1/Red)'));
-        const thermalGrid = el('div', { className: 'imagenes-grid' });
-        thermalGrid.appendChild(crearImagenCard('Anterior: ' + v.fecha_anterior,
-            imgUrl(v.fecha_anterior, 'ThermalFalseColor')));
-        thermalGrid.appendChild(crearImagenCard('Reciente: ' + v.fecha_nueva,
-            imgUrl(v.fecha_nueva, 'ThermalFalseColor')));
-        thermalSection.appendChild(thermalGrid);
-        panel.appendChild(thermalSection);
+    // Imagenes por sensor. Cada sensor muestra SUS fechas y SUS PNG: el estado de
+    // nivel superior lo decide a veces Landsat, y pedir PNG Sentinel-2 en fechas
+    // Landsat dejaba la imagen "Reciente" vacia justo en el volcan en ALERTA
+    // (hallazgo 101, auditoria 2026-11-15). El sensor que decidio el estado va primero.
+    const porSensor = v.por_sensor || {};
+    const s2 = porSensor.sentinel2 || (porSensor.landsat ? {} : v);
+    const ls = porSensor.landsat || {};
+    const decide = (x) => x && x.fecha_nueva && x.fecha_nueva === v.fecha_nueva
+        && (x.fecha_anterior || null) === (v.fecha_anterior || null);
+    const sensores = [
+        { clave: 's2', datos: s2, nombre: 'Sentinel-2',
+          productos: [['ThermalFalseColor', 'Thermal False Color (B12/B11/B4)'], ['RGB', 'RGB (Color Natural)']],
+          url: imgUrl },
+        { clave: 'ls', datos: ls, nombre: 'Landsat 8/9',
+          productos: [['SWIR', 'SWIR (B7/B6/B4, equivalente al Thermal False Color)'], ['RGB', 'RGB (Color Natural)']],
+          url: imgUrlLandsat },
+    ];
+    if (decide(ls) && !decide(s2)) sensores.reverse();
 
-        const rgbSection = el('div', { className: 'imagenes-section' });
-        rgbSection.appendChild(el('h3', {}, 'RGB (Color Natural)'));
-        const rgbGrid = el('div', { className: 'imagenes-grid' });
-        rgbGrid.appendChild(crearImagenCard('Anterior: ' + v.fecha_anterior,
-            imgUrl(v.fecha_anterior, 'RGB')));
-        rgbGrid.appendChild(crearImagenCard('Reciente: ' + v.fecha_nueva,
-            imgUrl(v.fecha_nueva, 'RGB')));
-        rgbSection.appendChild(rgbGrid);
-        panel.appendChild(rgbSection);
+    for (const sen of sensores) {
+        const d = sen.datos;
+        if (!d || !d.fecha_nueva) continue;
+        const marca = decide(d) ? ' (sensor que define el estado)' : '';
+        const refTxt = d.fecha_anterior ? ''
+            : ' | Referencia: ' + (d.fecha_referencia || 'sin fecha anterior');
+        for (const [tipo, titulo] of sen.productos) {
+            const sec = el('div', { className: 'imagenes-section' });
+            sec.appendChild(el('h3', {}, sen.nombre + ': ' + titulo + marca));
+            if (refTxt) sec.appendChild(el('div', { style: 'font-size:0.75em;color:#8b949e;margin-bottom:6px;' },
+                'Estado ' + (d.estado || '') + refTxt));
+            const grid = el('div', { className: 'imagenes-grid' });
+            if (d.fecha_anterior) grid.appendChild(crearImagenCard('Anterior: ' + d.fecha_anterior, sen.url(d.fecha_anterior, tipo)));
+            grid.appendChild(crearImagenCard('Reciente: ' + d.fecha_nueva, sen.url(d.fecha_nueva, tipo)));
+            sec.appendChild(grid);
+            panel.appendChild(sec);
+        }
     }
 
-    // Índices espectrales (NDVI, NBR, SWIR_Anomaly) — si están disponibles
-    if (v.indices_disponibles && Object.keys(v.indices_disponibles).length > 0) {
+    // Indices espectrales (NDVI, NBR, SWIR_Anomaly): son productos Sentinel-2, asi
+    // que usan las fechas de Sentinel-2 aunque el estado lo haya decidido Landsat (V1-01).
+    const idxDisp = s2.indices_disponibles || {};
+    if (s2.fecha_nueva && Object.keys(idxDisp).length > 0) {
         const indicesSection = el('div', { className: 'imagenes-section' });
-        indicesSection.appendChild(el('h3', {}, 'Indices Espectrales (fecha: ' + v.fecha_nueva + ')'));
+        indicesSection.appendChild(el('h3', {}, 'Indices Espectrales Sentinel-2 (fecha: ' + s2.fecha_nueva + ')'));
 
         const indicesInfo = {
             'NDVI': 'Vegetacion (verde=sana, rojo=danada/ceniza)',
@@ -939,30 +963,24 @@ function renderDetalle(nombre) {
         const indicesGrid = el('div', { className: 'imagenes-grid' });
         indicesGrid.style.gridTemplateColumns = 'repeat(3, 1fr)';
 
-        for (const [idx, disponible] of Object.entries(v.indices_disponibles)) {
+        for (const [idx, disponible] of Object.entries(idxDisp)) {
             if (disponible) {
-                const card = el('div', { className: 'imagen-card' });
-                card.appendChild(el('div', { className: 'img-label' }, idx + ': ' + (indicesInfo[idx] || '')));
-                const img = el('img', { src: imgUrl(v.fecha_nueva, idx), alt: idx });
-                img.onerror = function() { this.alt = 'No disponible'; this.style.minHeight = '100px'; };
-                card.appendChild(img);
-                indicesGrid.appendChild(card);
+                indicesGrid.appendChild(crearImagenCard(idx + ': ' + (indicesInfo[idx] || ''), imgUrl(s2.fecha_nueva, idx)));
             }
         }
         indicesSection.appendChild(indicesGrid);
         panel.appendChild(indicesSection);
 
-        // Si hay fecha anterior, mostrar comparación de índices
-        if (v.fecha_anterior) {
+        if (s2.fecha_anterior) {
             const indicesCompSection = el('div', { className: 'imagenes-section' });
-            indicesCompSection.appendChild(el('h3', {}, 'Comparacion Indices: ' + v.fecha_anterior + ' vs ' + v.fecha_nueva));
-            for (const [idx, disponible] of Object.entries(v.indices_disponibles)) {
+            indicesCompSection.appendChild(el('h3', {}, 'Comparacion Indices Sentinel-2: ' + s2.fecha_anterior + ' vs ' + s2.fecha_nueva));
+            for (const [idx, disponible] of Object.entries(idxDisp)) {
                 if (disponible) {
                     const compGrid = el('div', { className: 'imagenes-grid' });
-                    compGrid.appendChild(crearImagenCard(idx + ' Anterior: ' + v.fecha_anterior,
-                        imgUrl(v.fecha_anterior, idx)));
-                    compGrid.appendChild(crearImagenCard(idx + ' Reciente: ' + v.fecha_nueva,
-                        imgUrl(v.fecha_nueva, idx)));
+                    compGrid.appendChild(crearImagenCard(idx + ' Anterior: ' + s2.fecha_anterior,
+                        imgUrl(s2.fecha_anterior, idx)));
+                    compGrid.appendChild(crearImagenCard(idx + ' Reciente: ' + s2.fecha_nueva,
+                        imgUrl(s2.fecha_nueva, idx)));
                     indicesCompSection.appendChild(compGrid);
                 }
             }
