@@ -7503,14 +7503,6 @@
   ],
   "Parinacota": [
     {
-      "fecha": "2026-06-29",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 0.02,
-      "max_diff_termico": 48.0,
-      "z_score": -0.65,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-07-04",
       "estado": "ALERTA",
       "cambio_termico_pct": 0.18,
@@ -7740,6 +7732,14 @@
       "cambio_termico_pct": 2.41,
       "max_diff_termico": 144.0,
       "z_score": -0.1,
+      "confirmacion_cruzada": false
+    },
+    {
+      "fecha": "2026-11-24",
+      "estado": "ATENCION",
+      "cambio_termico_pct": 5.28,
+      "max_diff_termico": 255.0,
+      "z_score": 0.73,
       "confirmacion_cruzada": false
     }
   ],
@@ -9197,14 +9197,6 @@
   ],
   "Taapaca": [
     {
-      "fecha": "2026-07-14",
-      "estado": "ALERTA",
-      "cambio_termico_pct": 0.75,
-      "max_diff_termico": 169.0,
-      "z_score": -0.65,
-      "confirmacion_cruzada": false
-    },
-    {
       "fecha": "2026-07-19",
       "estado": "ALERTA",
       "cambio_termico_pct": 0.89,
@@ -9434,6 +9426,14 @@
       "cambio_termico_pct": 1.28,
       "max_diff_termico": 206.0,
       "z_score": -4.34,
+      "confirmacion_cruzada": true
+    },
+    {
+      "fecha": "2026-11-24",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 6.25,
+      "max_diff_termico": 142.0,
+      "z_score": 62.44,
       "confirmacion_cruzada": true
     }
   ],
@@ -22932,12 +22932,6 @@
   ],
   "Parinacota::landsat": [
     {
-      "fecha": "2026-06-02",
-      "estado": "ATENCION",
-      "cambio_termico_pct": 0.13,
-      "z_score": -22.49
-    },
-    {
       "fecha": "2026-06-09",
       "estado": "ATENCION",
       "cambio_termico_pct": 5.38,
@@ -23110,6 +23104,12 @@
       "estado": "ALERTA",
       "cambio_termico_pct": 2.41,
       "z_score": -0.1
+    },
+    {
+      "fecha": "2026-11-24",
+      "estado": "ATENCION",
+      "cambio_termico_pct": 5.28,
+      "z_score": 0.73
     }
   ],
   "Planchon-Peteroa::sentinel2": [
@@ -25592,6 +25592,12 @@
       "estado": "ATENCION",
       "cambio_termico_pct": 4.23,
       "z_score": 3.86
+    },
+    {
+      "fecha": "2026-11-24",
+      "estado": "ALERTA",
+      "cambio_termico_pct": 6.25,
+      "z_score": 62.44
     }
   ],
   "Tatara-San Pedro::sentinel2": [
